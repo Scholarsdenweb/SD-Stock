@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-q+w4=oja3q@%*t3ic_$vnamsyeb42mo^^br(_!^o)4)(&z0uiv
 DEBUG = True
 
 # ALLOWED_HOSTS = ['www.sdstock.scholarsden.in', 'sdstock.scholarsden.in']
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 
 # Application definition
