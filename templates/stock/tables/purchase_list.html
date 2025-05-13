@@ -1,0 +1,77 @@
+{% extends 'dashboard/home.html' %}
+{% load paginator_tag %}
+
+{% block table %}
+
+<div>
+    <h2>Purchases</h2>
+    <div>
+        <a class="btn btn-primary" role="button" href="{% url 'stock:purchase' %}">Add</a>
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#downloadform">Download</button>
+
+        <div class="modal fade" tabindex="-1" id="downloadform" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog ">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Download Stock</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            {{form}}
+                            <input type="submit" value="Save" class="btn btn-success mt-3">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+    <table class="table my-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item</th>
+                <th>Item Id</th>
+                <th>Quantity</th>
+                <th>Size</th>
+                <th>Payment</th>
+                <th>Purchaser</th>
+                <th>Purchased On</th>
+                <th>Last updated</th>
+            </tr>
+        </thead>
+            {% for p in purchases %}
+            <tr>
+                <td>
+                    <a href="{{p.get_absolute_url}}">{{p.id}}</a>
+                </td>
+                <td>{{p.item.name | capfirst}}</td>
+                <td>
+                    {{p.item.id}}
+                </td>
+                <td>{{p.quantity}}</td>
+                <td>{{p.item.get_size_display | upper}}</td>
+                <td>{{p.payment}}</td>
+                <td>{{p.user.name}}({{request.user.emp_id}})</td>
+                <td>{{p.created_at}}</td>
+                <td>{{p.updated_at}}</td>
+            </tr>
+            {% endfor %}
+        <tbody>
+
+        </tbody>
+
+
+    </table>
+
+    <div>
+        {% show_pagination request kits %}
+    </div>
+
+{% endblock %}

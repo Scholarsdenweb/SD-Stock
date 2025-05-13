@@ -1,0 +1,65 @@
+{% extends 'dashboard/home.html' %}
+{% load paginator_tag %}
+
+{% block table %}
+
+<div>
+    <h2>Kits</h2>
+    <div>
+        <a class="btn btn-primary" role="a" href="{% url 'stock:issue_kit' %}">Issue</a>
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#downloadform">Download</button>
+
+        <div class="modal fade" tabindex="-1" id="downloadform" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog ">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Download Kit list</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            {{form}}
+                            <input type="submit" value="Save" class="btn btn-success mt-3">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+    <table class="table my-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Enrollement ID</th>
+                <th>Items</th>
+                <th>quantity</th>
+                <th>Issue Date</th>
+                <th>Status</th>
+                <th>Issuing Authority</th>
+            </tr>
+        </thead>
+            {% for k in kits %}
+            <tr>
+                <td>{{k.id}}</td>
+                <td>{{k.enrollement}}</td>
+                <td>{{k.get_items}}</td>
+                <td>{{k.quantity}}</td>
+                <td>{{k.issue_date | date:'Y-m-d'}}</td>
+                <td>{{k.status}}</td>
+                <td>{{k.user.name}}({{k.user.emp_id}})</td>
+            </tr>
+            {% endfor %}
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <div>
+        {% show_pagination request kits %}
+    </div>
+{% endblock %}

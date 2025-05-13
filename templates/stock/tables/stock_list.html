@@ -1,0 +1,71 @@
+{% extends 'dashboard/home.html' %}
+{% load paginator_tag %}
+
+{% block table %}
+
+<div>
+    <h2>Stock</h2>
+    <div>
+        <a class="btn btn-primary" role="button" href="{% url 'stock:add_stock' %}">Add</a>
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#downloadform">Download</button>
+
+        <div class="modal fade" tabindex="-1" id="downloadform" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog ">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Download Purchase List</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            {{form}}
+                            <input type="submit" value="Save" class="btn btn-success mt-3">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+    <table class="table my-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item</th>
+                <th>Item ID</th>
+                <th>Size</th>
+                <th>Quantity</th>
+                <th>Manager</th>
+                <th>Dated On</th>
+                <th>Updated On</th>
+            </tr>
+        </thead>
+            {% for s in stocks %}
+            <tr>
+                <td>
+                    <a href="{{s.get_absolute_url}}">{{s.id}}</a>
+                </td>
+                <td>{{s.stock_item.name | capfirst}}</td>
+                <td>{{s.stock_item.id}}</td>
+                <td>{{s.stock_item.get_size_display | upper}}</td>
+                <td>{{s.quantity}}</td>
+                <td>{{s.user.name}}({{s.user.emp_id}})</td>
+                <td>{{s.date | date:'Y/m/d'}}</td>
+                <td>{{s.update_at | date:'Y/m/d'}}</td>
+            </tr>
+            {% endfor %}
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <div>
+        {% show_pagination request kits %}
+    </div>
+
+{% endblock %}
