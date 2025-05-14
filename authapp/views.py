@@ -14,7 +14,6 @@ def register(request):
             messages.success(request, 'User registered successfully')
             return render(request, 'authapp/register.html', {'form': form})
         else:
-            print(form.errors)
             messages.error(request, 'User not registered')
             return render(request, 'authapp/register.html', {'form': form})
     form = SignUpForm()
