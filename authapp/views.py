@@ -45,7 +45,7 @@ def user_login(request):
                 form.fields['emp_id'].widget.attrs['class'] = 'form-control is-invalid my-2'
                 form.fields['password'].widget.attrs['class'] = 'form-control is-invalid my-2'
                 messages.error(request, 'Invalid username or password')
-                return render(request, 'authapp/register.html', {'form': form})
+                return render(request, 'authapp/login.html', {'form': form})
 
 
                 
