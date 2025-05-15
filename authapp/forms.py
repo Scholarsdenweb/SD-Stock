@@ -8,17 +8,28 @@ class SignUpForm(UserCreationForm):
         fields = ('emp_id', 'name', 'email', 'password1', 'password2')
 
         widgets = {
-            'emp_id': forms.TextInput(attrs={'class': 'form-control my-2'}),
-            'name': forms.TextInput(attrs={'class': 'form-control my-2'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control my-2'}),
+            'emp_id': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Employee ID'}),
+            'name': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Email'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control my-2'}),
-            'password2': forms.PasswordInput(attrs={'class': 'form-control my-2'})
+            'password2': forms.PasswordInput(attrs={'class': 'form-control my-2'}),
         }
+
+        labels = {
+            'emp_id': 'Your Employee ID*',
+            'name': 'Full name',
+            'email': 'Email',
+            'password1': 'Password*',
+            'password2': 'Confirm Password*',
+        }
+
 
     def __init__(self, *args, **kwargs):
         super(SignUpForm, self).__init__(*args, **kwargs)
-        self.fields['password1'].widget.attrs.update({'class': 'form-control my-2'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control my-2'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control my-2', 'placeholder': 'Enter at least 8 characters long password'})
+        self.fields['password1'].label = 'Password*'
+        self.fields['password2'].widget.attrs.update({'class': 'form-control my-2', 'placeholder': 'Enter same password as above'})
+        self.fields['password2'].label = 'Confirm Password*'
 
 
 

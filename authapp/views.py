@@ -12,9 +12,16 @@ def register(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'User registered successfully')
-            return render(request, 'authapp/register.html', {'form': form})
+            next_url = request.POST.get('next') or request.GET.get('next')
+            return redirect(next_url or 'dashboard:home')  # Replace with your redirect URL
         else:
-            messages.error(request, 'User not registered')
+            for f in form.fields:
+               if form[f].errors:
+                #    form[f].field.widget.attrs['class'] = 'form-control is-invalid'
+                   form[f].field.widget.attrs.update({'class': 'form-control is-invalid'})
+               else:
+                #    form[f].field.widget.attrs['class'] = 'form-control is-valid'
+                   form[f].field.widget.attrs.update({'class': 'form-control is-valid'})
             return render(request, 'authapp/register.html', {'form': form})
     form = SignUpForm()
 
@@ -26,7 +33,6 @@ def user_login(request):
     if request.method == 'POST':
         form = loginForm(request.POST)
         if form.is_valid():
-            print('login view')
             emp_id = form.cleaned_data['emp_id']
             password = form.cleaned_data['password']
             user = authenticate(request, emp_id=emp_id, password=password)
@@ -36,10 +42,13 @@ def user_login(request):
 
                 return redirect(next_url or 'dashboard:home')  # Replace with your redirect URL
             else:
-                form.add_error(None, 'Invalid employee id or password')
-    else:
-        if request.user.is_authenticated:
-            return redirect('dashboard:home')
+                form.fields['emp_id'].widget.attrs['class'] = 'form-control is-invalid my-2'
+                form.fields['password'].widget.attrs['class'] = 'form-control is-invalid my-2'
+                messages.error(request, 'Invalid username or password')
+                return render(request, 'authapp/register.html', {'form': form})
+
+
+                
     form = loginForm()
     return render(request, 'authapp/login.html', {'form': form})
 

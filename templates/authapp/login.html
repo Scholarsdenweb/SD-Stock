@@ -17,10 +17,22 @@
             {% endfor %}
         {% endif %}
 
-        <form action="" method="post">
+        <form action="" method="POST" novalidate>
             <h1>Login </h1>
             {% csrf_token %} 
-            {{form}}
+            {% for field in form %}
+            <div class="form-group">
+                {{field.label_tag}}
+                {{field}}
+
+                {% if field.errors %}
+                    <span class="">{{field.errors}}</span>
+                    <span>{{field.help_text}}</span>
+                {% endif %}
+
+             
+            </div>
+            {% endfor %}
             <span class="text-white">Don't have an account? <a href="{% url 'authapp:register' %}" class="text-warning">Register</a></span><br>
             <button class="btn btn-warning mt-3">Submit</button">
         </form>
