@@ -185,3 +185,6 @@ class KitResource(resources.ModelResource):
         items = obj.get_items()
         return items
     
+
+admin.site.register(Student)
+    

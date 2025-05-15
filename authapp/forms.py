@@ -37,3 +37,15 @@ class SignUpForm(UserCreationForm):
 class loginForm(forms.Form):
     emp_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control my-3'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control my-3'}))
+
+    class Meta:
+        model = StockUser
+        fields = ['emp_id', 'password']
+
+
+    def __init__(self, *args, **kwargs):
+        super(loginForm, self).__init__(*args, **kwargs)
+        self.fields['emp_id'].label = 'Employee ID*'
+        self.fields['password'].label = 'Password*'
+
+
