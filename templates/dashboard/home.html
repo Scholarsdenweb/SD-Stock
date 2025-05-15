@@ -11,9 +11,9 @@
             <ul class="side-navigation">
                 <li><a href="{% url 'stock_list' %}" class="{% if request.path == '/' %} active {% endif %}">Stock</a></li>
                 <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == '/stock/item/add/' %} active {% endif %}">Add Item</a></li>
-                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}">Purchases</a></li>
+                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}">Purchase</a></li>
                 <li><a href="{% url 'stock:transaction_list' %}" class="{% if request.path == '/stock/transaction/list/' %} active {% endif %}">Transactions</a></li>
-                <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == '/stock/issue/list/' %} active {% endif %}">Kits</a></li>
+                <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == '/stock/issue/list/' %} active {% endif %}">Issue Kits</a></li>
             </ul>
         </div>
 

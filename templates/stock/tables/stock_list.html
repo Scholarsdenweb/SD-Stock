@@ -6,7 +6,9 @@
 <div>
     <h2>Stock</h2>
     <div>
+        {% comment %}
         <a class="btn btn-primary" role="button" href="{% url 'stock:add_stock' %}">Add</a>
+        {% endcomment %}
         <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#downloadform">Download</button>
 
         <div class="modal fade" tabindex="-1" id="downloadform" data-bs-backdrop="static" data-bs-keyboard="false">
