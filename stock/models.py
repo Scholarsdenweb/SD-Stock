@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.core.validators import RegexValidator
 
 
 User = get_user_model()
@@ -104,7 +105,7 @@ class Stock(models.Model):
     
 
 class Student(models.Model):
-    enrollement = models.CharField(max_length=20, unique=True)
+    enrollement = models.CharField(max_length=15, unique=True, validators=[RegexValidator(r'^\d+$')])
     name = models.CharField(max_length=100)
     batch = models.CharField(max_length=50, null=True, blank=True)
     roll = models.CharField(max_length=50, null=True, blank=True)
@@ -141,6 +142,13 @@ class Issue(models.Model):
         try:
             student = Student.objects.get(enrollement=self.enrollement)
             return student.name
+        except Student.DoesNotExist:
+           return None
+        
+    def get_student(self):
+        try:
+            student = Student.objects.get(enrollement=self.enrollement)
+            return student
         except Student.DoesNotExist:
            return None
 

@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.core.validators import RegexValidator
+
 
 # Create your models here.
 class StockUserManager(BaseUserManager):
@@ -18,9 +20,8 @@ class StockUserManager(BaseUserManager):
 
         return self.create_user(emp_id, password, **extra_fields)
 
-
 class StockUser(AbstractBaseUser, PermissionsMixin):
-    emp_id = models.CharField(max_length=20, unique=True, verbose_name='Employee ID')
+    emp_id = models.CharField(max_length=10, unique=True, verbose_name='Employee ID', validators=[RegexValidator(r'^\d+$')])
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
