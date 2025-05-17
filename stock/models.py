@@ -175,6 +175,10 @@ class Transaction(models.Model):
     manager = models.ForeignKey(User, on_delete=models.CASCADE,  default=User)
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.item} x {self.quantity}"
     

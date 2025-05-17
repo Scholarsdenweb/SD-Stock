@@ -125,7 +125,7 @@ class PurchaseResource(resources.ModelResource):
     item__size = Field
     class Meta:
         model = Purchase
-        fields = ('id','item__name', 'item__id', 'item__size', 'quantity', 'payment', 'user', 'created_at', 'updated_at')
+        fields = ('id','item__name', 'item__id', 'item__size', 'quantity', 'payment', 'user', 'supplier', 'created_at', 'updated_at')
 
     def dehydrate_created_at(self, obj):
         return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
@@ -138,7 +138,7 @@ class PurchaseResource(resources.ModelResource):
             return 'N/A'
         else:
             return obj.item.size.upper()
-
+    
 
 class TransactionResouece(resources.ModelResource):
     created_at = Field(column_name="Transaction Date")

@@ -22,4 +22,6 @@ urlpatterns = [
     path('transaction/list/', views.TransactionListView.as_view(), name='transaction_list'),
 
     path('issue/list/', views.IssueListView.as_view(), name='kit_list'),
+
+
 ]

@@ -11,6 +11,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from stock.utils import *
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 # Create your views here.
 class ItemCreateView(CreateView):
@@ -54,19 +55,21 @@ def create_purchase_view(request):
            purchase = form.save(commit=False)
            purchase.user = request.user
 
+           purchase.save()
+
             # check if the item being purchased already exists in the purchase list
-           existing_purchage = Purchase.objects.filter(user=request.user, item=purchase.item ).first()
+           existing_purchage = Purchase.objects.filter(item=purchase.item ).first()
+
+           # Update the stock having this item
+           item_in_stock = Stock.objects.get( stock_item=existing_purchage.item)
+           item_in_stock.quantity += purchase.quantity
+           item_in_stock.save()
+
+
+
 
            if existing_purchage:
-               existing_purchage.quantity += purchase.quantity
-               existing_purchage.payment += purchase.payment
-               existing_purchage.save()
 
-
-                # Update the stock having this item
-               item_in_stock = Stock.objects.get(user=request.user, stock_item=existing_purchage.item)
-               item_in_stock.quantity += purchase.quantity
-               item_in_stock.save()
 
                 # Record the transaction
                transaction = Transaction.objects.create(item=purchase.item, transaction_type=Transaction.PURCHASE, quantity=purchase.quantity, reference_id=existing_purchage.pk, reference_model=purchase.__class__.__name__, notes="Item purchased" ,manager=request.user)
@@ -151,9 +154,20 @@ def create_issue_view(request):
         form = IssueForm(request.POST)
 
         if form.is_valid():
+            print("valid")
             obj = form.save(commit=False)
             form.instance.user = request.user
-            obj.save()
+            enrollement = form.cleaned_data['enrollement']
+            student = Student.objects.get(enrollement=enrollement) 
+
+            print("found student", student)
+
+            if student:
+                #  obj.save()
+                pass
+            else:
+                messages.error(request, 'Student not found')
+                return render(request, 'stock/issue_form.html', {'form': form})
 
 
             # Check if the requested item and quantity exist in the stock
@@ -195,15 +209,22 @@ def issue_kit(request):
         if form.is_valid():
             obj = form.save(commit=False)
             obj.user = request.user
-            obj.save()
-            form.save_m2m()
+
+
+            student_exist = Student.objects.filter(enrollement=obj.enrollement).exists()
+
+            if not student_exist:
+                messages.error(request, 'Student not found')
+                return render(request, 'stock/issue_form.html', {'form': form})
+            else:
+                obj.save()
+                form.save_m2m()
 
 
             for item in obj.items.all():
-                id = item.pk
 
                 try:
-                    stock = Stock.objects.get(user=request.user, stock_item__id=id)
+                    stock = Stock.objects.get(stock_item__pk=id)
                     if stock.quantity > 0:
                         messages.success(request, f'{item.name} with size {item.size} issued successfully')
 
@@ -232,7 +253,7 @@ class PurchaseListView(LoginRequiredMixin,ListView, FormView):
     model = Purchase
     template_name = 'stock/tables/purchase_list.html'
     context_object_name = 'purchases'
-    paginate_by = 10
+    paginate_by = 5
     form_class = DownloadForm
 
     def post(self, request, *args, **kwargs):
@@ -251,7 +272,7 @@ class StockListView(LoginRequiredMixin, ListView, FormView):
     template_name = 'stock/tables/stock_list.html'
     context_object_name = 'stocks'
     form_class = DownloadForm
-    paginate_by = 10
+    paginate_by = 5
 
     def post(self, request, *args, **kwargs):
         responce = download_stock(self, request)
@@ -269,7 +290,7 @@ class TransactionListView(LoginRequiredMixin, ListView, FormView):
     model = Transaction
     template_name = 'stock/tables/transaction_list.html'
     context_object_name = 'transactions'
-    paginate_by = 10
+    paginate_by = 5
     form_class = DownloadForm
 
     def post(self, request, *args, **kwargs):
@@ -282,7 +303,7 @@ class IssueListView(LoginRequiredMixin, ListView, FormView):
     model = Issue
     template_name = 'stock/tables/issue_list.html'
     context_object_name = 'kits'
-    paginate_by = 10
+    paginate_by = 5
     form_class = DownloadForm
 
     def post(self, request, *args, **kwargs):

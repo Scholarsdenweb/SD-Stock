@@ -8,7 +8,7 @@ timestamp = datetime.timestamp(now)
 
 def update_stock_quantity(request, item, quantity):
     print('updating stock quantity')
-    stock = Stock.objects.filter(user=request.user, stock_item=item).first()
+    stock = Stock.objects.filter(stock_item=item).first()
     stock.quantity += quantity
     stock.save()
 

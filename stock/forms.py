@@ -65,12 +65,13 @@ class PurchaseForm(ModelForm):
 
     class Meta:
         model = Purchase
-        fields = ['item', 'quantity', 'payment']
+        fields = ['item', 'quantity', 'payment', 'supplier']
 
         widgets = {
             'item': forms.Select(attrs={'class': 'form-select mt-2'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control mt-2'}),
-            'payment': forms.NumberInput(attrs={'class': 'form-control mt-2'})
+            'payment': forms.NumberInput(attrs={'class': 'form-control mt-2'}),
+            'supplier': forms.TextInput(attrs={'class': 'form-control mt-2'})
         }
 
 
