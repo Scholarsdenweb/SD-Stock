@@ -115,6 +115,7 @@ class IssueForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
+        
         super(IssueForm, self).__init__(*args, **kwargs)
 
 
@@ -128,5 +129,6 @@ FORMAT_CHOICE = [
 
 class DownloadForm(forms.Form):
     format = forms.ChoiceField(choices=FORMAT_CHOICE, widget=forms.Select(attrs={'class': 'form-select'}))
+
 
 

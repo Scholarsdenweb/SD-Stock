@@ -1,7 +1,8 @@
-from stock.models import Stock, Transaction
+from stock.models import Stock, Transaction, Issue
 from django.http import HttpResponse, JsonResponse
 from .admin import (StockResource, PurchaseResource, TransactionResouece,  KitResource)
 from datetime import datetime
+from django import forms
 
 now = datetime.now()
 timestamp = datetime.timestamp(now)
@@ -11,6 +12,8 @@ def update_stock_quantity(request, item, quantity):
     stock = Stock.objects.filter(stock_item=item).first()
     stock.quantity += quantity
     stock.save()
+
+    return stock
 
 
 def handle_issue_creation(user, issue_instance):
@@ -68,3 +71,36 @@ def download_kits(self, request):
 
         response =create_export_file(self,request, KitResource, 'kits-list')
         return response
+
+
+
+def delete_issued_kit(request,issued_kit):
+        for kit in issued_kit:
+            kit = Issue.objects.get(pk=int(kit['id']))
+            
+            # kit.delete()
+            # for item in kit.items.all():
+            #       tr = Transaction.objects.create(
+            #           item=item,
+            #           transaction_type=Transaction.RETURN,
+            #           quantity=kit.quantity,
+            #           user=request.user
+            #       )
+
+            #       tr.save()
+
+
+            # kit.delete()
+
+        
+        return JsonResponse({'kits': issued_kit})
+        
+
+def get_issued_items(enrollement=None):
+    issued_kit = Issue.objects.filter(enrollement=enrollement)
+    issued_items = []
+    if issued_kit:
+        for item in issued_kit:
+            for i in item.items.all():
+                issued_items.append(i)
+    return issued_items

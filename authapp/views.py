@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from authapp.forms import *
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponse
 # Create your views here.
 
 
@@ -56,3 +57,13 @@ def user_login(request):
 def logout_user(request):
     logout(request)
     return redirect('authapp:login')
+
+
+def hxtest(request):
+   
+    if request.method == 'POST':
+        print(request.POST)
+        data = request.POST.get('text')
+        return HttpResponse(f"<p style='color:green'>{data}</p>")
+
+    return render(request, 'authapp/hxtest.html')

@@ -132,6 +132,10 @@ class Issue(models.Model):
         items = ", ".join([str(item) for item in self.items.all()])
         return f"{self.enrollement} - {items }" 
     
+
+    def get_issued_date(self):
+        return self.issue_date.strftime("%d-%m-%Y %H:%M:%S")
+    
     def get_items(self):
         return ", ".join([str(item.name.capitalize()) for item in self.items.all()])
 

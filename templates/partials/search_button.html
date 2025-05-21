@@ -1,0 +1,7 @@
+ <p class="text-warning alert">Please enter valid enrollement number</p>
+ <button type="button" class="btn btn-warning mt-3"
+hx-post="{% url 'stock:search_kit' %}"
+    hx-trigger="click"
+    hx-swap="outerHTML"
+    hx-target="this">
+Search</button>

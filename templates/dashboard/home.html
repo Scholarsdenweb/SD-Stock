@@ -9,11 +9,12 @@
 
         <div class="col-md-3 col-lg-2 col-sm-12 col-12  sidebar">
             <ul class="side-navigation">
-                <li><a href="{% url 'stock_list' %}" class="{% if request.path == '/' %} active {% endif %}">Stock</a></li>
-                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == '/stock/item/add/' %} active {% endif %}">Add Item</a></li>
-                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}">Purchase</a></li>
-                <li><a href="{% url 'stock:transaction_list' %}" class="{% if request.path == '/stock/transaction/list/' %} active {% endif %}">Transactions</a></li>
-                <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == '/stock/issue/list/' %} active {% endif %}">Issue Kits</a></li>
+                <li><a href="{% url 'stock_list' %}" class="{% if request.path == '/' %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
+                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == '/stock/item/add/' %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Add Item</a></li>
+                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase</a></li>
+                <li><a href="{% url 'stock:transaction_list' %}" class="{% if request.path == '/stock/transaction/list/' %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
+                <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == '/stock/issue/list/' %} active {% endif %}"><i class="fa-solid fa-gift me-2" style="color: #ffffff;"></i>Issue Kits</a></li>
+                <li><a href="{% url 'stock:search_kit' %}" class="{% if request.path == '/stock/return/kit/' %} active {% endif %}"><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;"></i>Return Kits</a></li>
             </ul>
         </div>
 

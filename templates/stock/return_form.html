@@ -1,0 +1,51 @@
+{% extends  'dashboard/home.html' %}
+{% load static %}
+
+{% block table %}
+
+<div class="container text-white">
+    <div class="row my-5">
+        <div class="col-md-6 col-lg-6 mx-auto shadow p-2" style="background-color: #c51315;">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <h1>Return Kit</h1>
+            
+            <div class="form-group">
+                <input type="text" name="enrollement" placeholder="Enter enrollement" class="form-control" required
+>
+                <button type="button" class="btn btn-primary mt-3"
+                hx-post="{% url 'stock:search_kit' %}"
+                    hx-trigger="click"
+                    hx-swap="outerHTML"
+                    hx-target="this">
+                Search</button>
+            </div>
+                    
+                   
+           <div id="result"></div>
+
+            <!-- <button class="btn btn-primary mt-3"
+                hx-post="{% url 'stock:search_kit' %}" 
+                hx-target="this" 
+                hx-trigger="click" 
+                hx-swap="outerHTML">Search
+            </button>    -->
+            
+            <!-- {% include "partials/return_list.html" %} -->
+        </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

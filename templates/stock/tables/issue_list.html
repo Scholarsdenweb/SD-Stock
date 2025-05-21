@@ -6,7 +6,46 @@
 <div>
     <h2>Kits</h2>
     <div>
-        <a class="btn btn-primary" role="a" href="{% url 'stock:issue_kit' %}">Issue</a>
+        <button class="btn btn-primary"  data-bs-target="#checkstudent" data-bs-toggle="modal">Issue</button>
+
+        <div class="modal fade" tabindex="-1" id="checkstudent" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog ">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Student data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form >
+
+                            <div class="form-group">
+                            <input type="text" name="enrollement" placeholder="Enter enrollement" class="form-control" required
+                            hx-get="{% url 'stock:search_student' %}" 
+                            hx-target="#searchresult" 
+                            hx-trigger="keyup changed delay:500ms" 
+                            hx-swap="innerHTML">
+                            <!-- <button class="btn btn-primary mt-3"
+                            hx-get="{% url 'stock:search_student' %}" 
+                            hx-target="this" 
+                            hx-trigger="click" 
+                            hx-swap="outerHTML">Go</button> -->
+
+                            </div>
+
+                            <i class="fas fa-sync fa-spin htmx-indicator" id="indicator" ></i>
+                            <div id="searchresult" class="p-3"></div>
+                        </form>
+                        <!-- search spinner  -->
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+
         <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#downloadform">Download</button>
 
         <div class="modal fade" tabindex="-1" id="downloadform" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -66,5 +105,6 @@
 
     <div>
         {% show_pagination page_obj %}
+
     </div>
 {% endblock %}

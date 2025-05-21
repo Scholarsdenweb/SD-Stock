@@ -60,6 +60,10 @@
     color:white;
 }
 
+.side-navigation li:hover i {
+   animation: spin 1s ease-in-out 1 reverse;
+}
+
 .side-navigation li a.active {
     background-color:#c51315;
     color:white;
@@ -88,3 +92,36 @@
     }
     
 }
+
+
+/* styling the item list */
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.flex-container .item_list_container{
+    background-color:rgba(0,0,0,.3)
+}
+
+/* search indicator  */
+.htmx-indicator{
+    display:none;
+}
+.htmx-request .htmx-indicator{
+    display:inline;
+}
+.htmx-request.htmx-indicator{
+    display:inline;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
