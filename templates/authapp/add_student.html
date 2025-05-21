@@ -1,0 +1,43 @@
+{% extends 'dashboard/home.html' %}
+
+{% block table %}
+
+<div class="container text-white">
+    <div class="row my-2">
+        <div class="col-md-6 col-lg-6 mx-auto shadow  p-5 py-2" style="background-color: #c51315;">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <form action="" method="POST" novalidate>
+
+            <h1 class="text-capitalize">Add Student <a href="{% url 'authapp:import_students' %}" class="fs-5 link-light"><i class="fa-solid fa-file-import" style="color: #ffffff;"></i>Import</a></h1>
+            {% csrf_token %} 
+            {% for field in form %}
+            <div class="form-group">
+                {{field.label_tag}}
+                {{field}}
+
+                {% if field.errors %}
+                    <span class="">{{field.errors}}</span>
+                    <span class="">{{field.help_text}}</span>
+                {% endif %}
+
+             
+            </div>
+            {% endfor %}
+            
+            <button  class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#confirmbox">Submit</button">
+
+        </form>
+
+
+
+        </div>
+    </div>
+</div>{% endblock %}

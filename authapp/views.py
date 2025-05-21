@@ -3,6 +3,10 @@ from authapp.forms import *
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
+from django.views.generic.edit import CreateView
+from stock.models import Student
+from authapp.forms import StudentForm
+from authapp.utils import import_and_create_student
 # Create your views here.
 
 
@@ -59,11 +63,55 @@ def logout_user(request):
     return redirect('authapp:login')
 
 
-def hxtest(request):
-   
+def add_student(request):
     if request.method == 'POST':
-        print(request.POST)
-        data = request.POST.get('text')
-        return HttpResponse(f"<p style='color:green'>{data}</p>")
+        form = StudentForm(request.POST)
+        if form.is_valid():
+            form.save(commit=False)
+            enrollement = form.cleaned_data['enrollement']
+            roll = form.cleaned_data['roll']
+            batch = form.cleaned_data['batch']
 
-    return render(request, 'authapp/hxtest.html')
+            student_exist = Student.objects.filter(enrollement=enrollement).first()
+            if student_exist:
+                messages.error(request, 'Enrollement number already exists')
+                return render(request, 'authapp/add_student.html', {'form': form})
+            elif Student.objects.filter(roll=roll, batch=batch).exists():
+                messages.error(request, 'Roll number already exists')
+                form.add_error('roll', 'Roll number already exists')
+                return render(request, 'authapp/add_student.html', {'form': form})
+            else:
+                form.save()
+                messages.success(request, 'Student added successfully')
+                return render(request, 'authapp/add_student.html', {'form': form})
+
+        else:
+            form.fields['enrollement'].widget.attrs['class'] = 'form-control is-invalid my-2'
+            form.fields['name'].widget.attrs['class'] = 'form-control is-invalid my-2'
+            messages.error(request, 'Please fill up the required fields')
+            return render(request, 'authapp/add_student.html', {'form': form})
+
+    form = StudentForm()
+
+    return render(request, 'authapp/add_student.html', {'form': form})
+    
+
+def import_students(request):
+    if request.method == 'POST':
+        form = ImportStudentForm(request.POST, request.FILES)
+        if form.is_valid():
+            # {'success': True, 'created': len(imported_data)}
+            response = import_and_create_student(request.FILES['file'])
+            if not response['success']:
+                messages.error(request, response['message'])
+                return render(request, 'authapp/import_student.html', {'form': form})
+            
+            messages.success(request, f' {response["created"]} students added successfully')
+            return render(request, 'authapp/import_student.html', {'form': form})
+        else:
+            form.fields['file'].widget.attrs['class'] = 'form-control is-invalid my-2'
+            messages.error(request, 'Please choose the correct file format')
+            return render(request, 'authapp/import_student.html', {'form': form})
+
+    form = ImportStudentForm()
+    return render(request, 'authapp/import_student.html', {'form': form})

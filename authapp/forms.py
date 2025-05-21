@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from authapp.models import StockUser
+from stock.models import Student
+
 
 class SignUpForm(UserCreationForm):
     class Meta:
@@ -49,3 +51,38 @@ class loginForm(forms.Form):
         self.fields['password'].label = 'Password*'
 
 
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = '__all__'
+
+        labels = {
+            'enrollement': 'Enrollement Number*',
+            'name': 'Full Name*',
+            'roll': 'Roll Number',
+        }
+
+        widgets = {
+            'enrollement': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Enrollement Number'}),
+            'name': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Full Name'}),
+            'roll': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Roll Number'}),
+            'batch': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Your Batch'}),
+
+        }
+
+        def clean(self, *args, **kwargs):
+            super().clean()
+            enrollement = self.cleaned_data.get('enrollement')
+            roll = self.cleaned_data.get('roll')
+            batch = self.cleaned_data.get('batch')
+
+
+class ImportStudentForm(forms.Form):
+    file = forms.FileField(label='Upload Excel File', required=True, widget=forms.ClearableFileInput(attrs={'class': 'form-control my-2'}))
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        
+        if file and not file.name.endswith('.xlsx'):
+            raise forms.ValidationError("Only .xlsx files are allowed.")
+        return file

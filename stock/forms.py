@@ -121,13 +121,13 @@ class IssueForm(ModelForm):
 
 
 
-FORMAT_CHOICE = [
-    ('csv', 'CSV'),
-    ('xlsx', 'XLSX'),
-    ('json', 'JSON'),
+class DownloadForm(forms.Form):
+    FORMAT_CHOICE = [
+        ('csv', 'CSV'),
+        ('xlsx', 'XLSX'),
+        ('json', 'JSON'),
 ]
 
-class DownloadForm(forms.Form):
     format = forms.ChoiceField(choices=FORMAT_CHOICE, widget=forms.Select(attrs={'class': 'form-select'}))
 
 
