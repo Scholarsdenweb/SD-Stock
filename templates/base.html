@@ -28,7 +28,7 @@
     
     <nav class="navbar navbar-expand-lg sticky-top">
       <div class="container-fluid">
-        <a class="navbar-brand text-white" href="{% url 'stock_list' %}">Home</a>
+        <a class="navbar-brand text-white" href="{% url 'stock_list' %}"><i class="fa-solid fa-house me-2 fs-3" style="color: #ffffff;"></i></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -59,7 +59,7 @@
 
             <li class="nav-item text-white">
               <!-- <a class="nav-link" href="{% url 'stock:issue_kit' %}">Issue Kit</a> -->
-               {{request.user}}
+               {{request.user}}<i class="fa-solid fa-user-tie ms-2 fs-3" style="color: #ffffff;"></i>
             </li>
              {% else %}
 
