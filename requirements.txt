@@ -3,14 +3,17 @@ diff-match-patch==20241021
 Django==5.2
 django-braces==1.17.0
 django-extensions==4.1
+django-htmx==1.23.0
 django-import-export==4.3.7
 django-model-utils==5.0.0
 django-star-ratings==0.9.2
+django-template-partials==24.4
 djangorestframework==3.16.0
 et_xmlfile==2.0.0
 gunicorn==23.0.0
 openpyxl==3.1.5
 packaging==24.2
+pillow==11.2.1
 psycopg2==2.9.10
 python-dotenv==1.1.0
 sqlparse==0.5.3

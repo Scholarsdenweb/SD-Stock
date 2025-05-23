@@ -37,8 +37,8 @@ class SignUpForm(UserCreationForm):
 
 
 class loginForm(forms.Form):
-    emp_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control my-3'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control my-3'}))
+    emp_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control my-3', 'placeholder': 'Enter Employee ID'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control my-3', 'placeholder': 'Enter Password'}))
 
     class Meta:
         model = StockUser
