@@ -102,7 +102,7 @@ class StockForm(ModelForm):
 # ITEM_CHOICES =  tuple((item.name, item.name.capitalize()) for item in Item.objects.all())
 
 class IssueForm(ModelForm):
-    items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple)
+    items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple())
 
     class Meta:
         model = Issue

@@ -109,6 +109,7 @@ class Student(models.Model):
     name = models.CharField(max_length=100)
     batch = models.CharField(max_length=50, null=True, blank=True)
     roll = models.CharField(max_length=50, null=True, blank=True)
+    phone = models.CharField(max_length=15, null=True, blank=True, validators=[RegexValidator(r'^\d+$')])
 
     def __str__(self):
         return self.enrollement
@@ -130,7 +131,7 @@ class Issue(models.Model):
 
     def __str__(self):
         items = ", ".join([str(item) for item in self.items.all()])
-        return f"{self.enrollement} - {items }" 
+        return f"{self.enrollement} - {items}" 
     
 
     def get_issued_date(self):
@@ -155,6 +156,8 @@ class Issue(models.Model):
             return student
         except Student.DoesNotExist:
            return None
+       
+       
 
 
 

@@ -232,7 +232,6 @@ def issue_kit(request):
                         issuance_exist.save()
                     else:
                         messages.error(request, '{} - Out of stock'.format(item))
-                        obj.delete()
                         return render(request, 'stock/tables/issue_list.html', {'form': form})
 
                     if stock.quantity == 0:
@@ -247,17 +246,30 @@ def issue_kit(request):
                 messages.success(request, 'Updating kits')
                 return render(request, 'stock/tables/issue_list.html', {'form': form})
             else:
-                obj.save()
-                form.save_m2m()
+                # obj.save()
+                # form.save_m2m()
+                selected_items = form.cleaned_data['items']
+                print(selected_items)
 
 
-                for item in obj.items.all():
-                    stock = update_stock_quantity(request, item, -1)
-                    transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
-                    transaction.save()
+                for item in selected_items:
+                    # stock = Stock.objects.get(user=request.user, stock_item=item)
+                    print('selected item', item)
+                    
+                    try:
+                        stock = Stock.objects.get(stock_item=item)
+                        stock = update_stock_quantity(request, item, -1)
+                        obj.save()
+                        form.save_m2m()
+                        transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
+                        transaction.save()
+                        messages.success(request, 'Issuing {}'.format(item))
+                        return render(request, 'stock/tables/issue_list.html', {'form': form})
+                    except Stock.DoesNotExist:
+                        messages.error(request, '{} - Out of stock'.format(item))
+                        return render(request, 'stock/issue_form.html', {'form': form})
 
-                messages.success(request, 'Issuing kits')
-                return render(request, 'stock/tables/issue_list.html', {'form': form})
+
 
         else:
             messages.error(request, 'Form is not valid')
@@ -265,7 +277,6 @@ def issue_kit(request):
 
 
     # find issued kit with the enrollement no and modify the selection
-    print('enrollement form search', request.GET.get('enrollement'))
     issued_kit = Issue.objects.filter(enrollement=request.GET.get('enrollement')).first()
     items = Item.objects.all()
 
@@ -421,8 +432,6 @@ def return_kit(request):
 def search_student(request):
     # find issued kit with enrollement number
     enrollement = request.GET.get('enrollement')
-    print(enrollement)
-    print('gett gerjejfd')
     student = None
     url = reverse('stock:issue_kit')
 

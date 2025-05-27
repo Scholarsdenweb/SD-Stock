@@ -3,17 +3,21 @@ from django.http import HttpResponse, JsonResponse
 from .admin import (StockResource, PurchaseResource, TransactionResouece,  KitResource)
 from datetime import datetime
 from django import forms
+from django.contrib import messages
 
 now = datetime.now()
 timestamp = datetime.timestamp(now)
 
 def update_stock_quantity(request, item, quantity):
-    print('updating stock quantity')
+    
     stock = Stock.objects.filter(stock_item=item).first()
-    stock.quantity += quantity
-    stock.save()
-
-    return stock
+    if stock:
+        stock.quantity += quantity
+        stock.save()
+        return stock
+    else:
+        messages.error(request, '{} - Out of stock'.format(item))
+        return None
 
 
 def handle_issue_creation(user, issue_instance):

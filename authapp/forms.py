@@ -67,6 +67,7 @@ class StudentForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Full Name'}),
             'roll': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Roll Number'}),
             'batch': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Your Batch'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Phone Number'}),
 
         }
 

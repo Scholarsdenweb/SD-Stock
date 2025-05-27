@@ -52,7 +52,8 @@ def user_login(request):
                 messages.error(request, 'Invalid username or password')
                 return render(request, 'authapp/login.html', {'form': form})
 
-
+    if request.user.is_authenticated:
+        return redirect('dashboard:home')
                 
     form = loginForm()
     return render(request, 'authapp/login.html', {'form': form})
