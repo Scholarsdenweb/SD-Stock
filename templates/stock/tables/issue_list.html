@@ -18,24 +18,32 @@
                     </div>
 
                     <div class="modal-body">
-                        <form >
+                        <form hx-post={% url 'stock:filter_student' %} hx-target='#searchresult' hx-swap="outerHTML" id='searchform'>
 
                             <div class="form-group">
-                            <input type="text" name="enrollement" placeholder="Enter enrollement" class="form-control" required
-                            hx-get="{% url 'stock:search_student' %}" 
-                            hx-target="#searchresult" 
-                            hx-trigger="keyup changed delay:500ms" 
-                            hx-swap="innerHTML">
-                            <!-- <button class="btn btn-primary mt-3"
-                            hx-get="{% url 'stock:search_student' %}" 
-                            hx-target="this" 
-                            hx-trigger="click" 
-                            hx-swap="outerHTML">Go</button> -->
+
+                                <input type="text" name="enrollement" placeholder="Enter enrollement" class="form-control">                   
+                                
+                                
 
                             </div>
 
+                            <div class="form-group">
+                                <label for="full_name">Full Name</label>
+                                <input type="text" name="full_name" class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="">Date of birth</label>
+                                <input type="date" name="dob" class="form-control" min = '{{date_min}}' max='{{date_max}}'>
+                            </div>
+
+                            
                             <i class="fas fa-sync fa-spin htmx-indicator" id="indicator" ></i>
-                            <div id="searchresult" class="p-3"></div>
+
+                            <div class="form-group" id="searchresult">
+                                <button type="submit"   class="btn btn-dark" >Search</button>
+                            </div>
                         </form>
                         <!-- search spinner  -->
                     </div>
@@ -107,4 +115,15 @@
         {% show_pagination page_obj %}
 
     </div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    const searchForm = document.querySelector('#searchform')
+
+    searchForm.addEventListener('htmx:afterRequest', () => {
+        searchForm.reset()
+    })
+</script>
 {% endblock %}

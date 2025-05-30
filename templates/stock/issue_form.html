@@ -20,8 +20,10 @@
             <h1>Issue Kit</h1>
             {% csrf_token %} 
             {{form}}
+
+           
             <p id="msgbox'"></p>
-            <button type="button" class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#confirmbox">Submit</button">
+            <button type="button" class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#confirmbox">Submit</button>
 
         </form>
 
@@ -49,7 +51,7 @@
 </div>
 </div>   
 
-
+{% endblock table %}
 
 {% block scripts %}
 
@@ -57,4 +59,3 @@
 
 {% endblock %}
 
-{% endblock %}

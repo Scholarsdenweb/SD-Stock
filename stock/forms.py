@@ -5,6 +5,7 @@ from django.forms.widgets import DateInput
 from datetime import date
 from django.contrib import messages
 
+
 class StockDate(DateInput):
     input_type = 'date'
 
@@ -65,14 +66,17 @@ class PurchaseForm(ModelForm):
 
     class Meta:
         model = Purchase
-        fields = ['item', 'quantity', 'payment', 'supplier']
+        fields = ['item', 'quantity', 'total_amount', 'supplier', 'supplier_location']
 
         widgets = {
             'item': forms.Select(attrs={'class': 'form-select mt-2'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control mt-2'}),
-            'payment': forms.NumberInput(attrs={'class': 'form-control mt-2'}),
-            'supplier': forms.TextInput(attrs={'class': 'form-control mt-2'})
+            'total_amount': forms.NumberInput(attrs={'class': 'form-control mt-2'}),
+            'supplier': forms.TextInput(attrs={'class': 'form-control mt-2'}),
+            'supplier_location': forms.TextInput(attrs={'class': 'form-control mt-2'})
         }
+        
+        
 
 
 
@@ -106,10 +110,11 @@ class IssueForm(ModelForm):
 
     class Meta:
         model = Issue
-        fields = [ 'enrollement', 'items']
+        fields = [ 'enrollement', 'student', 'items']
 
         widgets = {
             'enrollement': forms.TextInput(attrs={'class': 'form-control mt-2'}),
+            'student': forms.Select(attrs={'class': 'form-select mt-2'}),
             'items': forms.SelectMultiple(attrs={'class': 'form-check-input mt-2'})
         }
 

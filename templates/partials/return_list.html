@@ -5,10 +5,12 @@
 <p class="mt-2">Select kit(s) to be returned</p>
 {% endif %}
 
-<form action="{% url 'stock:return_kit' %}" method="POST" id="retunform">
+<form action="{% url 'stock:return_kit' %}" method="POST" id="returnform">
     {% csrf_token %}
     
     <input type="text" name="enrollement" value="{{enrollement}}" hidden="hidden">
+    <input type="text" name="name" value="{{name}}" hidden="hidden">
+    <input type="text" name="dob" value="{{dob}}" hidden="hidden">
     {% for kit in kitlist %}
     <div class="form-check mt-2">
         
@@ -40,7 +42,7 @@
                     </div>
                      <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" form="retunform">Confirm</button>
+                        <button type="submit" class="btn btn-primary" form="returnform">Confirm</button>
                     </div>
 
                 </div>

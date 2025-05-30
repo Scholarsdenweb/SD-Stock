@@ -4,6 +4,8 @@ from .admin import (StockResource, PurchaseResource, TransactionResouece,  KitRe
 from datetime import datetime
 from django import forms
 from django.contrib import messages
+from stock.models import Student
+from django.db.models import Q
 
 now = datetime.now()
 timestamp = datetime.timestamp(now)
@@ -108,3 +110,32 @@ def get_issued_items(enrollement=None):
             for i in item.items.all():
                 issued_items.append(i)
     return issued_items
+
+
+def find_student(full_name=None, dob=None, enrollement=None):
+    
+    filters = Q()
+
+    if full_name:
+        filters |= Q(name__iexact=full_name)
+    if dob:
+        try:
+            # Try parsing dob to ensure it's a valid date
+            from datetime import datetime
+            dob = datetime.strptime(dob, '%Y-%m-%d').date()
+            filters |= Q(date_of_birth=dob)
+        except ValueError:
+            pass  # Ignore invalid date format
+    if enrollement:
+        filters |= Q(enrollement=enrollement)
+
+    if not filters:
+        return None  # Nothing to filter by
+
+    try:
+        return Student.objects.get(filters)
+    except Student.DoesNotExist:
+        return None
+    except Student.MultipleObjectsReturned:
+        # Optional: handle multiple matches
+        return None

@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from authapp.models import StockUser
 from stock.models import Student
+from datetime import date, timedelta
 
 
 class SignUpForm(UserCreationForm):
@@ -54,22 +55,26 @@ class loginForm(forms.Form):
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = '__all__'
+        fields = ['enrollement', 'receipt', 'name',  'date_of_birth', 'father_name', 'roll', 'batch', 'phone']
 
         labels = {
             'enrollement': 'Enrollement Number*',
             'name': 'Full Name*',
+            'receipt': 'Receipt Number*',
             'roll': 'Roll Number',
         }
 
         widgets = {
             'enrollement': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Enrollement Number'}),
+            'receipt': forms.TextInput(attrs={'class': 'form-control my-2'}),
+            'father_name': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': "Father's Name"}),
             'name': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Full Name'}),
             'roll': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Roll Number'}),
             'batch': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Your Batch'}),
             'phone': forms.TextInput(attrs={'class': 'form-control my-2', 'placeholder': 'Enter Phone Number'}),
-
+            'date_of_birth': forms.DateInput(attrs={'class': 'form-control my-2', 'type': 'date', 'min': date.today() - timedelta(days=365*10), 'max': date.today() - timedelta(days=365*5)}),
         }
+        
 
         def clean(self, *args, **kwargs):
             super().clean()

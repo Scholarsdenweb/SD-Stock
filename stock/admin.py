@@ -22,7 +22,7 @@ class ItemAdmin(admin.ModelAdmin):
 
 
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id','item__name', 'item__id', 'item__size', 'item__unit_price', 'quantity', 'payment', 'user', 'created_at', 'updated_at')
+    list_display = ('id','item__name', 'item__id', 'item__size', 'item__unit_price', 'quantity', 'total_amount', 'user', 'created_at', 'updated_at')
     ordering = ('created_at',)
 
 
@@ -125,7 +125,7 @@ class PurchaseResource(resources.ModelResource):
     item__size = Field
     class Meta:
         model = Purchase
-        fields = ('id','item__name', 'item__id', 'item__size', 'quantity', 'payment', 'user', 'supplier', 'created_at', 'updated_at')
+        fields = ('id','item__name', 'item__id', 'item__size', 'quantity', 'total_amount', 'user', 'supplier', 'created_at', 'updated_at')
 
     def dehydrate_created_at(self, obj):
         return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")

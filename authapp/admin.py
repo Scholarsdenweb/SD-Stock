@@ -13,4 +13,4 @@ class StudentResource(resources.ModelResource):
     class Meta:
         model = Student
         import_id_fields = ['enrollement']
-        fields = ['enrollement', 'name', 'roll', 'batch']
+        fields = ['name', 'father_name', 'dob']

@@ -38,9 +38,10 @@
                 <th>ID</th>
                 <th>Item</th>
                 <th>Item Id</th>
+                <th>Unit Price</th>
                 <th>Quantity</th>
                 <th>Size</th>
-                <th>Payment</th>
+                <th>Total Amount</th>
                 <th>Purchaser</th>
                 <th>Purchased On</th>
                 <th>Last updated</th>
@@ -55,9 +56,10 @@
                 <td>
                     {{p.item.id}}
                 </td>
+                <td>{{p.item.unit_price}}</td>
                 <td>{{p.quantity}}</td>
                 <td>{{p.item.get_size_display | upper}}</td>
-                <td>{{p.payment}}</td>
+                <td>{{p.get_total_amount}}</td>
                 <td>{{p.user.name}}({{request.user.emp_id}})</td>
                 <td>{{p.created_at}}</td>
                 <td>{{p.updated_at}}</td>

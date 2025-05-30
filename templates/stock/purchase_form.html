@@ -1,11 +1,19 @@
 {% extends  'dashboard/home.html' %}
 {% load static %}
+{% load partials %}
+
+{% comment %} {% startpartial total-amount %}
+        <label for="{{form.total_amount.id_form_total_amount}}">{{form.total_amount.label_tag}}</label>
+        <input type="text" nama="{{form.total_amount.html_name}}" class="form-control" value="{{ form.total_amount.value}}">
+{% endpartial %}  {% endcomment %}
+
 
 {% block table %}
 
 <div class="container text-white">
     <div class="row my-5">
         <div class="col-md-6 col-lg-6 mx-auto shadow p-5" style="background-color: #c51315;">
+            <div class="" id="amount"></div>
 
         {% if messages %}
             {% for message in messages %}
@@ -20,7 +28,8 @@
             <h1>Purchase Kit</h1>
             {% csrf_token %} 
             {{form}}
-            <button class="btn btn-warning mt-3">Submit</button">
+
+            <button class="btn btn-warning mt-3">Submit</button>
         </form>
 
         </div>

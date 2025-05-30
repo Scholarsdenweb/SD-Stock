@@ -39,6 +39,7 @@
                 <th>ID</th>
                 <th>Item</th>
                 <th>Item ID</th>
+                <th>Unite Price</th>
                 <th>Size</th>
                 <th>Quantity</th>
                 <th>Manager</th>
@@ -53,6 +54,7 @@
                 </td>
                 <td>{{s.stock_item.name | capfirst}}</td>
                 <td>{{s.stock_item.id}}</td>
+                <td>{{s.stock_item.unit_price}}</td>
                 <td>{{s.stock_item.get_size_display | upper}}</td>
                 <td>{{s.quantity}}</td>
                 <td>{{s.user.name}}({{s.user.emp_id}})</td>

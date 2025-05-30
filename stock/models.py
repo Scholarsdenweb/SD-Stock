@@ -76,15 +76,17 @@ class Purchase(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Purchased by')
     item = models.ForeignKey(Item, on_delete=models.CASCADE,  verbose_name='Item')
     quantity = models.PositiveIntegerField(default=1)
-    payment = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Purchased on')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last updated')
     supplier = models.CharField(max_length=100, null=True, blank=True)
+    supplier_location = models.CharField(max_length=100, null=True, blank=True, verbose_name='Supplier Location')
 
     def __str__(self):
         return str(self.item.name) 
     
-    
+    def get_total_amount(self):
+        return self.quantity * self.item.unit_price
 
     def get_absolute_url(self):
         return reverse('stock:purchase_detail', args=[self.pk])
@@ -102,17 +104,19 @@ class Stock(models.Model):
         return f"{self.stock_item.name} x {self.quantity}"
     
 
-    
 
 class Student(models.Model):
-    enrollement = models.CharField(max_length=15, unique=True, validators=[RegexValidator(r'^\d+$')])
+    enrollement = models.CharField(max_length=15, unique=True, null=True, blank=True, validators=[RegexValidator(r'^\d+$')])
+    receipt = models.CharField(max_length=5, null=True, blank=True, validators=[RegexValidator(r'^\d+$')])
     name = models.CharField(max_length=100)
+    father_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Father's name")
     batch = models.CharField(max_length=50, null=True, blank=True)
     roll = models.CharField(max_length=50, null=True, blank=True)
-    phone = models.CharField(max_length=15, null=True, blank=True, validators=[RegexValidator(r'^\d+$')])
+    phone = models.CharField(max_length=15, null=True, blank=True, validators=[RegexValidator(r'^(\+?\d{2})?\d{10}$')])
+    date_of_birth = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return self.enrollement
+        return self.name
     
 
     def clean(self):
@@ -124,10 +128,12 @@ class Student(models.Model):
 class Issue(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Issuing autority") 
     enrollement = models.CharField(max_length=20, verbose_name="Enrollement Number")
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
     items = models.ManyToManyField(Item,  related_name="kit_items")
     quantity = models.PositiveIntegerField(default=1)
     issue_date = models.DateTimeField(auto_now_add=True)
     status = models.BooleanField(default=True)
+    send_message = models.BooleanField(default=False)
 
     def __str__(self):
         items = ", ".join([str(item) for item in self.items.all()])
@@ -202,5 +208,19 @@ class Transaction(models.Model):
             notes = "{}".format(transaction_type),
             manager=user
         )
+        
+        
 
+class ReturnKit(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Collecter") 
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
+    items = models.ManyToManyField(Item,  related_name="return_kit_items")
+    quantity = models.PositiveIntegerField(default=1)
+    return_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(default='Retured', max_length=20, editable=False)
+    send_message = models.BooleanField(default=False)
+
+    def __str__(self):
+        items = ", ".join([str(item) for item in self.items.all()])
+        return f"{self.enrollement} - {items}"
 

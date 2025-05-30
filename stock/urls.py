@@ -29,6 +29,8 @@ urlpatterns = [
     path('search/issued-items/', views.search_issued_items, name='search_kit'),
 
     path('return/kit/', views.return_kit, name='return_kit'),
+    
+    path('find/student/', views.filter_student, name='filter_student'),
 
 ]
 
