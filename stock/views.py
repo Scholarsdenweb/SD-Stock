@@ -456,7 +456,7 @@ def filter_student(request):
         if student is not None:
             url = reverse('stock:issue_kit')
 
-            return HttpResponse(f"<p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Father's Name: {student.father_name}</p><p>Date of Birth: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={full_name}&dob={dob}'>Issue Kit</button>")
+            return HttpResponse(f"<p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Father's Name: {student.father_name}</p><p>Date of Birth: {student.get_dob()}</p><p>Phone Number: {student.phone}</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={full_name}&dob={dob}'>Issue Kit</button>")
         
         return HttpResponse("<div class='form-group' id='searchresult'><p class='text-danger'>No student found</p> <button type='submit'   class='btn btn-dark'>Search</button> </div>")
                                

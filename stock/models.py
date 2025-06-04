@@ -124,6 +124,11 @@ class Student(models.Model):
     def clean(self):
         super().clean()
         print(self.enrollement)
+        
+    def get_dob(self):
+        if self.date_of_birth:
+            return self.date_of_birth.strftime("%d-%m-%Y")
+        return None
 
 
 

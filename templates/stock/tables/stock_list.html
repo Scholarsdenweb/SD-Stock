@@ -58,8 +58,8 @@
                 <td>{{s.stock_item.get_size_display | upper}}</td>
                 <td>{{s.quantity}}</td>
                 <td>{{s.user.name}}({{s.user.emp_id}})</td>
-                <td>{{s.date | date:'Y/m/d'}}</td>
-                <td>{{s.update_at | date:'Y/m/d'}}</td>
+                <td>{{s.date | date:'d/m/Y'}}</td>
+                <td>{{s.update_at | date:'d/m/Y'}}</td>
             </tr>
             {% endfor %}
         <tbody>
