@@ -13,11 +13,12 @@
             <ul class="side-navigation">
                 <li><a href="{% url 'authapp:add_student' %}" class="{% if request.path == '/student/add/' %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
 
+                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == '/stock/item/add/' %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Add Item</a></li>
+                
                 <li><a href="{% url 'stock:student_list' %}" class="{% if request.path == '/student/list/' %} active {% endif %}"><i class="fa-solid fa-database me-2" style="color: #ffffff;"></i>Students Data</a></li>
 
                 <li><a href="{% url 'stock_list' %}" class="{% if request.path == '/' %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
 
-                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == '/stock/item/add/' %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Add Item</a></li>
 
                 <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase Data</a></li>
 
