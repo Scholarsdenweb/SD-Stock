@@ -77,14 +77,19 @@ def add_student(request):
             if student_exist:
                 messages.error(request, 'Enrollement number already exists')
                 return render(request, 'authapp/add_student.html', {'form': form})
-            elif Student.objects.filter(roll=roll, batch=batch).exists():
-                messages.error(request, 'Roll number already exists')
-                form.add_error('roll', 'Roll number already exists')
+            
+            # elif Student.objects.filter(roll=roll, batch=batch).exists():
+            #     messages.error(request, 'Roll number already exists')
+            #     form.add_error('roll', 'Roll number already exists')
+            #     return render(request, 'authapp/add_student.html', {'form': form})
+            
+            elif Student.objects.filter(receipt=form.cleaned_data['receipt']).exists():
+                messages.error(request, 'Receipt number already exists')
                 return render(request, 'authapp/add_student.html', {'form': form})
             else:
-                form.save()
-                messages.success(request, 'Student added successfully')
-                return render(request, 'authapp/add_student.html', {'form': form})
+                student =  form.save()
+                messages.success(request, '{} with enrollement number {} added successfully'.format(student.name, student.enrollement))
+                return render(request, 'authapp/success.html', {'form': form})
 
         else:
             form.fields['enrollement'].widget.attrs['class'] = 'form-control is-invalid my-2'
@@ -104,7 +109,7 @@ def import_students(request):
             # {'success': True, 'created': len(imported_data)}
             response = import_and_create_student(request.FILES['file'])
             if not response['success']:
-                messages.error(request, response['message'])
+                messages.error(request, response['errors'])
                 return render(request, 'authapp/import_student.html', {'form': form})
             
             messages.success(request, f' {response["created"]} students added successfully')
@@ -116,3 +121,5 @@ def import_students(request):
 
     form = ImportStudentForm()
     return render(request, 'authapp/import_student.html', {'form': form})
+
+

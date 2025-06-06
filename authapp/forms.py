@@ -79,8 +79,16 @@ class StudentForm(forms.ModelForm):
         def clean(self, *args, **kwargs):
             super().clean()
             enrollement = self.cleaned_data.get('enrollement')
+            receipt = self.cleaned_data.get('receipt')
             roll = self.cleaned_data.get('roll')
             batch = self.cleaned_data.get('batch')
+            
+            if not enrollement and not receipt:
+                raise forms.ValidationError("Either Enrollement Number or Receipt Number is required.")
+            
+            if roll and batch:
+                if Student.objects.filter(roll=roll, batch=batch).exists():
+                    raise forms.ValidationError("This roll number already exists in the selected batch.")
 
 
 class ImportStudentForm(forms.Form):

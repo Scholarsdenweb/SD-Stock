@@ -117,7 +117,7 @@ def find_student(full_name=None, dob=None, enrollement=None):
     filters = Q()
 
     if full_name:
-        filters |= Q(name__iexact=full_name)
+        filters |= Q(name__iexact=str(full_name).strip())
     if dob:
         try:
             # Try parsing dob to ensure it's a valid date
@@ -127,7 +127,7 @@ def find_student(full_name=None, dob=None, enrollement=None):
         except ValueError:
             pass  # Ignore invalid date format
     if enrollement:
-        filters |= Q(enrollement=enrollement)
+        filters |= Q(enrollement=str(enrollement).strip())
 
     if not filters:
         return None  # Nothing to filter by

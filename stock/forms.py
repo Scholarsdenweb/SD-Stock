@@ -111,16 +111,16 @@ class StockForm(ModelForm):
 # ITEM_CHOICES =  tuple((item.name, item.name.capitalize()) for item in Item.objects.all())
 
 class IssueForm(ModelForm):
-    items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple())
+    items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple(attrs={'class':''}))
 
     class Meta:
         model = Issue
         fields = [ 'enrollement', 'student', 'items']
 
         widgets = {
-            'enrollement': forms.TextInput(attrs={'class': 'form-control mt-2'}),
-            'student': forms.Select(attrs={'class': 'form-select mt-2'}),
-            'items': forms.SelectMultiple(attrs={'class': 'form-check-input mt-2'})
+            'enrollement': forms.HiddenInput(attrs={'class': 'form-control mt-2'}),
+            'student': forms.HiddenInput(attrs={'class': 'form-select mt-2'}),
+            'items': forms.SelectMultiple(attrs={'class': 'form-check-input mt-2 fs-1'})
         }
 
     def __init__(self, *args, **kwargs):
@@ -141,4 +141,8 @@ class DownloadForm(forms.Form):
     format = forms.ChoiceField(choices=FORMAT_CHOICE, widget=forms.Select(attrs={'class': 'form-select'}))
 
 
-
+class KitReturnForm(forms.Form):
+    enrollement = forms.CharField(widget=forms.HiddenInput())
+    name = forms.CharField(widget=forms.HiddenInput())
+    dob = forms.CharField(widget=forms.HiddenInput())
+    

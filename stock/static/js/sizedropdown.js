@@ -17,7 +17,7 @@ itemCheckboxes.forEach(checkbox => {
                 e.target.parentNode.parentNode.appendChild(sizeSelector)
             }
 
-            if(e.target.value == 'diary'){
+            if(e.target.value.toLowerCase() == 'diary'){
                 const sizes = ['small', 'big']
                 sizeSelector = createOptions(sizes)
                 sizeSelector.id = 'id_diary_size'

@@ -2,33 +2,43 @@
 
 
 {% if kitlist %}
+<hr>
+<div class='bg-success-subtle p-2 text-success'>
+
+    <p>Name: {{student.name}}</p>
+    <p>Enrollement Number: {{student.enrollement}}</p>
+</div>
+<hr>
 <p class="mt-2">Select kit(s) to be returned</p>
+
 {% endif %}
 
 <form action="{% url 'stock:return_kit' %}" method="POST" id="returnform">
     {% csrf_token %}
     
-    <input type="text" name="enrollement" value="{{enrollement}}" hidden="hidden">
-    <input type="text" name="name" value="{{name}}" hidden="hidden">
-    <input type="text" name="dob" value="{{dob}}" hidden="hidden">
+    <input type="text" name="enrollement" value="{{student.enrollement}}" hidden="hidden">
+    <input type="text" name="name" value="{{student.name}}" hidden="hidden">
+    <input type="text" name="dob" value="{{student.dob}}" hidden="hidden">
     {% for kit in kitlist %}
     <div class="form-check mt-2">
         
         <input class="form-check-input" type="checkbox" value="{{kit.id}}" id="checkChecked" name="items[]">
         <label class="form-check-label" for="checkChecked">
-            {{kit.name}}
+            {{kit.name|capfirst}}
         </label>
         
     </div>
+
     {% endfor %}
 </form>
     
 {% if kitlist %}
-<div>
-    <button type="button" class="btn btn-primary mt-3" data-bs-target="#returnkit" data-bs-toggle="modal">Return</button>
-</div>
+        <div>
+            <button type="button" class="btn btn-primary mt-3" data-bs-target="#returnkit" data-bs-toggle="modal" >Return</button>
+            {% comment %} <button type="button" class="btn btn-primary mt-3" data-bs-dismiss='modal' id='returnbtn'>Return</button> {% endcomment %}
+        </div>
 
-        <div class="modal fade" tabindex="-1" id="returnkit" data-bs-backdrop="static" data-bs-keyboard="false">
+        {% comment %} <div class="modal returnmodal fade" tabindex="-1" id="returnkit" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog ">
                 <div class="modal-content">
 
@@ -47,7 +57,7 @@
 
                 </div>
             </div>
-        </div>
+        </div> {% endcomment %}
 
 {% endif %}
 

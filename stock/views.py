@@ -24,7 +24,7 @@ import json
 class ItemCreateView(CreateView):
     template_name = 'stock/item_form.html'
     form_class = ItemForm
-    success_url = reverse_lazy('stock:add_item')
+    success_url = reverse_lazy('stock:purchase_list')
 
     def form_valid(self, form):
         form.cleaned_data
@@ -34,7 +34,9 @@ class ItemCreateView(CreateView):
     def form_invalid(self, form):
         messages.error(self.request, 'Item not added')
         return super().form_invalid(form)
-    
+  
+def add_success_view(request):
+    return render(request, 'stock/add_success.html')  
 
 @login_required()
 def create_item(request):
@@ -42,9 +44,9 @@ def create_item(request):
         form = ItemForm(request.POST)
         if form.is_valid():
             try:
-                form.save()
-                messages.success(request, 'Item added successfully')
-                return render(request, 'stock/item_form.html', {'form': form})
+                item = form.save()
+                messages.success(request, 'Item {} added successfully'.format(item))
+                return render(request, 'stock/add_success.html', {'form': form})
             except ValidationError as e:
                 messages.error(request, e.messages[0])
             return render(request, 'stock/item_form.html', {'form': form})
@@ -93,9 +95,9 @@ def create_purchase_view(request):
             transaction.save()
 
 
-            messages.success(request, "{} updated in purchase list".format(purchase))
+            messages.success(request, "{}, {} updated in purchase list".format(purchase.quantity,  purchase))
 
-            return render(request, 'stock/purchase_form.html', {'form': form})
+            return render(request, 'stock/purchase_success.html', {'form': form})
 
 
         else:
@@ -182,8 +184,8 @@ def issue_kit(request):
                     transaction.save()
 
 
-                messages.success(request, 'Updating kits')
-                return render(request, 'stock/tables/issue_list.html', {'form': form})
+                messages.success(request, 'Kit issued successfully')
+                return render(request, 'stock/success.html', {'form': form})
             else:
                 # obj.save()
                 # form.save_m2m()
@@ -201,14 +203,14 @@ def issue_kit(request):
                             form.save_m2m()
                             transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
                             transaction.save()
-                            messages.success(request, 'Issuing {}'.format(item))
-                            return render(request, 'stock/tables/issue_list.html', {'form': form})
+                            messages.success(request, 'Kit {} issued successfully'.format(selected_items))
+                            return render(request, 'stock/success.html', {'form': form})
                         else:
-                            messages.error(request, '{} - Out of stock'.format(item))
+                            messages.error(request, '{} - Out of stock'.format(selected_items))
                             return render(request, 'stock/issue_form.html', {'form': form})
                     except Stock.DoesNotExist:
-                        messages.error(request, '{} - Out of stock'.format(item))
-                        return render(request, 'stock/issue_form.html', {'form': form})
+                        messages.error(request, '{} - Out of stock'.format(selected_items))
+                        return render(request, 'stock/success.html', {'form': form})
 
 
 
@@ -276,6 +278,14 @@ class StockListView(LoginRequiredMixin, ListView, FormView):
         responce = download_stock(self, request)
 
         return responce
+
+
+class StudentListView(LoginRequiredMixin, ListView):
+    model = Student
+    template_name = 'stock/tables/student_list.html'
+    context_object_name = 'students'
+    paginate_by = 5
+
 
 
 
@@ -354,7 +364,8 @@ def search_issued_items(request):
 
             for i in items:
                 kitlist.append(i)
-        return render(request, 'partials/return_list.html', {'kitlist': kitlist,  'name': name, 'dob': dob, 'enrollement': enrollement})
+        # return render(request, 'partials/return_list.html', {'kitlist': kitlist,  'name': name, 'dob': dob, 'enrollement': enrollement})
+        return render(request, 'partials/return_list.html', {'kitlist': kitlist, 'student': student})
   
     context = dict(
         min_date = (date.today() - timedelta(days=365*10)).isoformat(),
@@ -373,12 +384,22 @@ def return_kit(request):
         
         issued_kit = Issue.objects.filter(student=student).first()
         returning_items = []
+        
+        if not issued_kit:
+            return JsonResponse({'error': 'No kit found'}, status=404)
 
         for item in request.POST.getlist('items[]'):
             item = Item.objects.get(pk=int(item))
             issued_kit.items.remove(item)
+           
             update_stock_quantity(request, item, issued_kit.quantity)
-            issued_kit.save()
+            
+            if issued_kit.items.count() == 0:
+                print('deleted')
+                issued_kit.delete()
+            else:
+                issued_kit.save()
+
             returning_items.append(item)
 
             tr = Transaction.objects.create(
@@ -390,10 +411,8 @@ def return_kit(request):
 
             tr.save()
 
-            if issued_kit.items.count() == 0:
-                issued_kit.delete()
-
-        messages.success(request, 'Kit with enrolement no. {} is returned'.format(issued_kit.enrollement))
+           
+        messages.success(request, 'Kit {} for enrolement no. {} is returned'.format(returning_items, student.enrollement))
         send_sms(
             api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
             message_id = '186973',
@@ -401,11 +420,9 @@ def return_kit(request):
             numbers= student.phone, 
             sender_id="SCHDEN"
         )
-
         
        
-
-    return render(request, 'stock/success.html')
+    return render(request, 'stock/return_success.html')
 
 
 def search_student(request):
@@ -423,7 +440,7 @@ def search_student(request):
             items = Item.objects.all()
 
             if issued_kit is None:
-                return HttpResponse(f"<p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p> <button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={name}&dob={dob}'>Issue Kit</button>")
+                return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p> </div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={name}&dob={dob}'>Issue Kit</button>")
 
             else:
 
@@ -434,7 +451,7 @@ def search_student(request):
                     return HttpResponse(f"<p class='text-danger'>This kit is already issued</p>")
 
                 if issued_kit:
-                    return HttpResponse(f"<p class='text-success'>One student found with following detailesxxx:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p><p>Issue Date: {issued_kit.get_issued_date()}</p><p>Issued Items: {issued_kit.get_items()}</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={issued_kit.enrollement}'>Issue more</button>")
+                    return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p><p>Issue Date: {issued_kit.get_issued_date()}</p><p>Issued Items: {issued_kit.get_items()}</p></div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={issued_kit.enrollement}'>Issue more</button>")
                 else:
                     return HttpResponse(f"<p class='text-success'>Issue a kit to this student</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={enrollement}'>Issue kit</button>")
 
@@ -455,8 +472,9 @@ def filter_student(request):
         
         if student is not None:
             url = reverse('stock:issue_kit')
+            
 
-            return HttpResponse(f"<p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Father's Name: {student.father_name}</p><p>Date of Birth: {student.get_dob()}</p><p>Phone Number: {student.phone}</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={full_name}&dob={dob}'>Issue Kit</button>")
+            return HttpResponse(f"<div class='bg-success-subtle text-success p-2'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Father's Name: {student.father_name}</p><p>Date of Birth: {student.get_dob()}</p><p>Phone Number: {student.phone}</p></div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={full_name}&dob={dob}'>Issue Kit</button>")
         
         return HttpResponse("<div class='form-group' id='searchresult'><p class='text-danger'>No student found</p> <button type='submit'   class='btn btn-dark'>Search</button> </div>")
                                

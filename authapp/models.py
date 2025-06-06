@@ -25,7 +25,7 @@ class StockUser(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-
+    
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

@@ -5,7 +5,10 @@
 
 <div class="container text-white">
     <div class="row my-5">
-        <div class="col-md-6 col-lg-6 mx-auto shadow  p-5" style="background-color: #c51315;">
+        <div class="col-md-6 col-lg-6 mx-auto shadow pb-5 p-0" style="background-color: #c51315;">
+            <h3 class="bg-warning-subtle text-dark  p-1" >Issue Kit</h3>
+
+
 
         {% if messages %}
             {% for message in messages %}
@@ -15,9 +18,13 @@
                 </div>
             {% endfor %}
         {% endif %}
-        <form action="" method="POST" id="stockform">
+        
+        <form action="" method="POST" id="stockform" class='p-2' >
 
-            <h1>Issue Kit</h1>
+            
+        
+            <p>Enrollement No: {{form.enrollement.initial}}</p>
+            <p>Name: {{form.student.initial}}</p>
             {% csrf_token %} 
             {{form}}
 
@@ -34,21 +41,21 @@
 </div>
 
 <div class="modal fade" tabindex="-1" id="confirmbox">
-<div class="modal-dialog">
-    <div class="modal-content">
-    <div class="modal-header">
-        <h5 class="modal-title">Please confirm</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Please confirm</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h4>Are you sure you want to issue kit</h4>
+        </div>
+        <div class="modal-footer">
+            <button type="button"  class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" form="stockform" class="btn btn-primary">Confirm</button>
+        </div>
+        </div>
     </div>
-    <div class="modal-body">
-        <h4>Are you sure you want to issue kit</h4>
-    </div>
-    <div class="modal-footer">
-        <button type="button"  class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" form="stockform" class="btn btn-primary">Confirm</button>
-    </div>
-    </div>
-</div>
 </div>   
 
 {% endblock table %}

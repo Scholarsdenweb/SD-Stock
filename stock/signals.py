@@ -31,6 +31,6 @@ def on_kit_issue(sender, instance, **kwargs):
             api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
             message_id = '186973',
             variables_values = instance.get_items(),
-            numbers= instance.student.phone or '7903956216', 
+            numbers= instance.student.phone or '', 
             sender_id="SCHDEN"
         )

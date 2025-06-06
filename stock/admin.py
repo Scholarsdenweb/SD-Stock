@@ -7,6 +7,7 @@ from django.urls import path
 # imports for djnago import-export tool
 from import_export import resources
 from import_export.fields import Field  
+from authapp.forms import StudentForm
 
 
     
@@ -186,5 +187,11 @@ class KitResource(resources.ModelResource):
         return items
     
 
-admin.site.register(Student)
+
+class StudentAdmint(admin.ModelAdmin):
+    form = StudentForm
+    list_display = ['name', 'enrollement', 'receipt', 'phone']
+    
+    
+admin.site.register(Student, StudentAdmint)
     

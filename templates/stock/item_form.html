@@ -11,7 +11,18 @@
             <div class="item_list_container p-3">
 
                 {% for item in itemlist %}
-                    <span class="border rounded p-2"><a href="{% url 'stock:update_item' item.id %}" class="link-light">{{item.name}} | Size: {{item.size | capfirst}}</a></span>
+<!-- Example single danger button -->
+                    <div class="btn-group">
+                        <button type="button" class="border-0 p-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{item.name}}: {{item.size}}
+                        </button>
+                        <ul class="dropdown-menu p-2">
+                            <p>Name: {{item.name | capfirst}}</p>
+                            <p>Size: {{item.size | upper}}</p>
+                            <p>Unit Price: {{item.unit_price}}</p>
+
+                        </ul>
+                    </div>              
                 {% endfor %}
             </div>
 

@@ -1,0 +1,36 @@
+{% extends "dashboard/home.html" %}
+{% load paginator_tag %}
+
+
+{% block table %}
+    <table class="table">
+        <thead>
+            <th>Name</th>
+            <th>Father's Name</th>
+            <th>Enrollement Number</th>
+            <th>Roll Number</th>
+            <th>Batch</th>
+            <th>DOB</th>
+            <th>Phone Number</th>
+        </thead>
+
+        <tbody>
+            {% for st in students %}
+            <tr>
+                <td>{{st.name}}</td>
+                <td>{{st.father_name}}</td>
+                <td>{{st.enrollement}}</td>
+                <td>{{st.roll}}</td>
+                <td>{{st.batch}}</td>
+                <td>{{st.date_of_birth}}</td>
+                <td>{{st.phone}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div>
+        {% show_pagination page_obj %}
+
+    </div>
+{% endblock%}

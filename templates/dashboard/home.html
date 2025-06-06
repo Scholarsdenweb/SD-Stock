@@ -7,16 +7,73 @@
 
     <div class="row ">
 
+        {% comment %} <--! home page side navigation. --> {% endcomment %}
+
         <div class="col-md-3 col-lg-2 col-sm-12 col-12  sidebar">
             <ul class="side-navigation">
-                <li><a href="{% url 'authapp:add_student' %}" class="{% if request.path == '/' %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
+                <li><a href="{% url 'authapp:add_student' %}" class="{% if request.path == '/student/add/' %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
+
+                <li><a href="{% url 'stock:student_list' %}" class="{% if request.path == '/student/list/' %} active {% endif %}"><i class="fa-solid fa-database me-2" style="color: #ffffff;"></i>Students Data</a></li>
+
                 <li><a href="{% url 'stock_list' %}" class="{% if request.path == '/' %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
+
                 <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == '/stock/item/add/' %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Add Item</a></li>
-                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase</a></li>
+
+                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase Data</a></li>
+
                 <li><a href="{% url 'stock:transaction_list' %}" class="{% if request.path == '/stock/transaction/list/' %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
+
                 <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == '/stock/issue/list/' %} active {% endif %}"><i class="fa-solid fa-gift me-2" style="color: #ffffff;"></i>Issue Kits</a></li>
-                <li><a href="{% url 'stock:search_kit' %}" class="{% if request.path == '/stock/return/kit/' %} active {% endif %}"><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;"></i>Return Kits</a></li>
+
+
+              
+                {% comment %} <li><a href="{% url 'stock:search_kit' %}" class="{% if request.path == '/stock/return/kit/' %} active {% endif %}"><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;"></i>Return Kits</a></li> {% endcomment %}
+
+                <li><button type='button' data-bs-target='#studentsearch' data-bs-toggle='modal'   class="{% if request.path == '/stock/return/kit/' %} active {% endif %} ms-3 border-0 w-100 text-start bg-transparent text-light" ><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;" ></i>Return Kits</button></li>
             </ul>
+
+            <div class="modal fade" tabindex="-1" id="studentsearch"  data-bs-backdrop="static">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Search Student</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" class='p-2'>
+                                {% csrf_token %}
+                                
+                            
+                                
+                                <div class="form-group">
+                                    {% comment %} <label for="">Enrollement Number</label> {% endcomment %}
+                                    <input type="text" name="enrollement" placeholder="Enter enrollement Number" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="" class="text-center mt-2 w-100">OR</label>
+                                    {% comment %} <label for="" >Name</label> {% endcomment %}
+                                    <input type="text" name='name' class="form-control" placeholder="Enter full name">
+                                </div>
+
+
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-warning mt-3"
+                                    hx-post="{% url 'stock:search_kit' %}"
+                                        hx-trigger="click"
+                                        hx-swap="outerHTML"
+                                        hx-target="this">
+                                    Search</button>
+                                </div>
+                                        
+                                    
+                            <div id="result"></div>
+
+                        </form>
+                    </div>
+                    </div>
+                </div>
+            </div>   
+
         </div>
 
         <div class="col-lg-10 col-md-9 col-sm-12 col-12 p-3">
@@ -26,4 +83,66 @@
     </div>
 </div>
 
+
+    <div class="modal returnmodal fade" tabindex="-1" id="returnkit" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Return Kit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <h5 class="modal-title">Are you sure you want to return kit</h5>
+                </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" form="returnform">Confirm</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+<script>
+
+    const returnBtn = document.getElementById('returnbtn')
+    const searchModal = document.getElementById('studentsearch')
+
+    searchModal.addEventListener('shown.bs.modal', _ => {
+        console.log('modal apreared')
+    })
+
+    console.log(searchModal)
+
+
+  function switchModal() {
+      //const currentModal = bootstrap.Modal.getInstance(document.getElementById(currentModalId));
+      const returnBtn = document.getElementById('returnbtn')
+
+      console.log('hi')
+
+
+      const currentModel = document.getElementById('studentsearch')
+
+      console.log(currentModel)
+      //currentModal.hide();
+
+      // Wait for the first modal to fully close, then open the next one
+      setTimeout(() => {
+         // const newModal = new bootstrap.Modal(document.getElementById(targetModalId));
+         // newModal.show();
+      }, 500); // Adjust if your animation speed differs
+  }
+</script>
+
+
 {% endblock %}
+
+
+
+

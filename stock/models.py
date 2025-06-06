@@ -84,7 +84,7 @@ class Purchase(models.Model):
     supplier_location = models.CharField(max_length=100, null=True, blank=True, verbose_name='Supplier Location')
 
     def __str__(self):
-        return str(self.item.name) 
+        return str(self.item.name).capitalize() 
     
     def get_total_amount(self):
         return self.quantity * self.item.unit_price
@@ -108,7 +108,7 @@ class Stock(models.Model):
 
 class Student(models.Model):
     enrollement = models.CharField(max_length=15, unique=True, null=True, blank=True)
-    receipt = models.CharField(max_length=5, null=True, blank=True)
+    receipt = models.CharField(max_length=5, null=True, blank=True, unique=True, validators=[RegexValidator(r'^\d+$')])
     name = models.CharField(max_length=100)
     father_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Father's name")
     batch = models.CharField(max_length=50, null=True, blank=True)
@@ -129,6 +129,13 @@ class Student(models.Model):
         if self.date_of_birth:
             return self.date_of_birth.strftime("%d-%m-%Y")
         return None
+    
+    def display_field(self, field):
+        val = getattr(self, field)
+        return val if val not in [None, ''] else "N/A"
+    
+    
+    
 
 
 
@@ -144,14 +151,14 @@ class Issue(models.Model):
 
     def __str__(self):
         items = ", ".join([str(item) for item in self.items.all()])
-        return f"{self.enrollement} - {items}" 
+        return f"{items}" 
     
 
     def get_issued_date(self):
         return self.issue_date.strftime("%d-%m-%Y %H:%M:%S")
     
     def get_items(self):
-        return ", ".join([str(item.name.capitalize()) + " - " + str(item.size.upper()) for item in self.items.all()])
+        return ", ".join([str(item.name.capitalize()) + " - " + str(item.size).upper() for item in self.items.all()])
 
     def get_absolute_url(self):
         return reverse('stock:issue_detail', args=[self.pk])
@@ -219,7 +226,7 @@ class Transaction(models.Model):
         
 
 class ReturnKit(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Collecter") 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Collector") 
     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
     items = models.ManyToManyField(Item,  related_name="return_kit_items")
     quantity = models.PositiveIntegerField(default=1)

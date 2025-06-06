@@ -12,6 +12,7 @@ urlpatterns = [
     path('item/update/<int:pk>', views.ItemUpdateView.as_view(), name = 'update_item'),
     path('purchase/add/', views.create_purchase_view, name='purchase'),
     path('stock/add/', views.create_stock_view, name='add_stock'),
+    path('stock/add-success', views.add_success_view, name='add_success'),
     path('issue/add/', views.issue_kit, name='issue_kit'),
 
 
@@ -31,6 +32,9 @@ urlpatterns = [
     path('return/kit/', views.return_kit, name='return_kit'),
     
     path('find/student/', views.filter_student, name='filter_student'),
+    
+    path('student/list/', views.StudentListView.as_view(), name='student_list'),
+    
 
 ]
 

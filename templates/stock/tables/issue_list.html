@@ -13,7 +13,7 @@
                 <div class="modal-content">
 
                     <div class="modal-header">
-                        <h5 class="modal-title">Student data</h5>
+                        <h5 class="modal-title">Search Student</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
 
@@ -28,15 +28,15 @@
 
                             </div>
 
-                            <div class="form-group">
+                            {% comment %} <div class="form-group">
                                 <label for="full_name">Full Name</label>
                                 <input type="text" name="full_name" class="form-control">
-                            </div>
+                            </div> {% endcomment %}
 
-                            <div class="form-group">
+                            {% comment %} <div class="form-group">
                                 <label for="">Date of birth</label>
                                 <input type="date" name="dob" class="form-control" min = '{{date_min}}' max='{{date_max}}'>
-                            </div>
+                            </div> {% endcomment %}
 
                             
                             <i class="fas fa-sync fa-spin htmx-indicator" id="indicator" ></i>
@@ -82,6 +82,7 @@
             <tr>
                 <th>ID</th>
                 <th>Enrollement ID</th>
+                <th>Receipt No</th>
                 <th>Name</th>
                 <th>Batch</th>
                 <th>Roll No</th>
@@ -96,6 +97,7 @@
             <tr>
                 <td>{{k.id}}</td>
                 <td>{{k.enrollement}}</td>
+                <td>{{k.get_student.receipt}}</td>
                 <td>{{k.get_student_name}}</td>
                 <td>{{k.get_student.batch}}</td>
                 <td>{{k.get_student.roll}}</td>

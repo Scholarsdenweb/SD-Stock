@@ -5,7 +5,8 @@
 
 <div class="container text-white">
     <div class="row my-5">
-        <div class="col-md-6 col-lg-6 mx-auto shadow p-2" style="background-color: #c51315;">
+        <div class="col-md-6 col-lg-6 mx-auto shadow pb-0 p-0" style="background-color: #c51315;">
+            <h3 class="bg-warning-subtle text-dark  p-1" >Search Student</h3>
 
         {% if messages %}
             {% for message in messages %}
@@ -16,25 +17,25 @@
             {% endfor %}
         {% endif %}
 
-        <form method="post">
+        <form method="post" class='p-2'>
             {% csrf_token %}
             
-            <h1>Return Kit</h1>
+           
             
             <div class="form-group">
-                <label for="">Enrollement</label>
-                <input type="text" name="enrollement" placeholder="Enter enrollement" class="form-control" required>
+                {% comment %} <label for="">Enrollement Number</label> {% endcomment %}
+                <input type="text" name="enrollement" placeholder="Enter enrollement Number" class="form-control" required>
             </div>
-
             <div class="form-group">
-                <label for="">Name</label>
+                <label for="" class="text-center mt-2 w-100">OR</label>
+                {% comment %} <label for="" >Name</label> {% endcomment %}
                 <input type="text" name='name' class="form-control" placeholder="Enter full name">
             </div>
 
-            <div class="form-group">
+            {% comment %} <div class="form-group">
                 <label for="">Date of Birth</label>
                 <input type="date" name='dob' class="form-control" min = '{{min_date}}' max='{{max_date}}'>
-            </div>
+            </div> {% endcomment %}
 
             <div class="form-group">
                 <button type="button" class="btn btn-warning mt-3"
