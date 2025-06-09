@@ -14,7 +14,11 @@
 <!-- Example single danger button -->
                     <div class="btn-group">
                         <button type="button" class="border-0 p-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{item.name}}: {{item.size}}
+                            {% if item.size %}
+                            {{item.name | capfirst}} ({{item.size |capfirst }})
+                            {% else %}
+                            {{item.name | capfirst}}
+                            {% endif %}
                         </button>
                         <ul class="dropdown-menu p-2">
                             <p>Name: {{item.name | capfirst}}</p>

@@ -4,10 +4,12 @@
 
 {% block table %}
     <table class="table">
+        <h3>Student Data</h3>
         <thead>
             <th>Name</th>
             <th>Father's Name</th>
             <th>Enrollement Number</th>
+            <th>Receipt</th>
             <th>Roll Number</th>
             <th>Batch</th>
             <th>DOB</th>
@@ -20,6 +22,7 @@
                 <td>{{st.name}}</td>
                 <td>{{st.father_name}}</td>
                 <td>{{st.enrollement}}</td>
+                <td>{{st.receipt}}</td>
                 <td>{{st.roll}}</td>
                 <td>{{st.batch}}</td>
                 <td>{{st.date_of_birth}}</td>

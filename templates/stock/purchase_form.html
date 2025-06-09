@@ -23,13 +23,15 @@
             {% endfor %}
         {% endif %}
 
-        <form action="" method="post">
+        <form action="" method="post" id='purchaseform' onsubmit="disableSubmitButton()" >
             <h1>Purchase Kit</h1>
             {% csrf_token %} 
             {{form}}
 
+            <div id="on-select-result"></div>
 
-            <button class="btn btn-warning mt-3">Submit</button>
+
+            <button class="btn btn-warning mt-3" id='submit'>Submit</button>
         </form>
 
         </div>

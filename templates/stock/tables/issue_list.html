@@ -77,6 +77,8 @@
         </div>
     </div>
 </div>
+
+    {% if kits %}
     <table class="table my-3">
         <thead>
             <tr>
@@ -112,11 +114,14 @@
 
         </tbody>
     </table>
-
     <div>
         {% show_pagination page_obj %}
 
     </div>
+    {% else %}
+    <h2>No data is available</h2>
+    {% endif %}
+
 {% endblock %}
 
 {% block scripts %}

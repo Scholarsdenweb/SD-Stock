@@ -104,7 +104,6 @@ def create_purchase_view(request):
             messages.error(request, "Couldn't add item")
             return render(request, 'stock/purchase_form.html', {'form': form})
         
-        
     form = PurchaseForm()
     
     
@@ -153,6 +152,9 @@ def create_stock_view(request):
 def issue_kit(request):
     if request.method == 'POST':
         form = IssueForm(request.POST)
+        
+        for id in request.POST.getlist('items', None):
+            print('on post',id)
 
         if form.is_valid():
             obj = form.save(commit=False)
@@ -191,14 +193,14 @@ def issue_kit(request):
                 # form.save_m2m()
                 selected_items = form.cleaned_data['items']
 
-
                 for item in selected_items:
                     # stock = Stock.objects.get(user=request.user, stock_item=item)
                     
                     try:
-                        stock = Stock.objects.get(stock_item=item)
+                        # stock = Stock.objects.get(stock_item=item)
+                        stock = Stock.objects.get(pk=int(item.id))
                         if stock.quantity > 0:
-                            stock = update_stock_quantity(request, item, -1)
+                            stock = update_stock_quantity(request, item.id, -1)
                             obj.save()
                             form.save_m2m()
                             transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
@@ -212,10 +214,9 @@ def issue_kit(request):
                         messages.error(request, '{} - Out of stock'.format(selected_items))
                         return render(request, 'stock/success.html', {'form': form})
 
-
-
         else:
             messages.error(request, 'Form is not valid')
+            print(form.errors)
             return render(request, 'stock/issue_form.html', {'form': form})
 
 
@@ -225,17 +226,26 @@ def issue_kit(request):
     name = request.GET.get('name', None)
     
     student = find_student(name, dob, enrollement)
-    print('student', student)
-    print('phone', student.phone)
+    
     issued_kit = Issue.objects.filter(Q(enrollement=enrollement) | Q(student=student) ).first()
+    
+    
+    # items = Stock.objects.all()
     items = Item.objects.all()
+    stocks = Stock.objects.all()
+    
+    for i in items:
+        for st in stocks:
+            if i != st.stock_item:
+                items = Item.objects.exclude(pk=i.pk)
 
     if issued_kit is not None:
         given_items = issued_kit.items.all()
-
-        for i in given_items:
-            if i in items:
-                items = items.exclude(pk=int(i.pk))
+        
+        for item in given_items:
+           if item in items:
+               items = items.exclude(pk=item.pk)
+        
     
     form = IssueForm()
     form.fields['items'].queryset = items
@@ -338,6 +348,7 @@ def purchase_item(request):
         update_stock_quantity(request, purchase.item, purchase.quantity)
         messages.success(request, '{} is updated in the stock'.format(purchase.item.__str__().upper()))
         return render(request, 'stock/tables/purchase_list.html', {'form': form})
+    
     form = PurchaseForm()
     
 
@@ -345,6 +356,7 @@ def purchase_item(request):
 
 
 def search_issued_items(request):
+    print('issued items')
     kitlist= []
     if request.method == 'POST':
         
@@ -395,7 +407,6 @@ def return_kit(request):
             update_stock_quantity(request, item, issued_kit.quantity)
             
             if issued_kit.items.count() == 0:
-                print('deleted')
                 issued_kit.delete()
             else:
                 issued_kit.save()
@@ -425,44 +436,47 @@ def return_kit(request):
     return render(request, 'stock/return_success.html')
 
 
-def search_student(request):
-    # find issued kit with enrollement number
-    enrollement = request.GET.get('enrollement')
-    dob = request.GET.get('dob', None)
-    name = request.GET.get('name', None)
-    student = None
-    url = reverse('stock:issue_kit')
+# def search_student(request):
+#     print('search student')
+#     # find issued kit with enrollement number
+#     enrollement = request.GET.get('enrollement')
+#     dob = request.GET.get('dob', None)
+#     name = request.GET.get('name', None)
+#     student = None
+#     url = reverse('stock:issue_kit')
 
-    try:
-        student = Student.objects.filter(enrollement=enrollement).first()
-        if student:
-            issued_kit = Issue.objects.filter(enrollement=enrollement).first()
-            items = Item.objects.all()
+#     try:
+#         student = Student.objects.filter(enrollement=enrollement).first()
+#         if student:
+#             issued_kit = Issue.objects.filter(enrollement=enrollement).first()
+#             items = Item.objects.all()
 
-            if issued_kit is None:
-                return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p> </div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={name}&dob={dob}'>Issue Kit</button>")
+#             if issued_kit is None:
+#                 return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p> </div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={name}&dob={dob}'>Issue Kit</button>")
 
-            else:
+#             else:
 
-                # if set(issued_kit.items.all()) == set(items) :
-                #     return HttpResponse(f"<p class='text-danger'>This kit is already issued</p>")
+#                 # if set(issued_kit.items.all()) == set(items) :
+#                 #     return HttpResponse(f"<p class='text-danger'>This kit is already issued</p>")
 
-                if issued_kit.items.count() == 4:
-                    return HttpResponse(f"<p class='text-danger'>This kit is already issued</p>")
+#                 if issued_kit.items.count() == 4:
+#                     return HttpResponse(f"<p class='text-danger'>This kit is already issued</p>")
 
-                if issued_kit:
-                    return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p><p>Issue Date: {issued_kit.get_issued_date()}</p><p>Issued Items: {issued_kit.get_items()}</p></div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={issued_kit.enrollement}'>Issue more</button>")
-                else:
-                    return HttpResponse(f"<p class='text-success'>Issue a kit to this student</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={enrollement}'>Issue kit</button>")
+#                 if issued_kit:
+#                     return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p><p>Issue Date: {issued_kit.get_issued_date()}</p><p>Issued Items: {issued_kit.get_items()}</p></div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={issued_kit.enrollement}'>Issue more</button>")
+#                 else:
+#                     return HttpResponse(f"<p class='text-success'>Issue a kit to this student</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={enrollement}'>Issue kit</button>")
 
 
-    except Issue.DoesNotExist:
-        pass
+#     except Issue.DoesNotExist:
+#         pass
     
-    return HttpResponse("<p class='text-danger'>No student found</p>")
+#     return HttpResponse("<p class='text-danger'>No student found</p>")
 
 
 def filter_student(request):
+    print('find student')
+    
     if request.method == 'POST':
         full_name = request.POST.get('full_name', None)
         dob = request.POST.get('dob', None)
@@ -479,3 +493,12 @@ def filter_student(request):
         return HttpResponse("<div class='form-group' id='searchresult'><p class='text-danger'>No student found</p> <button type='submit'   class='btn btn-dark'>Search</button> </div>")
                                
                            
+def sample_excel(request):
+    
+    with open('stock/static/file/sample.xlsx', 'rb') as excel_file:
+        data = excel_file.read()
+        
+    response = HttpResponse(data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    
+    response['Content-Disposition'] = 'attachment; filename="sample.xlsx"'
+    return response

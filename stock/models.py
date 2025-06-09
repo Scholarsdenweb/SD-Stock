@@ -56,8 +56,8 @@ class Item(models.Model):
 
     def __str__(self):
         if self.size is None:
-            return f"{self.name.capitalize()} - Size: N/A"
-        return f"{self.name.capitalize()} - Size: {self.size.upper()}"
+            return f"{self.name.capitalize()}"
+        return f"{self.name.capitalize()} ({self.size.upper()})"
 
     def save(self, *args, **kwargs):
         if Item.objects.filter(name=self.name, size=self.size, unit_price=self.unit_price).exclude(pk=self.pk).exists():
@@ -102,8 +102,15 @@ class Stock(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        return f"{self.stock_item.name} x {self.quantity}"
+        if self.stock_item.size is None:
+            return f"{self.stock_item.name.capitalize()}"
+        else:
+            return f"{self.stock_item.name.capitalize()} ({self.stock_item.size.upper()})"
+        
+    def get_items(self):
+        return self.stock_item
     
+
 
 
 class Student(models.Model):
@@ -158,7 +165,7 @@ class Issue(models.Model):
         return self.issue_date.strftime("%d-%m-%Y %H:%M:%S")
     
     def get_items(self):
-        return ", ".join([str(item.name.capitalize()) + " - " + str(item.size).upper() for item in self.items.all()])
+        return ", ".join([str(item) for item in self.items.all()])
 
     def get_absolute_url(self):
         return reverse('stock:issue_detail', args=[self.pk])
@@ -225,16 +232,19 @@ class Transaction(models.Model):
         
         
 
-class ReturnKit(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Collector") 
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
-    items = models.ManyToManyField(Item,  related_name="return_kit_items")
-    quantity = models.PositiveIntegerField(default=1)
-    return_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(default='Retured', max_length=20, editable=False)
-    send_message = models.BooleanField(default=False)
+# class ReturnKit(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Collector") 
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
+#     items = models.ManyToManyField(Item,  related_name="return_kit_items")
+#     quantity = models.PositiveIntegerField(default=1)
+#     return_date = models.DateTimeField(auto_now_add=True)
+#     status = models.CharField(default='Retured', max_length=20, editable=False)
+#     send_message = models.BooleanField(default=False)
 
-    def __str__(self):
-        items = ", ".join([str(item) for item in self.items.all()])
-        return f"{self.enrollement} - {items}"
+#     def __str__(self):
+#         items = ", ".join([str(item) for item in self.items.all()])
+#         return f"{self.enrollement} - {items}"
+
+
+
 

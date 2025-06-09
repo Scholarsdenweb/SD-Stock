@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-q+w4=oja3q@%*t3ic_$vnamsyeb42mo^^br(_!^o)4)(&z0uiv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.sdstock.scholarsden.in', 'sdstock.scholarsden.in']
+ALLOWED_HOSTS = ['www.sdstock.scholarsden.in', 'sdstock.scholarsden.in',"127.0.0.1"]
 #ALLOWED_HOSTS = ["sdstock.scholarsden.in", "www.sdstock.scholarsden.in", "127.0.0.1"],
 
 

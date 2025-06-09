@@ -25,7 +25,7 @@ urlpatterns = [
 
     path('issue/list/', views.IssueListView.as_view(), name='kit_list'),
 
-    path('search/student/', views.search_student, name='search_student'),
+    # path('search/student/', views.search_student, name='search_student'),
 
     path('search/issued-items/', views.search_issued_items, name='search_kit'),
 
@@ -34,6 +34,9 @@ urlpatterns = [
     path('find/student/', views.filter_student, name='filter_student'),
     
     path('student/list/', views.StudentListView.as_view(), name='student_list'),
+    
+    ## Download sample excle file student registration
+    path('download/sample/', views.sample_excel, name='sample_excel'),
     
 
 ]

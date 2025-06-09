@@ -19,6 +19,8 @@
         <form action="" method="POST" novalidate>
 
             <h1 class="text-capitalize">Add Student <a href="{% url 'authapp:import_students' %}" class="fs-5 link-light"><i class="fa-solid fa-file-import" style="color: #ffffff;"></i>Import</a></h1>
+
+            <a href="{% url 'stock:sample_excel' %}" class="link link-warning mb-5">Sample Sheet<i class="fa-solid fa-file-excel" style="color: #ffffff;"></i></a>
             {% csrf_token %} 
             {% for field in form %}
             <div class="form-group">

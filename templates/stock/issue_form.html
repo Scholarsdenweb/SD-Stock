@@ -23,8 +23,10 @@
 
             
         
-            <p>Enrollement No: {{form.enrollement.initial}}</p>
-            <p>Name: {{form.student.initial}}</p>
+            <div class='bg-success-subtle text-success p-2'>
+                <p>Enrollement No: {{form.enrollement.initial}}</p>
+                <p>Name: {{form.student.initial}}</p>
+            </div>
             {% csrf_token %} 
             {{form}}
 

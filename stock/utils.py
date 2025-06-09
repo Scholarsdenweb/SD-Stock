@@ -10,15 +10,15 @@ from django.db.models import Q
 now = datetime.now()
 timestamp = datetime.timestamp(now)
 
-def update_stock_quantity(request, item, quantity):
+def update_stock_quantity(request, item_id, quantity):
     
-    stock = Stock.objects.filter(stock_item=item).first()
+    stock = Stock.objects.filter(stock_item=item_id).first()
     if stock:
         stock.quantity += quantity
         stock.save()
         return stock
     else:
-        messages.error(request, '{} - Out of stock'.format(item))
+        messages.error(request, '{} - Out of stock'.format(item_id))
         return None
 
 

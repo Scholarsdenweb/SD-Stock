@@ -58,7 +58,7 @@ class StudentForm(forms.ModelForm):
         fields = ['enrollement', 'receipt', 'name',  'date_of_birth', 'father_name', 'roll', 'batch', 'phone']
 
         labels = {
-            'enrollement': 'Enrollement Number*',
+            'enrollement': 'Enrollement Number',
             'name': 'Full Name*',
             'receipt': 'Receipt Number*',
             'roll': 'Roll Number',
@@ -89,6 +89,9 @@ class StudentForm(forms.ModelForm):
             if roll and batch:
                 if Student.objects.filter(roll=roll, batch=batch).exists():
                     raise forms.ValidationError("This roll number already exists in the selected batch.")
+                
+                
+            # also    
 
 
 class ImportStudentForm(forms.Form):
