@@ -41,6 +41,7 @@
                 <th>reference model</th>
                 <th>Manager</th>
                 <th>Created On</th>
+                <th>Notes</th>
             </tr>
         </thead>
             {% for t in transactions %}
@@ -54,6 +55,7 @@
                 <td>{{t.reference_model}}</td>
                 <td>{{t.manager.name}}({{t.manager.emp_id}})</td>
                 <td>{{t.created_at}}</td>
+                <td>{{t.notes}}</td>
             </tr>
             {% endfor %}
         <tbody>

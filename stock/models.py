@@ -232,19 +232,4 @@ class Transaction(models.Model):
         
         
 
-# class ReturnKit(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Collector") 
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
-#     items = models.ManyToManyField(Item,  related_name="return_kit_items")
-#     quantity = models.PositiveIntegerField(default=1)
-#     return_date = models.DateTimeField(auto_now_add=True)
-#     status = models.CharField(default='Retured', max_length=20, editable=False)
-#     send_message = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         items = ", ".join([str(item) for item in self.items.all()])
-#         return f"{self.enrollement} - {items}"
-
-
-
-
+        

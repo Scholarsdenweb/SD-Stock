@@ -417,7 +417,9 @@ def return_kit(request):
                 item=item,
                 transaction_type=Transaction.RETURN,
                 quantity=issued_kit.quantity,
-                manager=request.user
+                manager=request.user,
+                reference_id = issued_kit.student.enrollement,
+                notes='returned from {}'.format(issued_kit.student.name)
             )
 
             tr.save()
@@ -436,42 +438,6 @@ def return_kit(request):
     return render(request, 'stock/return_success.html')
 
 
-# def search_student(request):
-#     print('search student')
-#     # find issued kit with enrollement number
-#     enrollement = request.GET.get('enrollement')
-#     dob = request.GET.get('dob', None)
-#     name = request.GET.get('name', None)
-#     student = None
-#     url = reverse('stock:issue_kit')
-
-#     try:
-#         student = Student.objects.filter(enrollement=enrollement).first()
-#         if student:
-#             issued_kit = Issue.objects.filter(enrollement=enrollement).first()
-#             items = Item.objects.all()
-
-#             if issued_kit is None:
-#                 return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p> </div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={name}&dob={dob}'>Issue Kit</button>")
-
-#             else:
-
-#                 # if set(issued_kit.items.all()) == set(items) :
-#                 #     return HttpResponse(f"<p class='text-danger'>This kit is already issued</p>")
-
-#                 if issued_kit.items.count() == 4:
-#                     return HttpResponse(f"<p class='text-danger'>This kit is already issued</p>")
-
-#                 if issued_kit:
-#                     return HttpResponse(f"<div class='bg-success-subtle text-success'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Batch: {student.father_name}</p><p>Roll Number: {student.date_of_birth}</p><p>Phone Number: {student.phone}</p><p>Issue Date: {issued_kit.get_issued_date()}</p><p>Issued Items: {issued_kit.get_items()}</p></div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={issued_kit.enrollement}'>Issue more</button>")
-#                 else:
-#                     return HttpResponse(f"<p class='text-success'>Issue a kit to this student</p><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={enrollement}'>Issue kit</button>")
-
-
-#     except Issue.DoesNotExist:
-#         pass
-    
-#     return HttpResponse("<p class='text-danger'>No student found</p>")
 
 
 def filter_student(request):
