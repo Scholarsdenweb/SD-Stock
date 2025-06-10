@@ -168,6 +168,7 @@ AUTH_USER_MODEL = 'authapp.StockUser'
 LOGIN_URL = 'authapp:login'
 LOGIN_REDIRECT_URL = 'dashboard:home'
 LOGOUT_REDIRECT_URL = LOGIN_URL
+SESSION_COOKIE_AGE = 60 * 60 * 24
 
 # message tags
 MESSAGE_TAGS = {
