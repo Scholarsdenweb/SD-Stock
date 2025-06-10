@@ -51,7 +51,13 @@
                 <td>{{t.id}}</td>
                 <td>{{t.item.name | capfirst}}</td>
                 <td>{{t.item.id}}</td>
-                <td><a href="" data-bs-toggle='modal' data-bs-target='#detailtransaction'>{{t.get_transaction_type_display}}</a></td>
+
+                <td><a href="" data-bs-toggle='modal' data-bs-target='#detailtransaction'
+                hx-get='{% url "stock:transaction_detail" t.reference_id %}?type={{t.get_transaction_type_display}}'  
+                hx-target='#transaction-detail'>{{t.get_transaction_type_display}}</a></td>
+
+             
+
                 <td>{{t.quantity}}</td>
                 <td>{{t.reference_id}}</td>
                 <td>{{t.reference_model}}</td>
@@ -73,13 +79,16 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5">Detail</h1>
+                    <h1 class="modal-title fs-5">Transaction Detail</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body"></div>
+                <div class="modal-body">
+                    <div id="transaction-detail"></div>
+                </div>
             </div>
         </div>
     </div> 
 
 {% endblock %}
+

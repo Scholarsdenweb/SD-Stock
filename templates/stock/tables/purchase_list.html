@@ -56,7 +56,12 @@
                 <td>
                     {{p.item.id}}
                 </td>
-                <td>{{p.item.unit_price}}</td>
+
+                {% if p.unit_price %}
+                <td>{{p.unit_price}}</td>
+                {% else %}
+                <th>{{p.item.unit_price}}</th>
+                {% endif %}
                 <td>{{p.quantity}}</td>
                 <td>{{p.item.get_size_display | upper}}</td>
                 <td>{{p.get_total_amount}}</td>

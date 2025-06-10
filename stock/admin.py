@@ -190,7 +190,7 @@ class KitResource(resources.ModelResource):
 
 class StudentAdmint(admin.ModelAdmin):
     form = StudentForm
-    list_display = ['name', 'enrollement', 'receipt', 'phone']
+    list_display = ['id', 'name', 'enrollement', 'receipt', 'phone']
     
     
 admin.site.register(Student, StudentAdmint)

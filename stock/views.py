@@ -184,7 +184,7 @@ def issue_kit(request):
                         stock.save()
                     tr_item = Item.objects.get(pk=int(item))
 
-                    transaction = Transaction.objects.create(item=tr_item, transaction_type=Transaction.ISSUE, quantity=issuance_exist.quantity, reference_id=issuance_exist.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
+                    transaction = Transaction.objects.create(item=tr_item, transaction_type=Transaction.ISSUE, quantity=issuance_exist.quantity, reference_id=issuance_exist.student.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
                     transaction.save()
 
 
@@ -205,7 +205,7 @@ def issue_kit(request):
                             stock = update_stock_quantity(request, item.id, -1)
                             obj.save()
                             form.save_m2m()
-                            transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
+                            transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.id, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
                             transaction.save()
                             messages.success(request, 'Kit {} issued successfully'.format(selected_items))
                             return render(request, 'stock/success.html', {'form': form})
@@ -340,29 +340,12 @@ class IssueListView(LoginRequiredMixin, ListView, FormView):
         return super().get_context_data(**kwargs)
     
 
-def purchase_item(request):
-    if request.method == 'POST':
-        form = PurchaseForm(request.POST)
-
-        if form.is_valid():
-            purchase = form.save(commit=False)
-            purchase.user = request.user
-            purchase.save()
-        
-
-        # Update the purchase to the stock
-        update_stock_quantity(request, purchase.item, purchase.quantity)
-        messages.success(request, '{} is updated in the stock'.format(purchase.item.__str__().upper()))
-        return render(request, 'stock/tables/purchase_list.html', {'form': form})
-    
-    form = PurchaseForm()
     
 
 
 
 
 def search_issued_items(request):
-    print('issued items')
     kitlist= []
     if request.method == 'POST':
         
@@ -424,7 +407,7 @@ def return_kit(request):
                 transaction_type=Transaction.RETURN,
                 quantity=issued_kit.quantity,
                 manager=request.user,
-                reference_id = issued_kit.student.enrollement,
+                reference_id = issued_kit.student.pk,
                 notes='returned from {}'.format(issued_kit.student.name)
             )
 
@@ -474,3 +457,18 @@ def sample_excel(request):
     
     response['Content-Disposition'] = 'attachment; filename="sample.xlsx"'
     return response
+
+
+def transaction_detail(request, pk):
+    type = request.GET.get('type', None)
+    
+    match type.lower():
+        case 'issue' | 'return':
+            student = Student.objects.get(pk=pk)
+            return HttpResponse(f'<div><p>Name: {student.name}</p> <p>Roll Number: {student.roll}</p> <p>Receipt No: {student.receipt}</p>  <p>Enrollement: {student.enrollement}</p>Father\'s Name: <p>{student.father_name}</p> <p>{student.get_dob()}</p> <p></p> </div>')
+        case 'purchase':
+            purchage = Purchase.objects.get(pk=pk)
+            return HttpResponse(f'<div><p>Item name: {purchage.item.name}</p> <p>Size: {purchage.item.size }</p> <p> Quantity: {purchage.quantity}</p>  <p>Unit Price: {purchage.unit_price}</p> <p>Total Amount: {purchage.total_amount}</p> <p>Supplier: {purchage.supplier}</p> <p>Supplier\'s location: {purchage.supplier_location}</p> <p></p> </div>')
+        case _:
+            return HttpResponse(f'<h1>Transaction Detail pk:{pk}, xxxx</h1>')
+    
