@@ -44,12 +44,14 @@
                 <th>Notes</th>
             </tr>
         </thead>
+        <tbody>
+
             {% for t in transactions %}
             <tr>
                 <td>{{t.id}}</td>
                 <td>{{t.item.name | capfirst}}</td>
                 <td>{{t.item.id}}</td>
-                <td>{{t.get_transaction_type_display}}</td>
+                <td><a href="" data-bs-toggle='modal' data-bs-target='#detailtransaction'>{{t.get_transaction_type_display}}</a></td>
                 <td>{{t.quantity}}</td>
                 <td>{{t.reference_id}}</td>
                 <td>{{t.reference_model}}</td>
@@ -58,7 +60,6 @@
                 <td>{{t.notes}}</td>
             </tr>
             {% endfor %}
-        <tbody>
 
         </tbody>
     </table>
@@ -66,5 +67,19 @@
     <div>
         {% show_pagination page_obj %}
     </div>
+
+
+    {% comment %} <div class="modal fade" id='detailtransaction'>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Detail</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body"></div>
+            </div>
+        </div>
+    </div> {% endcomment %}
 
 {% endblock %}

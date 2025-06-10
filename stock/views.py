@@ -20,6 +20,8 @@ from django.db.models import Q
 
 import json
 
+PAGINATED_BY = 10
+
 # Create your views here.
 class ItemCreateView(CreateView):
     template_name = 'stock/item_form.html'
@@ -262,7 +264,7 @@ class PurchaseListView(LoginRequiredMixin,ListView, FormView):
     model = Purchase
     template_name = 'stock/tables/purchase_list.html'
     context_object_name = 'purchases'
-    paginate_by = 5
+    paginate_by = PAGINATED_BY
     ordering = ['-created_at']
     form_class = DownloadForm
 
@@ -270,6 +272,11 @@ class PurchaseListView(LoginRequiredMixin,ListView, FormView):
         responce = download_purchases(self, request)
 
         return responce
+class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
+    model = Purchase
+    template_name = 'stock/purchase_form.html'
+    form_class = PurchaseForm
+    success_url = reverse_lazy('stock:purchase_list')
 
 
 
@@ -282,19 +289,18 @@ class StockListView(LoginRequiredMixin, ListView, FormView):
     template_name = 'stock/tables/stock_list.html'
     context_object_name = 'stocks'
     form_class = DownloadForm
-    paginate_by = 5
+    paginate_by = PAGINATED_BY
 
     def post(self, request, *args, **kwargs):
         responce = download_stock(self, request)
 
         return responce
 
-
 class StudentListView(LoginRequiredMixin, ListView):
     model = Student
     template_name = 'stock/tables/student_list.html'
     context_object_name = 'students'
-    paginate_by = 5
+    paginate_by = PAGINATED_BY
 
 
 
@@ -308,7 +314,7 @@ class TransactionListView(LoginRequiredMixin, ListView, FormView):
     model = Transaction
     template_name = 'stock/tables/transaction_list.html'
     context_object_name = 'transactions'
-    paginate_by = 5
+    paginate_by = PAGINATED_BY
     form_class = DownloadForm
 
     def post(self, request, *args, **kwargs):
@@ -321,7 +327,7 @@ class IssueListView(LoginRequiredMixin, ListView, FormView):
     model = Issue
     template_name = 'stock/tables/issue_list.html'
     context_object_name = 'kits'
-    paginate_by = 5
+    paginate_by = PAGINATED_BY
     form_class = DownloadForm
 
     def post(self, request, *args, **kwargs):

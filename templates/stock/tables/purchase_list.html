@@ -50,7 +50,7 @@
             {% for p in purchases %}
             <tr>
                 <td>
-                    <a href="{{p.get_absolute_url}}">{{p.id}}</a>
+                    <a href="{% url 'stock:update_purchase' p.id %}">{{p.id}}</a>
                 </td>
                 <td>{{p.item.name | capfirst}}</td>
                 <td>
@@ -64,6 +64,8 @@
                 <td>{{p.created_at}}</td>
                 <td>{{p.updated_at}}</td>
             </tr>
+
+            
             {% endfor %}
         <tbody>
 
@@ -75,5 +77,6 @@
     <div>
         {% show_pagination page_obj %}
     </div>
+
 
 {% endblock %}
