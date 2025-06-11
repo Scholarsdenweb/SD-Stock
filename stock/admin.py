@@ -15,8 +15,8 @@ from authapp.forms import StudentForm
 # Register your models here.
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('id','name','size','unit_price', 'description',  'created_at', 'updated_at')
-    ordering = ('unit_price',)
+    list_display = ('id','name','size', 'description',  'created_at', 'updated_at')
+    ordering = ('created_at',)
 
 
 

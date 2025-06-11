@@ -12,12 +12,11 @@ class StockDate(DateInput):
 class ItemForm(ModelForm):
     class Meta:
         model = Item
-        fields = ['name', 'unit_price', 'size', 'description']
+        fields = ['name', 'size', 'description']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
-            'unit_price': forms.NumberInput(attrs={'class': 'form-control'}),
             'size': forms.Select(attrs={'class': 'form-select'})   
         }
 

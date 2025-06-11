@@ -57,14 +57,10 @@
                     {{p.item.id}}
                 </td>
 
-                {% if p.unit_price %}
                 <td>{{p.unit_price}}</td>
-                {% else %}
-                <th>{{p.item.unit_price}}</th>
-                {% endif %}
                 <td>{{p.quantity}}</td>
                 <td>{{p.item.get_size_display | upper}}</td>
-                <td>{{p.get_total_amount}}</td>
+                <td>{{p.total_amount}}</td>
                 <td>{{p.user.name}}({{request.user.emp_id}})</td>
                 <td>{{p.created_at}}</td>
                 <td>{{p.updated_at}}</td>
