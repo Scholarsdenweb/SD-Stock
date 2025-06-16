@@ -21,7 +21,7 @@ def register(request):
             return redirect(next_url or 'dashboard:home')  # Replace with your redirect URL
         else:
             for f in form.fields:
-               if form[f].errors:
+               if form[f].errors or form[f].value == '':
                 #    form[f].field.widget.attrs['class'] = 'form-control is-invalid'
                    form[f].field.widget.attrs.update({'class': 'form-control is-invalid'})
                else:

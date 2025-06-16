@@ -25,7 +25,15 @@ class SignUpForm(UserCreationForm):
             'password1': 'Password*',
             'password2': 'Confirm Password*',
         }
-
+        
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        domain = email.split('@')[1]
+        if domain != 'scholarsden.in':
+            raise forms.ValidationError('Please enter a valid email address. Example : 8Vb6t@sholarsden.in')
+        if StockUser.objects.filter(email=email).exists():
+            raise forms.ValidationError('Email already exists')
+        return email
 
     def __init__(self, *args, **kwargs):
         super(SignUpForm, self).__init__(*args, **kwargs)
