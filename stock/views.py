@@ -231,26 +231,21 @@ def issue_kit(request):
     
     issued_kit = Issue.objects.filter(Q(enrollement=enrollement) | Q(student=student) ).first()
     
-    
-    # items = Stock.objects.all()
-    items = Item.objects.all()
-    stocks = Stock.objects.all()
-    
-    for i in items:
-        for st in stocks:
-            if i != st.stock_item:
-                items = Item.objects.exclude(pk=i.pk)
+    stock_items = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
+    items_in_stock = Item.objects.filter(id__in=stock_items)
 
+                
+                
     if issued_kit is not None:
         given_items = issued_kit.items.all()
-        
-        for item in given_items:
-           if item in items:
-               items = items.exclude(pk=item.pk)
+        stock_items_qs = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
+
+        items_in_stock = Item.objects.filter(id__in=stock_items_qs).exclude(id__in=given_items)
+   
         
     
     form = IssueForm()
-    form.fields['items'].queryset = items
+    form.fields['items'].queryset = items_in_stock
     form.fields['enrollement'].initial = int(request.GET.get('enrollement'))
     form.fields['enrollement'].widget.attrs['readonly'] = True
     form.fields['student'].initial = student

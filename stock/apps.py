@@ -7,3 +7,4 @@ class StockConfig(AppConfig):
     
     def ready(self):
         import stock.signals
+        import authapp.signals

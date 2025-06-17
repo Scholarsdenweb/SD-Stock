@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'stock.apps.StockConfig',
-    'authapp',
+    'authapp.apps.AuthappConfig',
     'dashboard',
     'import_export',
     'django_extensions',
