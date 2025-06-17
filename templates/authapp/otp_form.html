@@ -18,28 +18,29 @@
         {% endif %}
 
         <form action="" method="POST" novalidate>
-            <h1>Login </h1>
+            <h1>Verify OTP </h1>
             {% csrf_token %} 
-            {% for field in form %}
-            <div class="form-group">
-                {{field.label_tag}}
-                {{field}}
-
-                {% if field.errors %}
-                    <span class="">{{field.errors}}</span>
-                    <span>{{field.help_text}}</span>
-                {% endif %}
-
-             
-            </div>
-            {% endfor %}
-            <span class="text-white">Don't have an account? <a href="{% url 'authapp:register' %}" class="text-warning">Register</a></span><br>
-            <button class="btn btn-warning mt-3">Submit</button>
+            {{form}}
+            <button class="btn btn-warning mt-3" id='verify_btn'>Verify</button>
         </form>
 
         </div>
     </div>
-    
 </div>
+
+
+<script>
+    otpInput = document.getElementById('id_otp')
+    verifyBtn = document.getElementById('verify_btn')
+    verifyBtn.disabled = true
+
+    otpInput.addEventListener('input', (e) => {
+        if (e.target.value.length === 6 || e.target.value.length === 0){
+            verifyBtn.disabled = false;
+        }else{
+            verifyBtn.disabled = true; 
+        }
+    })
+</script>
 
 {% endblock %}

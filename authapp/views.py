@@ -5,8 +5,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 from django.views.generic.edit import CreateView
 from stock.models import Student
-from authapp.forms import StudentForm
+from authapp.forms import StudentForm, OTPForm
 from authapp.utils import import_and_create_student
+from stock.send_sms import send_sms
 # Create your views here.
 
 
@@ -42,10 +43,12 @@ def user_login(request):
             password = form.cleaned_data['password']
             user = authenticate(request, emp_id=emp_id, password=password)
             if user is not None:
-                login(request, user)
-                next_url = request.POST.get('next') or request.GET.get('next')
+                request.session['user_id'] = user.pk
+                return redirect('authapp:verify_otp')
+                # login(request, user)
+                # next_url = request.POST.get('next') or request.GET.get('next')
 
-                return redirect(next_url or 'dashboard:home')  # Replace with your redirect URL
+                # return redirect(next_url or 'dashboard:home')  # Replace with your redirect URL
             else:
                 form.fields['emp_id'].widget.attrs['class'] = 'form-control is-invalid my-2'
                 form.fields['password'].widget.attrs['class'] = 'form-control is-invalid my-2'
@@ -58,6 +61,35 @@ def user_login(request):
     form = loginForm()
     return render(request, 'authapp/login.html', {'form': form})
 
+# verify user with OTP
+def verify_otp(request):
+    form = OTPForm(request.POST or None)
+    user_id = request.session.get('user_id')
+    
+    if user_id:
+        user = StockUser.objects.get(pk = user_id)
+        otp_obj = OTPCode.objects.get(user=user)
+        
+        if not request.POST:
+            send_sms(
+            api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
+            message_id = '182187',
+            variables_values = otp_obj.otp,
+            numbers= user.phone or '', 
+            sender_id="SCHDEN"
+        )
+        if form.is_valid():
+            num = form.cleaned_data.get('otp')
+            
+            if str(num) == otp_obj.otp:
+                otp_obj.save()
+                # login the user here
+                login(request, user)
+                next_url = request.POST.get('next') or request.GET.get('next')
+                return redirect(next_url or 'dashboard:home')
+            else:
+                return redirect('authapp:login') # to the otp form
+    return render(request, 'authapp/otp_form.html', {'form':OTPForm})
 
 def logout_user(request):
     logout(request)

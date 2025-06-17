@@ -23,13 +23,11 @@ class ItemAdmin(admin.ModelAdmin):
 
 
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id','item__name', 'item__id', 'item__size', 'item__unit_price', 'quantity', 'total_amount', 'user', 'created_at', 'updated_at')
+    list_display = ('id','item__name', 'item__id', 'item__size', 'unit_price', 'quantity', 'total_amount', 'user', 'created_at', 'updated_at')
     ordering = ('created_at',)
 
 
-    def item__unit_price(self, obj):
-        return obj.item.unit_price  
-    item__unit_price.short_description = 'Unit Price'
+
     
 
 
