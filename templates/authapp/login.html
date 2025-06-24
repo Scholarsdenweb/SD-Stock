@@ -33,7 +33,7 @@
              
             </div>
             {% endfor %}
-            <span class="text-white">Don't have an account? <a href="{% url 'authapp:register' %}" class="text-warning">Register</a></span><br>
+            {% comment %} <span class="text-white">Don't have an account? <a href="{% url 'authapp:register' %}" class="text-warning">Register</a></span><br> {% endcomment %}
             <button class="btn btn-warning mt-3">Submit</button>
         </form>
 

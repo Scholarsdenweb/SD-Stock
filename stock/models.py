@@ -59,7 +59,7 @@ class Item(models.Model):
         return f"{self.name.capitalize()} ({self.size.upper()})"
 
     def save(self, *args, **kwargs):
-        if Item.objects.filter(name=self.name, size=self.size, unit_price=self.unit_price).exclude(pk=self.pk).exists():
+        if Item.objects.filter(name=self.name, size=self.size).exclude(pk=self.pk).exists():
             raise ValidationError("Item with the same name, size, and unit price already exists.")
         super().save(*args, **kwargs)
 
