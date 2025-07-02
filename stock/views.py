@@ -242,11 +242,12 @@ def issue_kit(request):
 
         items_in_stock = Item.objects.filter(id__in=stock_items_qs).exclude(id__in=given_items)
    
-        
+    print('enrollement',request.GET.get('enrollement'))   
     
     form = IssueForm()
     form.fields['items'].queryset = items_in_stock
-    form.fields['enrollement'].initial = int(request.GET.get('enrollement'))
+    # form.fields['enrollement'].initial = int(request.GET.get('enrollement'))
+    form.fields['enrollement'].initial = request.GET.get('enrollement')
     form.fields['enrollement'].widget.attrs['readonly'] = True
     form.fields['student'].initial = student
     form.fields['student'].widget.attrs['readonly'] = True

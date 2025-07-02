@@ -39,6 +39,7 @@ urlpatterns = [
     
     ## Download sample excle file student registration
     path('download/sample/', views.sample_excel, name='sample_excel'),
+
     
 
 ]
