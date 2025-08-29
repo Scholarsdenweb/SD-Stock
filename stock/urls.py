@@ -14,6 +14,7 @@ urlpatterns = [
     path('stock/add/', views.create_stock_view, name='add_stock'),
     path('stock/add-success', views.add_success_view, name='add_success'),
     path('issue/add/', views.issue_kit, name='issue_kit'),
+    
 
 
     path('purchase/list/', views.PurchaseListView.as_view(), name='purchase_list'),
@@ -26,6 +27,7 @@ urlpatterns = [
     path('transaction/detail/<int:pk>', views.transaction_detail, name='transaction_detail'),
 
     path('issue/list/', views.IssueListView.as_view(), name='kit_list'),
+    path('issue/list/<int:pk>/', views.IssueDetailView.as_view(), name='kit_detail'),
 
     # path('search/student/', views.search_student, name='search_student'),
 
@@ -39,6 +41,11 @@ urlpatterns = [
     
     ## Download sample excle file student registration
     path('download/sample/', views.sample_excel, name='sample_excel'),
+    
+    
+    path('issue-new-kit/', views.issue_new_kit, name='issue_new_kit'),
+    
+    path('exchange-kit/', views.exchage_kit, name='exchange_kit'),
 
     
 

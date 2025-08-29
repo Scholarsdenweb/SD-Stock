@@ -1,0 +1,13 @@
+{% extends "dashboard/home.html" %}
+
+{% block table %}
+    {% for kit in kits.items.all %}
+    <div class="kit_detail_container">
+        <dl>
+            <span>{{forloop.counter}}</span><dt>{{kit.name}}</dt>
+            <dd>{{kit.size}}</dd>
+            <dd></dd>
+        </dl>
+    </div>
+    {% endfor %}
+{% endblock table %}

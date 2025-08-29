@@ -86,7 +86,7 @@ def verify_otp(request):
                 # login the user here
                 login(request, user)
                 next_url = request.POST.get('next') or request.GET.get('next')
-                return redirect(next_url or 'dashboard:home')
+                return redirect(next_url or 'stock:kit_list')
             else:
                 return redirect('authapp:login') # to the otp form
     return render(request, 'authapp/otp_form.html', {'form':OTPForm})

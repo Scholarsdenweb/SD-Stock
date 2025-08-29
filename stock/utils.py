@@ -139,3 +139,11 @@ def find_student(full_name=None, dob=None, enrollement=None):
     except Student.MultipleObjectsReturned:
         # Optional: handle multiple matches
         return None
+    
+    
+def calc_in_stock_items(item):
+    try:
+        stock = Stock.objects.get(stock_item=item)
+        return stock.in_stock()
+    except Stock.DoesNotExist:
+        return 0

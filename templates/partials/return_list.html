@@ -1,43 +1,88 @@
 
-
-
 {% if kitlist %}
-<hr>
-<div class='bg-success-subtle p-2 text-success'>
 
-    <p>Name: {{student.name}}</p>
-    <p>Enrollement Number: {{student.enrollement}}</p>
-</div>
-<hr>
-<p class="mt-2">Select kit(s) to be returned</p>
+<div class="list-wraper">
 
-{% endif %}
-
-<form action="{% url 'stock:return_kit' %}" method="POST" id="returnform">
-    {% csrf_token %}
-    
-    <input type="text" name="enrollement" value="{{student.enrollement}}" hidden="hidden">
-    <input type="text" name="name" value="{{student.name}}" hidden="hidden">
-    <input type="text" name="dob" value="{{student.dob}}" hidden="hidden">
-    {% for kit in kitlist %}
-    <div class="form-check mt-2">
-        
-        <input class="form-check-input" type="checkbox" value="{{kit.id}}" id="checkChecked" name="items[]">
-        <label class="form-check-label" for="checkChecked">
-            {{kit.name|capfirst}}
-        </label>
-        
+    <div class='text-bg-dark rounded border border-1 border-warning p-2 mt-2'>
+        <p>Name: {{student.name}}</p>
+        <p>Enrollement Number: {{student.enrollement}}</p>
     </div>
-
-    {% endfor %}
-</form>
+    <hr>
     
-{% if kitlist %}
-        <div>
+    {% endif %}
+    
+    <form action="{% url 'stock:exchange_kit' %}" method="POST" id="returnform">
+        {% csrf_token %}
+        
+        <table class="w-100" >
+            <thead>
+                <tr>
+                    <th class="text-start border-end border-dark">Item(s)</th>
+                    <th class="text-center">Exchange with</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr >
+
+                    <td class="text-start border-end border-dark">
+                        <input type="text" name="enrollement" value="{{student.enrollement}}" hidden>
+                        <input type="text" name="name" value="{{student.name}}" hidden>
+                        <input type="text" name="dob" value="{{student.dob}}" hidden>
+                        {% for kit in kitlist %}
+                        <div class="form-check mt-2 p-0">
+                            
+                            <input class="t" type="checkbox" value="{{kit.category.id}}" id="checkChecked" name="items[]"
+                            hx-get="{% url 'stock:exchange_kit' %}"
+                            hx-trigger="change"
+                            hx-target="#swapable-items"
+                            hx-swap="outerHTML"
+                            hx-select="#swapable-items">
+                            <label class="form-check-label" for="">
+                                {{kit.name|capfirst}}
+                            </label>
+                            
+                        </div>
+                    
+                        {% endfor %}
+                    </td>
+                    <td class="text-start">
+                        <div id="swapable-items">
+                            {% for item in swapable_items %}
+                            <div class="form-check mt-2">
+                                {% if item.in_stock.status %}
+                                <input type="checkbox" name="xitems[]" id="" value="{{item.stock_item.pk}}">
+                                {% else %}
+                                <input type="checkbox" name="xitems[]" id="" value="{{item.stock_item.pk}}" disabled>
+                                {% endif %}
+                                 <label class="form-check-label" for="">
+                                    {{item.stock_item.name|capfirst}}
+                                    {% if item.in_stock.status %}
+                                        <span class="text-success" style="font-size:.8em">in stock - {{item.in_stock.quantity}}</span>
+                                    {% else %}
+                                        <span class="text-danger" style="font-size:.8em">out of stock - {{item.in_stock.quantity}}</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        </div>
+       
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+
+    </form>
+</div>    
+        
+    {% if kitlist %}
+        <div class="d-flex justify-content-between d-sm-column">
             <button type="button" class="btn btn-primary mt-3" data-bs-target="#returnkit" data-bs-toggle="modal" >Return</button>
+            <button type="button" class="btn btn-secondary mt-3" id='refreshbtn' >Refresh</button>
             {% comment %} <button type="button" class="btn btn-primary mt-3" data-bs-dismiss='modal' id='returnbtn'>Return</button> {% endcomment %}
         </div>
-
+    
         {% comment %} <div class="modal returnmodal fade" tabindex="-1" id="returnkit" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog ">
                 <div class="modal-content">
@@ -48,9 +93,9 @@
                     </div>
 
                     <div class="modal-body">
-                       <h5 class="modal-title">Are you sure you want to return kit</h5>
+                    <h5 class="modal-title">Are you sure you want to return kit</h5>
                     </div>
-                     <div class="modal-footer">
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary" form="returnform">Confirm</button>
                     </div>
@@ -58,6 +103,7 @@
                 </div>
             </div>
         </div> {% endcomment %}
+
 
 {% endif %}
 

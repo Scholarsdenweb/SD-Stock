@@ -2,6 +2,14 @@
 {% load static %}
 
 {% block content %}
+ 
+{% url 'authapp:add_student' as ADDSTUDENT %}
+{% url 'stock:add_item' as ADDITEM %}
+{% url 'stock:student_list' as STUDENTLIST %}
+{% url 'stock_list' as STOCKLIST %}
+{% url 'stock:purchase_list' as PURCHASELIST %}
+{% url 'stock:transaction_list' as TRANSACTIONLIST %}
+{% url 'stock:kit_list' as KITLIST %}
 
 <div class="container-fluid my-3  ">
 
@@ -11,26 +19,26 @@
 
         <div class="col-md-3 col-lg-2 col-sm-12 col-12  sidebar ">
             <ul class="side-navigation ">
-                <li><a href="{% url 'authapp:add_student' %}" class="{% if request.path == '/student/add/' %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
+                <li><a href="{% url 'authapp:add_student' %}" class="{% if request.path == ADDSTUDENT %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
 
-                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == '/stock/item/add/' %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Add Item</a></li>
+                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == ADDITEM %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Add Item</a></li>
                 
-                <li><a href="{% url 'stock:student_list' %}" class="{% if request.path == '/student/list/' %} active {% endif %}"><i class="fa-solid fa-database me-2" style="color: #ffffff;"></i>Students Data</a></li>
+                <li><a href="{% url 'stock:student_list' %}" class="{% if request.path == STUDENTLIST %} active {% endif %}"><i class="fa-solid fa-database me-2" style="color: #ffffff;"></i>Students Data</a></li>
 
-                <li><a href="{% url 'stock_list' %}" class="{% if request.path == '/' %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
+                <li><a href="{% url 'stock_list' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
 
 
-                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == '/stock/purchase/list/' %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase Data</a></li>
+                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == PURCHASELIST %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase Data</a></li>
 
-                <li><a href="{% url 'stock:transaction_list' %}" class="{% if request.path == '/stock/transaction/list/' %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
+                <li><a href="{% url 'stock:transaction_list' %}" class="{% if request.path == TRANSACTIONLIST %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
 
-                <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == '/stock/issue/list/' %} active {% endif %}"><i class="fa-solid fa-gift me-2" style="color: #ffffff;"></i>Kits Data</a></li>
+                <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == KITLIST %} active {% endif %}"><i class="fa-solid fa-gift me-2" style="color: #ffffff;"></i>Kits Data</a></li>
 
 
               
                 {% comment %} <li><a href="{% url 'stock:search_kit' %}" class="{% if request.path == '/stock/return/kit/' %} active {% endif %}"><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;"></i>Return Kits</a></li> {% endcomment %}
 
-                <li><button type='button' data-bs-target='#studentsearch' data-bs-toggle='modal'   class="{% if request.path == '/stock/return/kit/' %} active {% endif %} ms-3 border-0 w-100 text-start bg-transparent text-light" ><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;" ></i>Return Kits</button></li>
+                <li><button type='button' data-bs-target='#studentsearch' data-bs-toggle='modal'   class="{% if request.path == '/stock/return/kit/' %} active {% endif %} ms-3 border-0 w-100 text-start bg-transparent text-light" ><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;" ></i>Exchange Item</button></li>
             </ul>
 
             <div class="modal fade" tabindex="-1" id="studentsearch"  data-bs-backdrop="static">
@@ -41,10 +49,8 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form method="post" class='p-2'>
+                        <form method="post" class='p-2' id='searchform'>
                                 {% csrf_token %}
-                                
-                            
                                 
                                 <div class="form-group">
                                     {% comment %} <label for="">Enrollement Number</label> {% endcomment %}
@@ -67,7 +73,7 @@
                                 </div>
                                         
                                     
-                            <div id="result"></div>
+                            <div id="result" class="mt-2"></div>
 
                         </form>
                     </div>
@@ -115,7 +121,7 @@
     const searchModal = document.getElementById('studentsearch')
 
     searchModal.addEventListener('shown.bs.modal', _ => {
-        console.log('modal apreared')
+        const searchResultWraper = document.querySelector('.detail-wraper')
     })
 
 

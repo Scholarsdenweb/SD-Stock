@@ -25,7 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('stock/', include('stock.urls', namespace='stock')),
     path('auth/', include('authapp.urls', namespace='authapp')),
-    path('', include('dashboard.urls', namespace='dashboard')),
+
 
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

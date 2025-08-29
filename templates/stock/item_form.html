@@ -8,10 +8,11 @@
     <div class="row my-5">
 
         <div class="flex-container">
+            {% if itemlist %}
             <div class="item_list_container p-3">
 
+
                 {% for item in itemlist %}
-<!-- Example single danger button -->
                     <div class="btn-group">
                         <button type="button" class="border-0 p-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                             {% if item.size %}
@@ -28,8 +29,9 @@
                     </div>              
                 {% endfor %}
             </div>
+            {% endif %}
 
-            <div class="col-md-6 col-lg-6 mx-auto shadow p-2 my-2" style="background-color: #c51315;">
+            <div class="col-md-6 col-lg-6 mx-auto shadow p-2 my-2" style="background-color: #7A85C1;">
     
            
     
@@ -56,7 +58,7 @@
 
 {% block scripts %}
 
-<script src="{% static 'js/stock.js' %}"></script>
+{% comment %} <script src="{% static 'js/stock.js' %}"></script> {% endcomment %}
 {% endblock %}
 
 

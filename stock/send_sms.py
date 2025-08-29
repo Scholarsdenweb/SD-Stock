@@ -6,9 +6,9 @@ def send_sms(api_key, message_id, variables_values, numbers='7903956216', sender
     payload = {
     "sender_id": sender_id,
     "message": message_id,
-    "variables_values": variables_values, # e.g. "12345|asdaswdx"
+    "variables_values": variables_values,
     "route": "dlt",
-    "numbers": numbers # list of phone numbers as strings
+    "numbers": numbers 
     }
 
     headers = {

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
@@ -15,6 +15,9 @@ from django.http import HttpResponse
 from .send_sms import send_sms
 from datetime import date, timedelta
 from django.db.models import Q
+from django.forms import inlineformset_factory
+from django.db import transaction
+
 
 # from template_partials.shortcuts import render_partial
 
@@ -152,74 +155,129 @@ def create_stock_view(request):
 
 @login_required()
 def issue_kit(request):
+    # stock_items = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
+    stock_items = Stock.objects.all()
+    IssueItemFormSet = inlineformset_factory(Issue, IssueItem, form=IssueItemForm, extra=stock_items.count())
+    
     if request.method == 'POST':
-        form = IssueForm(request.POST)
+        enrollement = request.POST.get("enrollement")
+        quantities = request.POST.getlist("quantity") 
+        issuing_items = []
         
-        for id in request.POST.getlist('items', None):
-            print('on post',id)
+        
+        student = Student.objects.get(enrollement=enrollement)
+        
+        try:
+            with transaction.atomic():
+                issue = Issue.objects.create(
+                    user=request.user,
+                    student=student,
+                    enrollement=enrollement
+                )
+               
+                for index, item_id in enumerate(request.POST.getlist("items")):
+                    qty = int(quantities[index])
 
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.user = request.user
+                    if qty > 0:
+                        item = Item.objects.get(pk=item_id)
+                        issued_items = IssueItem.objects.create(
+                            issue=issue,
+                            item=item,
+                            quantity=qty
+                        )
+                        
+                        issued_items.quantity += 1
+                        issued_items.save()
+                        issuing_items.append(Item.objects.get(pk=item_id).name)
+                        
+                        transac = Transaction.objects.create(
+                        item=Item.objects.get(pk=item_id),
+                        transaction_type=Transaction.ISSUE,
+                        quantity=qty,
+                        reference_id=issue.id,
+                        reference_model=issue.__class__.__name__,
+                        manager=request.user,
+                        notes="Item {} issued to {}".format(item, issue.student)
+                        )
+                        
+                        transac.save()
+                    update_stock_quantity(request, item_id, -qty)  
+                if(student.phone):
+                    send_sms(
+                        api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
+                        message_id = '186973',
+                        variables_values = ", ".join(issuing_items),
+                        numbers= student.phone, 
+                        sender_id="SCHDEN"
+                    )
+        except Exception as e:
+            print(e)
+            messages.error(request, "Couldn't add item")
+         
+        # form = IssueForm(request.POST)
 
-            # check if there exists a issuance with this enrollement
+        # if form.is_valid():
+        #     obj = form.save(commit=False)
+        #     obj.user = request.user
 
-            issuance_exist = Issue.objects.filter(student=obj.student).first()
+        #     # check if there exists a issuance with this enrollement
 
-            if issuance_exist:
-                selected_items = request.POST.getlist('items', None)
+        #     issuance_exist = Issue.objects.filter(student=obj.student).first()
 
-                for item in selected_items:
-                    stock = update_stock_quantity(request, item, -1)
+        #     if issuance_exist:
+        #         selected_items = request.POST.getlist('items', None)
 
-                    if stock.quantity > 0:
-                        issuance_exist.items.add(item)
-                        issuance_exist.save()
-                    else:
-                        messages.error(request, '{} - Out of stock'.format(item))
-                        return render(request, 'stock/tables/issue_list.html', {'form': form})
+        #         for item in selected_items:
+        #             stock = update_stock_quantity(request, item, -1)
 
-                    if stock.quantity == 0:
-                        stock.delete()
-                        stock.save()
-                    tr_item = Item.objects.get(pk=int(item))
+        #             if stock.quantity > 0:
+        #                 issuance_exist.items.add(item)
+        #                 issuance_exist.save()
+        #             else:
+        #                 messages.error(request, '{} - Out of stock'.format(item))
+        #                 return render(request, 'stock/tables/issue_list.html', {'form': form})
 
-                    transaction = Transaction.objects.create(item=tr_item, transaction_type=Transaction.ISSUE, quantity=issuance_exist.quantity, reference_id=issuance_exist.student.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
-                    transaction.save()
+        #             if stock.quantity == 0:
+        #                 stock.delete()
+        #                 stock.save()
+        #             tr_item = Item.objects.get(pk=int(item))
+
+        #             transaction = Transaction.objects.create(item=tr_item, transaction_type=Transaction.ISSUE, quantity=issuance_exist.quantity, reference_id=issuance_exist.student.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
+        #             transaction.save()
 
 
-                messages.success(request, 'Kit issued successfully')
-                return render(request, 'stock/success.html', {'form': form})
-            else:
-                # obj.save()
-                # form.save_m2m()
-                selected_items = form.cleaned_data['items']
+        #         messages.success(request, 'Kit issued successfully')
+        #         return render(request, 'stock/success.html', {'form': form})
+        #     else:
+        #         # obj.save()
+        #         # form.save_m2m()
+        #         selected_items = form.cleaned_data['items']
 
-                for item in selected_items:
-                    # stock = Stock.objects.get(user=request.user, stock_item=item)
+        #         for item in selected_items:
+        #             # stock = Stock.objects.get(user=request.user, stock_item=item)
                     
-                    try:
-                        # stock = Stock.objects.get(stock_item=item)
-                        stock = Stock.objects.get(pk=int(item.id))
-                        if stock.quantity > 0:
-                            stock = update_stock_quantity(request, item.id, -1)
-                            obj.save()
-                            form.save_m2m()
-                            transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.id, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
-                            transaction.save()
-                            messages.success(request, 'Kit {} issued successfully'.format(selected_items))
-                            return render(request, 'stock/success.html', {'form': form})
-                        else:
-                            messages.error(request, '{} - Out of stock'.format(selected_items))
-                            return render(request, 'stock/issue_form.html', {'form': form})
-                    except Stock.DoesNotExist:
-                        messages.error(request, '{} - Out of stock'.format(selected_items))
-                        return render(request, 'stock/success.html', {'form': form})
+        #             try:
+        #                 # stock = Stock.objects.get(stock_item=item)
+        #                 stock = Stock.objects.get(pk=int(item.id))
+        #                 if stock.quantity > 0:
+        #                     stock = update_stock_quantity(request, item.id, -1)
+        #                     obj.save()
+        #                     form.save_m2m()
+        #                     transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.id, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
+        #                     transaction.save()
+        #                     messages.success(request, 'Kit {} issued successfully'.format(selected_items))
+        #                     return render(request, 'stock/success.html', {'form': form})
+        #                 else:
+        #                     messages.error(request, '{} - Out of stock'.format(selected_items))
+        #                     return render(request, 'stock/issue_form.html', {'form': form})
+        #             except Stock.DoesNotExist:
+        #                 messages.error(request, '{} - Out of stock'.format(selected_items))
+        #                 return render(request, 'stock/success.html', {'form': form})
 
-        else:
-            messages.error(request, 'Form is not valid')
-            print(form.errors)
-            return render(request, 'stock/issue_form.html', {'form': form})
+        # else:
+        #     messages.error(request, 'Form is not valid')
+        #     print(form.errors)
+        #     return render(request, 'stock/issue_form.html', {'form': form})
 
 
     # find issued kit with the enrollement no and modify the selection
@@ -229,29 +287,30 @@ def issue_kit(request):
     
     student = find_student(name, dob, enrollement)
     
-    issued_kit = Issue.objects.filter(Q(enrollement=enrollement) | Q(student=student) ).first()
+    issued_kit = Issue.objects.filter(Q(enrollement=enrollement) | Q(student=student) )
+    items = []
     
-    stock_items = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
+    if issued_kit.exists():
+        for k in issued_kit:
+            for i in k.items.all():
+                items.append(i)
+    
+    
     items_in_stock = Item.objects.filter(id__in=stock_items)
 
-                
-                
-    if issued_kit is not None:
-        given_items = issued_kit.items.all()
-        stock_items_qs = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
-
-        items_in_stock = Item.objects.filter(id__in=stock_items_qs).exclude(id__in=given_items)
-   
-    print('enrollement',request.GET.get('enrollement'))   
-    
     form = IssueForm()
+    item_issue_formset = IssueItemFormSet()
+    
     form.fields['items'].queryset = items_in_stock
     # form.fields['enrollement'].initial = int(request.GET.get('enrollement'))
     form.fields['enrollement'].initial = request.GET.get('enrollement')
     form.fields['enrollement'].widget.attrs['readonly'] = True
     form.fields['student'].initial = student
     form.fields['student'].widget.attrs['readonly'] = True
-    return render(request, 'stock/issue_form.html', {'form': form})
+    
+    context = {'form': form, 'issued_kit': items, 'item_issue_formset': item_issue_formset, 'items':stock_items, 'student':student }
+    
+    return render(request, 'stock/issue_form.html', context)
 
 
 
@@ -318,13 +377,14 @@ class TransactionListView(LoginRequiredMixin, ListView, FormView):
 
         return responce
 
-
+# The list of issued kits
 class IssueListView(LoginRequiredMixin, ListView, FormView):
     model = Issue
     template_name = 'stock/tables/issue_list.html'
     context_object_name = 'kits'
     paginate_by = PAGINATED_BY
     form_class = DownloadForm
+    
 
     def post(self, request, *args, **kwargs):
         responce = download_kits(self, request)
@@ -335,13 +395,15 @@ class IssueListView(LoginRequiredMixin, ListView, FormView):
         kwargs['date_max'] = (date.today() - timedelta(days=365*5)).isoformat()
         return super().get_context_data(**kwargs)
     
-
-    
-
-
-
+class IssueDetailView(LoginRequiredMixin, DetailView):
+    model = Issue
+    template_name = 'stock/issue_detail.html'
+    context_object_name = 'kits'
 
 def search_issued_items(request):
+    """
+    Function to Search for issued items
+    """
     kitlist= []
     if request.method == 'POST':
         
@@ -349,20 +411,23 @@ def search_issued_items(request):
         dob = request.POST.get('dob', None)
         enrollement = request.POST.get('enrollement', None)
         
+              
         student = find_student(name, dob, enrollement)
-        
+        context = {'kitlist': kitlist, 'name': name, 'dob': dob, 'enrollement': enrollement}
         
         kits = Issue.objects.filter(student=student).first()
         if  kits is None:
-            return render(request, 'partials/search_button.html', {'kitlist': kitlist, 'name': name, 'dob': dob, 'enrollement': enrollement})
+            return render(request, 'partials/search_button.html', context )
             # return HttpResponse("<p class='text-warning'>Please enter valid enrollement number</p><button type='button'>Search</button>")
         else:
             items = kits.items.all()
-
+            
             for i in items:
                 kitlist.append(i)
         # return render(request, 'partials/return_list.html', {'kitlist': kitlist,  'name': name, 'dob': dob, 'enrollement': enrollement})
-        return render(request, 'partials/return_list.html', {'kitlist': kitlist, 'student': student})
+        stock_items = Stock.objects.all()
+        context = {'kitlist': kitlist, 'student': student, 'stock_items': stock_items}
+        return render(request, 'partials/return_list.html', context)
   
     context = dict(
         min_date = (date.today() - timedelta(days=365*10)).isoformat(),
@@ -370,6 +435,54 @@ def search_issued_items(request):
     )
     return render(request, 'stock/return_form.html', context)    
 
+def exchage_kit(request):
+    
+    """
+    Function to exchange issued items
+    """
+    if request.method == 'POST':
+        what_items = request.POST.getlist('items[]', '0')
+        exhange_with = request.POST.getlist('xitems[]', '0')      
+       
+        resultant = zip(what_items, exhange_with)
+        
+        print('resultant', list(resultant))
+        
+            
+       
+        return JsonResponse({'message':tuple(resultant)})    
+    
+    # if request.headers.get('hx-request'):
+    #     item_ids = request.GET.getlist('items[]', [])
+    #     history_ids = request.session.get('selected_items', [])
+
+    #     # merge + deduplicate
+    #     all_ids = list(set(history_ids + [int(i) for i in item_ids if i.isdigit()]))
+
+    #     request.session['selected_items'] = all_ids
+
+    #     swapable_items = Stock.objects.filter(stock_item__category__in=all_ids)
+    #     context = {'swapable_items': swapable_items}
+    #     return render(request, 'partials/return_list.html', context)
+    
+    
+    if request.headers.get('hx-request'):
+        item_ids = request.GET.getlist('items[]', '0')
+        swapable_items = []
+        
+        if len(item_ids) > 0:
+            for id in item_ids:
+                try:
+                    category = Category.objects.get(pk=int(id))
+                except Category.DoesNotExist:
+                    continue
+                
+                items = Stock.objects.filter(stock_item__category=category)
+                print('stock cat', items[0].stock_item.category)
+                swapable_items.extend(items)
+            
+        context = {'swapable_items': swapable_items}
+        return render(request, 'partials/return_list.html', context)
 
 def return_kit(request):
     if request.method == 'POST':
@@ -400,7 +513,7 @@ def return_kit(request):
 
             tr = Transaction.objects.create(
                 item=item,
-                transaction_type=Transaction.RETURN,
+                transaction_type=Transaction.EXCHANGE,
                 quantity=issued_kit.quantity,
                 manager=request.user,
                 reference_id = issued_kit.student.pk,
@@ -426,20 +539,19 @@ def return_kit(request):
 
 
 def filter_student(request):
-    print('find student')
     
     if request.method == 'POST':
         full_name = request.POST.get('full_name', None)
         dob = request.POST.get('dob', None)
         enrollement = request.POST.get('enrollement', None)
         
+       
         student = find_student(full_name, dob, enrollement)
         
         if student is not None:
             url = reverse('stock:issue_kit')
-            
 
-            return HttpResponse(f"<div class='bg-success-subtle text-success p-2'><p class='text-success'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Father's Name: {student.father_name}</p><p>Date of Birth: {student.get_dob()}</p><p>Phone Number: {student.phone}</p></div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={full_name}&dob={dob}'>Issue Kit</button>")
+            return HttpResponse(f"<div class='text-bg-dark p-2'><p class='text-warning'>One student found with following detailes:</p><p>Name: {student.name}</p><p>Father's Name: {student.father_name}</p><p>Date of Birth: {student.get_dob()}</p><p>Phone Number: {student.phone}</p></div><button type='submit' class='btn btn-primary mt-3'><a class='text-white link-underline link-underline-opacity-0' href='{url}?enrollement={student.enrollement}&name={student.name}&dob={student.get_dob()}'>Issue Kit</button>")
         
         return HttpResponse("<div class='form-group' id='searchresult'><p class='text-danger'>No student found</p> <button type='submit'   class='btn btn-dark'>Search</button> </div>")
                                
@@ -468,3 +580,7 @@ def transaction_detail(request, pk):
         case _:
             return HttpResponse(f'<h1>Transaction Detail pk:{pk}, xxxx</h1>')
     
+
+
+def issue_new_kit(request):
+    return render(request, 'stock/issue_kit.html')

@@ -12,8 +12,16 @@ from django.core.validators import RegexValidator
 User = get_user_model()
 
 
-
-
+class Category(models.Model):
+    name = models.CharField(max_length=50)
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if self.name:  # extra safety
+            self.name = self.name.lower()
+        super().save(*args, **kwargs)
+        
 # Create your models here.
 SIZE_CHOICES = (
     ('s', 'S'),
@@ -36,19 +44,20 @@ class Item(models.Model):
     
 
     SIZE_CHOICES = (
+    (None, 'NA'),
     (T_SHIRT_S, 'S'),
     (T_SHIRT_M, 'M'),
     (T_SHIRT_L, 'L'),
     (T_SHIRT_XL, 'XL'),
     (T_SHIRT_XXL, 'XXL'),
-    (SMALL, 'Small'),
-    (BIG, 'Big'),
-    (None, 'NA')
+    (SMALL, 'Diary Small'),
+    (BIG, 'Diary Big'),
 
     )
 
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=254, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, default='1')
     size = models.CharField(max_length=10, null=True, blank=True, choices=SIZE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -59,6 +68,7 @@ class Item(models.Model):
         return f"{self.name.capitalize()} ({self.size.upper()})"
 
     def save(self, *args, **kwargs):
+        self.name = self.name.lower()
         if Item.objects.filter(name=self.name, size=self.size).exclude(pk=self.pk).exists():
             raise ValidationError("Item with the same name, size, and unit price already exists.")
         super().save(*args, **kwargs)
@@ -77,7 +87,7 @@ class Purchase(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Purchased on')
+    created_at = models.DateTimeField(default=datetime.now, verbose_name='Date')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last updated')
     supplier = models.CharField(max_length=100, null=True, blank=True)
     supplier_location = models.CharField(max_length=100, null=True, blank=True, verbose_name='Supplier Location')
@@ -108,6 +118,11 @@ class Stock(models.Model):
         
     def get_items(self):
         return self.stock_item
+    
+    def in_stock(self):
+        if self.quantity > 0:
+            return dict(status=True, quantity=self.quantity)
+        return dict(status=False, quantity=self.quantity)
     
 
 
@@ -142,6 +157,13 @@ class Student(models.Model):
     
     
     
+class IssueItem(models.Model):
+    issue = models.ForeignKey("Issue", on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.item.name} x {self.quantity}"
 
 
 
@@ -149,9 +171,10 @@ class Issue(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Issuing autority") 
     enrollement = models.CharField(max_length=20, verbose_name="Enrollement Number")
     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
-    items = models.ManyToManyField(Item,  related_name="kit_items")
-    quantity = models.PositiveIntegerField(default=1)
+    items = models.ManyToManyField(Item, through=IssueItem, related_name="kit_items")
+    quantity = models.PositiveIntegerField(default=0)
     issue_date = models.DateTimeField(auto_now_add=True)
+    last_upated = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
     send_message = models.BooleanField(default=False)
 
@@ -191,12 +214,13 @@ class Transaction(models.Model):
     PURCHASE = 'PU'
     ISSUE = 'IS'
     RETURN = 'RE'
-    ADJUSTMENT = 'AD'
+    EXCHANGE = 'AD'
 
     TRANSACTION_TYPE = [
         (PURCHASE, 'Purchase'),
         (ISSUE, 'Issue'),
         (RETURN, 'Return'),
+        (EXCHANGE, 'Exchange'),
     ]
 
     item = models.ForeignKey(Item, on_delete=models.CASCADE)

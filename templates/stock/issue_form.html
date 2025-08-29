@@ -1,12 +1,13 @@
 {% extends  'dashboard/home.html' %}
 {% load static %}
+{% load index %}
 
 {% block table %}
 
 <div class="container text-white">
     <div class="row my-5">
-        <div class="col-md-6 col-lg-6 mx-auto shadow pb-5 p-0" style="background-color: #c51315;">
-            <h3 class="bg-warning-subtle text-dark  p-1" >Issue Kit</h3>
+        <div class="col-md-6 col-lg-6 mx-auto shadow pb-5 p-0" style="background-color: #7A85C1;">
+            <h3 class="text-light p-1" style="background-color:#3B38A0" >Issue Kit</h3>
 
 
 
@@ -19,23 +20,121 @@
             {% endfor %}
         {% endif %}
         
-        <form action="" method="POST" id="stockform" class='p-2' >
+            <form action="" method="POST" id="stockform" class='p-3' >
 
+                <div class='text-bg-dark p-2 m-0 border rounded'>
+                    <p>Enrollement No: {{form.enrollement.initial}}</p>
+                    <p>Name: {{form.student.initial}}</p>
+                    {% if form.student.initial.father_name %}
+                        <p>Father's name: {{form.student.initial.father_name}}</p>
+                    {% else %}
+                        <p>Father's name: NA</p>
+                    {% endif %}
+
+                    {% if issued_kit %}
+                    Already given: 
+                        {% for kit in  issued_kit %}
+                            <small class="text-warning">
+                                {{kit.name}} {% if not forloop.last %}, {% endif %}
+                            </small>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% csrf_token %} 
+                
+                {# hidden inputs #}
+                {% comment %} <div class="form-group">
+                    <input hidden type="text" name={{form.enrollement.html_name}} value={{form.enrollement.value}}>
+                    <input hidden type="text" name={{form.student.html_name}} value={{form.student.value}}>
+                </div> {% endcomment %}
+
+                <div class="form-group">
+                    <input type="text" hidden name="enrollement"  value="{{student.enrollement}}" id="">
+                    <input type="text" hidden name="student" id="" value='{{student.id}}'>
+                </div>
+
+                <table class="w-100">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th class="text-end">Quantity</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                               {% if item.in_stock.status %}
+                                <input type="checkbox" name="items" id="" value="{{item.id}}">
+                                <label for="">{{item.stock_item.name}} <span style="color:greenyellow;">(In stock - {{item.in_stock.quantity}} )</span> </label>
+
+                                {% else %}
+                                <input type="checkbox" name="items" id="" value="{{item.id}}" disabled>
+                                <label for="">{{item.stock_item.name}} <span class="text-warning">(Out of stock - {{item.in_stock.quantity}} )</span> </label>
+
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                               {% if item.in_stock.status %}
+                                <input type="text" name="quantity" id="" value='1' size='1' class="text-center">
+                                {% else %}
+                                <input type="text" name="quantity" id="" value='0' size='1' disabled class='text-center'>
+
+                                {% endif %}
+
+                            </td>
+                        </tr>
+                        
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% comment %} <div class="form-group mt-2">
+
+                    <table class="w-100">
+
+                        <thead>
+                            <tr>
+                                <th class='text-start'>Item</th>
+                                <th class="text-end">Quantity</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for checkbox in form.items %}
+
+                            <tr>
+                                <td>
+                                    <input type="checkbox"
+                                        name="{{ form.items.name }}"
+                                        value="{{ checkbox.data.value }}"
+                                        id="{{ checkbox.id_for_label }}">
+                                    <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                                </td>
+                                
+                                <td class="text-end">
+                                    {% if forloop.counter0 < item_issue_formset.forms|length %}
+                                    {% with f=item_issue_formset.forms|index:forloop.counter0 %}
+                                        {{ f.quantity }}
+                                    {% endwith %}
+                                    {% else %}
+                                    
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                     
+                    </table>
+
+                </div> {% endcomment %}
             
-        
-            <div class='bg-success-subtle text-success p-2'>
-                <p>Enrollement No: {{form.enrollement.initial}}</p>
-                <p>Name: {{form.student.initial}}</p>
-            </div>
-            {% csrf_token %} 
-            {{form}}
+                <p id="msgbox'"></p>
+                <button type="button" class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#confirmbox">Submit</button>
 
-           
-            <p id="msgbox'"></p>
-            <button type="button" class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#confirmbox">Submit</button>
-
-        </form>
-
+            </form>
 
 
         </div>

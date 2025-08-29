@@ -192,4 +192,5 @@ class StudentAdmint(admin.ModelAdmin):
     
     
 admin.site.register(Student, StudentAdmint)
-    
+admin.site.register(IssueItem)    
+admin.site.register(Category)

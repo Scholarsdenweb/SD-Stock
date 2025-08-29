@@ -5,7 +5,7 @@ from django.forms.widgets import DateInput
 from datetime import date
 from django.contrib import messages
 
-
+SHIRT_SIZE = ['xs','s', 'm', 'l', 'xl', 'xxl', 'xxxl', '4xl', '5xl']
 class StockDate(DateInput):
     input_type = 'date'
 
@@ -30,8 +30,9 @@ class ItemForm(ModelForm):
                     raise forms.ValidationError('Size should not be specified for item "pen" or "bag".')
             
             elif name == 'shirt' or name=='t-shirt' and self.size is not None:
-                if size not in ['s', 'm', 'l', 'xl', 'xxl']:
-                    raise forms.ValidationError('Invalid size for "shirt". Allowed values are "s", "m", "l", "xl", "xxl".')
+                if size not in SHIRT_SIZE:
+                    allowed_sizes = ', '.join(SHIRT_SIZE)
+                    raise forms.ValidationError('Invalid size for "shirt". Allowed values are {}'.format(allowed_sizes))
             
             elif name == 'diary' and self.size is not None:
                 if size not in ['small', 'big']:
@@ -46,7 +47,6 @@ class ItemForm(ModelForm):
                 if Item.objects.filter(name=name, size=size, unit_price=uniprice).exists():
                     print("Found")
                     raise forms.ValidationError("An item with the same name, size, and unit price already exists.")
-
                 
             try:
                 item = Item.objects.filter(name=name, size=size, unit_price=uniprice).exists
@@ -59,26 +59,30 @@ class ItemForm(ModelForm):
 
 
 
-
 class PurchaseForm(ModelForm):
     # items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple)
 
     class Meta:
         model = Purchase
-        fields = ['item', 'quantity', 'unit_price', 'total_amount', 'supplier', 'supplier_location']
+        fields = ['item', 'quantity', 'unit_price', 'total_amount','created_at', 'supplier', 'supplier_location']
 
         widgets = {
             'item': forms.Select(attrs={'class': 'form-select mt-2'}),
             'quantity': forms.NumberInput(attrs={
                 'class': 'form-control mt-2',
-                
-                
             }),
             'total_amount': forms.TextInput(attrs={'class': 'form-control mt-2'}),
             'supplier': forms.TextInput(attrs={'class': 'form-control mt-2'}),
             'supplier_location': forms.TextInput(attrs={'class': 'form-control mt-2'}),
-            'unit_price': forms.TextInput(attrs={'class': 'form-control mt-2'})
+            'unit_price': forms.TextInput(attrs={'class': 'form-control mt-2'}),
+            'created_at':forms.TextInput(attrs={'class': 'form-control mt-2', 'type': 'date'})
         }
+        
+    def __init__(self, *args, **kwargs):
+        super(PurchaseForm, self).__init__(*args, **kwargs)
+        today_str = date.today().strftime('%Y-%m-%d')
+        self.fields['created_at'].widget.attrs.update({'max': today_str})
+        self.initial['created_at'] = today_str
         
         
 
@@ -109,8 +113,38 @@ class StockForm(ModelForm):
 
 # ITEM_CHOICES =  tuple((item.name, item.name.capitalize()) for item in Item.objects.all())
 
+
+
+class StockCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
+    def __init__(self, *args, disabled_values=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disabled_values = disabled_values or []
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        if str(value) in [str(v) for v in self.disabled_values]:
+            option["attrs"]["disabled"] = True
+            option["attrs"]["class"] = "out-of-stock"
+        else:
+            option["attrs"]["class"] = "in-stock"
+        return option
+    
+    
+
+class IssueItemForm(ModelForm):
+    class Meta:
+        model = IssueItem
+        fields = ["quantity"]
+        
+        widgets = {
+            'quantity': forms.TextInput(attrs={'size': '1', 'class': 'text-center'}),
+        }
+        
+        
+        
+        
 class IssueForm(ModelForm):
-    items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple(attrs={'class':''}))
+    items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=StockCheckboxSelectMultiple)
 
     class Meta:
         model = Issue
@@ -124,8 +158,25 @@ class IssueForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
-        
-        super(IssueForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
+        new_choices = []
+        disabled_values = []
+
+        for item in self.fields['items'].queryset:
+            stock = Stock.objects.filter(stock_item=item).first()
+            stock_info = stock.in_stock() if stock else dict(status=False, quantity=0)
+
+            if stock_info['status']:
+                label = f"{item} (In Stock — {stock_info['quantity']} left)"
+            else:
+                label = f"{item} (Out of Stock)"
+                disabled_values.append(item.pk)
+
+            new_choices.append((item.pk, label))
+
+        self.fields['items'].choices = new_choices
+        self.fields['items'].widget = StockCheckboxSelectMultiple(disabled_values=disabled_values)
 
 
 
@@ -138,6 +189,8 @@ class DownloadForm(forms.Form):
 ]
 
     format = forms.ChoiceField(choices=FORMAT_CHOICE, widget=forms.Select(attrs={'class': 'form-select'}))
+
+
 
 
 class KitReturnForm(forms.Form):

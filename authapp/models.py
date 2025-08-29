@@ -54,8 +54,6 @@ class OTPCode(models.Model):
     user = models.ForeignKey(StockUser, on_delete=models.CASCADE)
     otp = models.CharField(max_length=6)
     
-    
-    
     class Meta:
         verbose_name_plural = 'OTPs'
     
