@@ -23,15 +23,7 @@ class Category(models.Model):
         super().save(*args, **kwargs)
         
 # Create your models here.
-SIZE_CHOICES = (
-    ('s', 'S'),
-    ('m', 'M'),
-    ('l', 'L'),
-    ('xl', 'XL'),
-    ('xxl', 'XXL'),
-    ('small', 'Small'),
-    ('big', 'Big')
-)
+
 class Item(models.Model):
 
     T_SHIRT_S = 's'

@@ -6,6 +6,7 @@
 
 <div class="container text-white">
     <div class="row my-5">
+        
 
         <div class="flex-container">
             {% if itemlist %}
@@ -24,7 +25,6 @@
                         <ul class="dropdown-menu p-2">
                             <p>Name: {{item.name | capfirst}}</p>
                             <p>Size: {{item.size | upper}}</p>
-
                         </ul>
                     </div>              
                 {% endfor %}
@@ -32,9 +32,7 @@
             {% endif %}
 
             <div class="col-md-6 col-lg-6 mx-auto shadow p-2 my-2" style="background-color: #7A85C1;">
-    
-           
-    
+   
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -48,7 +46,7 @@
                 <h1>Add Items</h1>
                 {% csrf_token %} 
                 {{form}}
-                <button class="btn btn-warning mt-3">Submit</button">
+                <button class="btn btn-warning mt-3">Submit</button>
             </form>
     
             </div>

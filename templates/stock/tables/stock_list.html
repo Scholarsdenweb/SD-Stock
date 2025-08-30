@@ -57,7 +57,9 @@
                 <td>{{s.quantity}}</td>
                 <td>{{s.user.name}}({{s.user.emp_id}})</td>
                 <td>{{s.date | date:'d/m/Y'}}</td>
-                <td>{{s.update_at | date:'d/m/Y'}}</td>
+                <td>{{s.update_at | date:'d/m/Y'}}
+                    <small></small>
+                </td>
             </tr>
             {% endfor %}
         <tbody>
