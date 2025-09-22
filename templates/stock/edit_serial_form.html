@@ -1,0 +1,11 @@
+<form id="edit_serial_form" 
+      hx-put="{% url 'stock:serial_detail' serialnumber_obj.pk %}" 
+      hx-swap="outerHTML" 
+      hx-target="this">
+      {% csrf_token %}
+    {{ form.as_p }}
+    <div class="d-flex gap-2 justify-content-start">
+        <button type="button" class="btn btn-sm btn-danger" hx-get="{% url 'stock:serial_detail' serialnumber_obj.pk %}">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-primary" form="edit_serial_form">Save</button>
+    </div>
+</form>

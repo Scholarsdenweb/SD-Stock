@@ -3,12 +3,12 @@
 
 {% block content %}
  
-{% url 'authapp:add_student' as ADDSTUDENT %}
+{#{% url 'authapp:add_student' as ADDSTUDENT %}#}
 {% url 'stock:add_item' as ADDITEM %}
 {% url 'stock:student_list' as STUDENTLIST %}
-{% url 'stock_list' as STOCKLIST %}
+{% url 'stock:create_stock' as STOCKLIST %}
 {% url 'stock:purchase_list' as PURCHASELIST %}
-{% url 'stock:transaction_list' as TRANSACTIONLIST %}
+{#{% url 'stock:transaction_list' as TRANSACTIONLIST %}#}
 {% url 'stock:kit_list' as KITLIST %}
 
 <div class="container-fluid my-3  ">
@@ -19,18 +19,18 @@
 
         <div class="col-md-3 col-lg-2 col-sm-12 col-12  sidebar ">
             <ul class="side-navigation ">
-                <li><a href="{% url 'authapp:add_student' %}" class="{% if request.path == ADDSTUDENT %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
+                <li><a href="" class="{% if request.path == ADDSTUDENT %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
 
-                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == ADDITEM %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Add Item</a></li>
+                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == ADDITEM %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Catelogue</a></li>
                 
                 <li><a href="{% url 'stock:student_list' %}" class="{% if request.path == STUDENTLIST %} active {% endif %}"><i class="fa-solid fa-database me-2" style="color: #ffffff;"></i>Students Data</a></li>
 
-                <li><a href="{% url 'stock_list' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
+                <li><a href="{% url 'stock:create_stock' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
 
 
                 <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == PURCHASELIST %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase Data</a></li>
 
-                <li><a href="{% url 'stock:transaction_list' %}" class="{% if request.path == TRANSACTIONLIST %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
+                <li><a href="" class="{% if request.path == TRANSACTIONLIST %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
 
                 <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == KITLIST %} active {% endif %}"><i class="fa-solid fa-gift me-2" style="color: #ffffff;"></i>Kits Data</a></li>
 
@@ -65,7 +65,7 @@
 
                                 <div class="form-group">
                                     <button type="button" class="btn btn-warning mt-3"
-                                    hx-post="{% url 'stock:search_kit' %}"
+                                    hx-post="#"
                                         hx-trigger="click"
                                         hx-swap="outerHTML"
                                         hx-target="this">
@@ -111,8 +111,6 @@
             </div>
         </div>
     </div>
-
-
 
 
 <script>

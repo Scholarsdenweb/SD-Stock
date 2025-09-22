@@ -1,0 +1,11 @@
+<form id="edit_stock_form" 
+      hx-put="{% url 'stock:stock_detail' stock.pk %}" 
+      hx-swap="outerHTML" 
+      hx-target="this">
+      {% csrf_token %}
+    {{ form.as_p }}
+    <div class="d-flex gap-2 justify-content-start">
+        <button type="button" class="btn btn-sm btn-danger" hx-get="{% url 'stock:stock_detail' stock.pk %}">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-primary" form="edit_stock_form">Save</button>
+    </div>
+</form>

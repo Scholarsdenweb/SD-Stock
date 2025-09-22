@@ -1,0 +1,20 @@
+ul.nav {
+    background-color: rgb(223, 232, 229);
+    height: 10vh;
+}
+
+.container-fluid {
+    height: calc(100vh - 10vh);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/static/images/cover.jpg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}
+
+center div {
+    background-color: #ffffff;
+    color: rgb(20, 19, 19);
+    font-size: 3rem;
+    font-weight: 600;
+}

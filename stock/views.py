@@ -5,26 +5,71 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormVi
 from stock.forms import *
 from django.contrib import messages
 from django.core import serializers
+from django.views.generic.edit import FormMixin
 
 from django.views.generic import ListView, DetailView, FormView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from stock.utils import *
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .send_sms import send_sms
 from datetime import date, timedelta
 from django.db.models import Q
-from django.forms import inlineformset_factory
-from django.db import transaction
-
+from django.forms import inlineformset_factory, formset_factory
+from .forms import CategoryForm, ItemForm, VariantForm, StockForm
+from django.db import transaction, IntegrityError
+from formtools.wizard.views import SessionWizardView
+from django.utils.safestring import mark_safe
+from django.db.models import F
 
 # from template_partials.shortcuts import render_partial
-
 import json
+
 
 PAGINATED_BY = 10
 
+class CreateCategory(CreateView):
+    template_name = 'stock/category_form.html'
+    form_class = CategoryForm
+    success_url = reverse_lazy('stock:add_item')
+    
+    def form_valid(self, form):
+        messages.success(self.request, "Category added successfully")
+        return super().form_valid(form)
+    
+
+
+class CreateVariant(CreateView):
+    template_name = 'stock/variant_form.html'
+    form_class = VariantForm
+    success_url = reverse_lazy('stock:add_variant')
+    
+    def form_valid(self, form):
+        form_data = self.request.POST
+        keys = form_data.getlist('key')
+        vals = form_data.getlist('val')
+
+        # build dict safely
+        dict_data = dict(zip(keys, vals))
+
+        # attach to instance before save
+        form.instance.meta_data = dict_data
+        form.instance.is_active = True
+
+        messages.success(self.request, "Variant added successfully")
+        return super().form_valid(form)
+
+    
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('hx-request'):
+            return render(request, 'stock/variant_form.html#key_value', {'form': self.form_class()})
+        return super().get(request, *args, **kwargs)
+    
+    
+
+    
+    
 # Create your views here.
 class ItemCreateView(CreateView):
     template_name = 'stock/item_form.html'
@@ -41,9 +86,358 @@ class ItemCreateView(CreateView):
         return super().form_invalid(form)
   
 def add_success_view(request):
-    return render(request, 'stock/add_success.html')  
+    return render(request, 'stock/add_success.html') 
 
-@login_required()
+
+from django.views.generic.list import ListView
+from django.views.generic.edit import FormMixin
+from .forms import StockForm
+from .models import Stock, Item, Variant
+
+class StockCreate(LoginRequiredMixin, CreateView):
+    context_object_name = 'stocks'
+    template_name = 'stock/create_stock.html'
+    form_class = StockForm
+    success_url = reverse_lazy('stock:create_stock')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        stocks = Stock.objects.all()
+        context['stocks'] = stocks
+        return context
+    
+    def form_valid(self, form):
+        stock = form.save(commit=False)
+        item = form.instance.variant.product
+        variant = form.instance.variant
+        
+        in_stock = Stock.objects.filter(variant=stock.variant, location=stock.location, variant__product=item).first()
+        
+        if in_stock and not variant.is_serialized and not self.request.POST.get("confirm"):
+            if self.request.headers.get('hx-request'):
+                form_data = self.request.POST
+                stock_data = {
+                    'location': Location.objects.get(pk = form_data.get('location')),
+                    'variant': Variant.objects.get(pk=form_data.get('variant')),
+                    'quantity': int(form_data.get('quantity')) + in_stock.quantity,
+                }
+                return render(self.request, 'partials/confirm_stock.html', {'stock': in_stock, 'message': 'Stock already exist', 'class': 'text-danger', 'form_data': self.request.POST, 'stock_data': stock_data})
+            
+        if in_stock and not variant.is_serialized and self.request.POST.get("confirm"):
+            if self.request.headers.get('hx-request'):
+                form = StockForm(self.request.POST, instance=in_stock)
+                in_stock.quantity += int(self.request.POST.get('quantity'))
+                stock = in_stock.save()
+                messages.success(self.request, "Stock updated successfully")
+                return render(self.request, "partials/stock_detail.html", {"stock": stock})
+        else:
+            if self.request.headers.get('hx-request'):
+                serial_number = self.request.POST.getlist('serial')
+                if serial_number:
+                    serialnumber_obj = Serialnumber.objects.filter(serial_number__in=serial_number)
+                    
+                    if serialnumber_obj.exists():
+                        messages.error(self.request, f'Below serial numbers already exists')
+                        return render(self.request, 'partials/stock_detail.html', {'serialnumber_obj': serialnumber_obj, 'class': 'text-danger'})
+                    else:
+                       try: 
+                        with transaction.atomic():
+                            if in_stock:
+                                stock = in_stock
+                            else:
+                                stock = form.save()
+                            created_serials = []
+                            for serial in serial_number:
+                                try:
+                                    sn = Serialnumber.objects.create(
+                                        item=item,
+                                        product_variant=stock.variant,
+                                        serial_number=serial
+                                    )
+                                    
+                                    created_serials.append(sn)
+                                    # increment quantity atomically
+                                    Stock.objects.filter(id=stock.id).update(quantity=F('quantity') + 1)
+                                except IntegrityError:
+                                    messages.warning(self.request, f"⚠️ Serial number '{serial.strip()}' is duplicate and not allowed. Try again.")
+                                    return render (self.request, 'partials/stock_detail.html', {'class': 'text-danger'})
+                                 
+                            stock.refresh_from_db()
+                            
+                            if created_serials:
+                                messages.success(self.request, f'Total {len(created_serials)} serial numbers added successfully')
+                                sr_object = Serialnumber.objects.filter(serial_number__in=serial_number)
+                            
+                            context = {'class': 'text-success', 'serialnumber_obj': sr_object}
+                            response =  render(self.request, 'partials/stock_detail.html', context)
+                            response['HX-Target'] = '#response_message'
+                            return response
+                       except Exception as e:
+                            messages.error(self.request, f'Error: {str(e)}')
+                            return render(self.request, 'partials/stock_detail.html', {'class': 'text-danger'})
+                else:
+                    stock = form.save()
+                    message = f'Stock added successfully'
+                    context = {'stock': stock, 'message': message, 'class': 'text-success'}
+                    response =  render(self.request, 'partials/stock_detail.html', context)
+                    response['HX-Target'] = '#response_message'
+                    return response
+    
+    def form_invalid(self, form):
+        if self.request.headers.get('hx-request'):
+            item = form.cleaned_data['variant']
+            variant = form.cleaned_data['variant']
+            location = form.cleaned_data['location']
+            stock = Stock.objects.filter(variant=variant.pk, location=location.pk).first()
+            message = "Stock already exists"
+            context = {'stock': stock, 'message': message, 'class': 'text-danger'}
+            response = render(self.request, 'partials/stock_detail.html', context)
+            response['HX-Target'] = '#response_message'
+            return response
+        
+        return super().form_invalid(form)    
+    
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('hx-request'):
+            context = self.get_context_data(**kwargs)
+            form = self.form_class()
+            context['form'] = form
+            return render(request, 'partials/create_stock_form.html', context)
+        return super().get(request, *args, **kwargs)
+
+
+
+# stock edit view    
+def edit_stock(request, pk):
+    stock = get_object_or_404(Stock, pk=pk)
+    form = StockEditForm(instance=stock)
+    context = {'form': form, 'stock': stock}
+    return render(request, 'stock/edit_stock_form.html', context)
+        
+def edit_stock_with_serials(request, pk): 
+    context = {}
+    stock = get_object_or_404(Stock, pk=pk)
+    serials = Serialnumber.objects.filter(product_variant=stock.variant)
+    stock_form = StockEditForm(instance=stock)
+
+    if request.method == 'POST':
+        stock_form = StockEditForm(request.POST, instance=stock)
+        print('data', request.POST)
+        if stock_form.is_valid():
+            stock_instance = stock_form.save(commit=False)
+            old_variant = Stock.objects.get(pk=stock_instance.pk).variant
+            stock_instance.save()
+            
+            if old_variant != stock_instance.variant:
+                serials_to_update = Serialnumber.objects.filter(product_variant=old_variant)
+                serials_to_update.update(
+                    item=stock_instance.variant.product,
+                    product_variant=stock_instance.variant
+                )
+            
+            messages.success(request, "Stock and serials updated successfully.")
+            context['serial_numbers'] = serials
+            return redirect('stock:edit_stock_with_serials', pk=stock.pk)
+        else:
+            print('form error', stock_form.errors)
+            context['stock_form'] = stock_form
+            
+            messages.error(request, "Please correct the errors below.")
+            return render(request, 'stock/edit_stock_with_serials.html', context=context)
+        
+    stock_form.fields['quantity'].widget.attrs.update({
+    'readonly': True,
+    'style': 'background-color:#e9ecef; cursor:not-allowed;'
+    })
+
+    context['stock_form'] = stock_form
+    context['serial_numbers'] = serials
+    context['stock'] = stock
+    return render(request, 'stock/edit_stock_with_serials.html', context=context)                
+
+def stock_detail(request, pk):
+    stock = get_object_or_404(Stock, pk=pk)
+    if request.method == 'GET':
+        if request.headers.get('hx-request'):
+            return render(request, 'partials/stock_detail.html', {'stock': stock})
+    elif request.method == 'PUT':
+        data = QueryDict(request.body).dict()
+        form = StockEditForm(data, instance=stock)
+        if form.is_valid():
+            form.save()
+            return render(request, 'partials/stock_detail.html', {'stock': stock})
+        context = {'form': form, 'stock': stock}
+        return render(request, 'stock/edit_stock_form.html', context)
+            
+def serial_detail(request, pk):
+    serial = get_object_or_404(Serialnumber, pk=pk)
+    if request.method == 'GET':
+        if request.headers.get('hx-request'):
+            return render(request, 'partials/stock_detail.html', {'serialnumber_obj': serial})
+        
+    elif request.method == 'PUT':
+        data = QueryDict(request.body).dict()
+        form = SerialEditForm(data, instance=serial)
+        if form.is_valid():
+            form.save()
+            return render(request, 'partials/stock_detail.html', {'serialnumber_obj': serial})
+        context = {'form': form, 'serialnumber_obj': serial}
+        return render(request, 'stock/edit_serial_form.html', context)
+    
+def edit_serial(request, pk):
+    serial = get_object_or_404(Serialnumber, pk=pk)
+    form = SerialEditForm(instance=serial)
+    context = {'form': form, 'serialnumber_obj': serial}
+    
+    return render(request, 'stock/edit_serial_form.html', context)    
+ 
+
+            
+class ItemDetailView(DetailView):
+    model = Stock
+    context_object_name = 'item'
+    template_name = 'stock/item_detail.html'
+
+
+# class base update views 
+class UpdateSerialNumber(UpdateView):
+    model = Serialnumber
+    template_name = 'stock/editforms/serial_number_form.html'
+    form_class = SerialEditForm
+    success_url = '/'
+
+class UpdateStock(UpdateView):
+    model = Stock
+    template_name = 'stock/editforms/stock_form.html'
+    form_class = StockEditForm
+    success_url = '/'
+
+# class CreateSerialNumber(CreateView):
+#     model = Serialnumber
+#     template_name = 'stock/create_serial_number.html'
+#     form_class = SerialNumberForm
+#     success_url = reverse_lazy('stock:create_stock')
+
+#     def get_variant(self):
+#         return Variant.objects.get(pk=self.kwargs['pk'])
+
+#     def get_formset(self, data=None, extra=0):
+#         variant = self.get_variant()
+#         SerialFormSet = formset_factory(SerialNumberForm, extra=extra)
+#         formset = SerialFormSet()
+
+#         if data:
+#             return SerialFormSet(data, prefix="serial")
+#         else:
+#             initial_data = [{'item': variant.product, 'product_variant': variant}]
+#             formset = SerialFormSet(initial=initial_data, prefix="serial")
+#             for form in formset:
+#                 form.fields['product_variant'].disabled = True
+#                 form.fields['item'].disabled = True
+#             return formset
+
+#     def get_context_data(self, **kwargs):
+#         self.object = getattr(self, "object", None)
+#         context = super().get_context_data(**kwargs)
+#         context['variant'] = self.get_variant()
+#         context['formset'] = kwargs.get("formset") or self.get_formset()
+#         return context
+
+
+#     def post(self, request, *args, **kwargs):
+#         formset = self.get_formset(data=request.POST)
+#         if formset.is_valid():
+#             for form in formset:
+#                 if form.cleaned_data:
+#                     print(formset) # avoid empty rows
+#                     form.save()
+#             messages.success(request, "Serial numbers added successfully")
+#             return redirect(self.success_url)
+#         return self.render_to_response(self.get_context_data(formset=formset))
+
+#     def get(self, request, *args, **kwargs):
+#         if request.headers.get('hx-request'):
+#             variant = self.get_variant()
+#             add_count = int(request.GET.get('form_count', 1))
+
+#             # Current total forms already rendered
+#             current_total = int(request.GET.get('current_total', 0))
+
+#             # New total = existing + newly requested
+#             total_forms = current_total + add_count
+#             print('total_forms', total_forms)
+
+#             SerialFormSet = formset_factory(SerialNumberForm, extra=0)
+#             initial_data = [
+#                 {'item': variant.product, 'product_variant': variant}
+#                 for _ in range(total_forms)
+#             ]
+#             formset = SerialFormSet(initial=initial_data, prefix="serial")
+
+#             for form in formset:
+#                 form.fields['product_variant'].disabled = True
+#                 form.fields['item'].disabled = True
+
+#             # Render ONLY the partial
+#             return render(request, 'partials/serial_form_part.html', {'formset': formset})
+
+#         return super().get(request, *args, **kwargs)
+    
+#********************************************************************************
+class ProductList(ListView):
+    model = Item
+    template_name = 'stock/item_list.html'
+
+
+# filter category wise product
+def load_product_by_category(request):
+    if request.headers.get('hx-request'):
+        category_id = request.GET.get('category')
+        category = get_object_or_404(Category, id=category_id)
+        items = Item.objects.filter(category=category)
+        form = VariantForm()
+        form.fields['product'].queryset = items
+        return render(request, 'stock/variant_form.html#optionpart', {'form': form})
+
+def load_variant_by_item(request):
+    if request.headers.get('hx-request'):
+        item_id = request.GET.get('item')
+        item = get_object_or_404(Item, id=item_id)
+        variants = Variant.objects.filter(product=item)
+        form = StockForm()
+        form.fields['variant'].queryset = variants
+        response =  render(request, 'partials/create_stock_form.html#optionpart', {'form': form})
+        response['HX-Target'] = '#productoptions'
+        return response
+    
+def check_serializable_view(request):
+    if request.headers.get('hx-request'):
+        variant_id = request.GET.get('variant')
+        variant = get_object_or_404(Variant, id=variant_id)
+        
+        if variant.is_serialized:
+            response = render(request, 'partials/serial_form_part.html')
+            response['HX-Target'] = '#serial_number_container'
+            return response
+            
+
+        response = HttpResponse(
+            "<label> Quantity </label><br><input type='number' value='1' name='quantity' size='1'>"
+        )
+        response['HX-Target'] = '#quantity_or_serial'
+        return response
+        
+def add_serial_view(request):
+    if request.headers.get('hx-request'):
+        return render(request, 'partials/serial_form_part.html')  
+    
+    
+def remove_input_view(request):
+    if request.headers.get('hx-request'):
+        print('remove_input_view')
+        return render(request, 'partials/serial_form_part.html')   
+
+# @login_required()
 def create_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
@@ -51,7 +445,7 @@ def create_item(request):
             try:
                 item = form.save()
                 messages.success(request, 'Item {} added successfully'.format(item))
-                return render(request, 'stock/add_success.html', {'form': form})
+                return render(request, 'stock/variant_form.html', {'form': form})
             except ValidationError as e:
                 messages.error(request, e.messages[0])
             return render(request, 'stock/item_form.html', {'form': form})
@@ -61,7 +455,7 @@ def create_item(request):
 
     itemlist = Item.objects.all()
 
-    return render(request, 'stock/item_form.html', {'form': form, 'itemlist': itemlist})    
+    return render(request, 'stock/item_form.html', {'form': form,})    
 
 class ItemUpdateView(UpdateView):
     model = Item
@@ -70,149 +464,149 @@ class ItemUpdateView(UpdateView):
     
 
 
-@login_required()
-def create_purchase_view(request):
+# @login_required()
+# def create_purchase_view(request):
     
-    if request.method == 'POST':
-        form = PurchaseForm(request.POST)
-        if form.is_valid():
-            purchase = form.save(commit=False)
-            purchase.user = request.user
+#     if request.method == 'POST':
+#         form = PurchaseForm(request.POST)
+#         if form.is_valid():
+#             purchase = form.save(commit=False)
+#             purchase.user = request.user
 
-            purchase.save()
+#             purchase.save()
 
-            # find item in stock
-            item_in_stock = Stock.objects.filter( stock_item=purchase.item).first()
+#             # find item in stock
+#             item_in_stock = Stock.objects.filter( stock_item=purchase.item).first()
 
-            if item_in_stock:
-                item_in_stock.quantity += purchase.quantity
-                item_in_stock.save()
+#             if item_in_stock:
+#                 item_in_stock.quantity += purchase.quantity
+#                 item_in_stock.save()
 
-            else:
-                stock = Stock.objects.create(user=request.user, stock_item=purchase.item, quantity=purchase.quantity)
-                stock.save()
+#             else:
+#                 stock = Stock.objects.create(user=request.user, stock_item=purchase.item, quantity=purchase.quantity)
+#                 stock.save()
                
 
 
 
-            # Record the transaction
-            transaction = Transaction.objects.create(item=purchase.item, transaction_type=Transaction.PURCHASE, quantity=purchase.quantity, reference_id=purchase.pk, reference_model=purchase.__class__.__name__, notes="Item purchased" ,manager=request.user)
-            transaction.save()
+#             # Record the transaction
+#             transaction = Transaction.objects.create(item=purchase.item, transaction_type=Transaction.PURCHASE, quantity=purchase.quantity, reference_id=purchase.pk, reference_model=purchase.__class__.__name__, notes="Item purchased" ,manager=request.user)
+#             transaction.save()
 
 
-            messages.success(request, "{}, {} updated in purchase list".format(purchase.quantity,  purchase))
+#             messages.success(request, "{}, {} updated in purchase list".format(purchase.quantity,  purchase))
 
-            return render(request, 'stock/purchase_success.html', {'form': form})
+#             return render(request, 'stock/purchase_success.html', {'form': form})
 
 
-        else:
-            messages.error(request, "Couldn't add item")
-            return render(request, 'stock/purchase_form.html', {'form': form})
+#         else:
+#             messages.error(request, "Couldn't add item")
+#             return render(request, 'stock/purchase_form.html', {'form': form})
         
-    form = PurchaseForm()
+#     form = PurchaseForm()
     
     
-    return render(request, 'stock/purchase_form.html', {'form': form})
+#     return render(request, 'stock/purchase_form.html', {'form': form})
 
 
 
-@login_required()
-def create_stock_view(request):
-    if request.method == "POST":
+# @login_required()
+# def create_stock_view(request):
+#     if request.method == "POST":
 
-        """
-        Function to add an item to the stock.
-        """
+#         """
+#         Function to add an item to the stock.
+#         """
 
-        form = StockForm(request.POST)
+#         form = StockForm(request.POST)
 
-        if form.is_valid():
-            stock = form.save(commit=False)
-            stock.user = request.user
-            existing_stock = Stock.objects.filter(user=request.user, stock_item=stock.stock_item.id).first()
-            existing_purchage = Purchase.objects.get(user=request.user, item=stock.stock_item.id)
+#         if form.is_valid():
+#             stock = form.save(commit=False)
+#             stock.user = request.user
+#             existing_stock = Stock.objects.filter(user=request.user, stock_item=stock.stock_item.id).first()
+#             existing_purchage = Purchase.objects.get(user=request.user, item=stock.stock_item.id)
 
-            if existing_stock:
+#             if existing_stock:
 
-                if existing_stock.quantity < existing_purchage.quantity:
-                    update_stock_quantity(request, stock.stock_item, stock.quantity)
-                    messages.success(request, '{} is updated in the stock'.format(existing_stock.stock_item.__str__().upper()))
-                    return render(request, 'stock/stock_form.html', {'form': form})
-                else:
-                    messages.error(request, 'This addition is going beyond the purchased quantity of {}. Already added.'.format(existing_purchage.quantity))
-                    return render(request, 'stock/stock_form.html', {'form': form})
+#                 if existing_stock.quantity < existing_purchage.quantity:
+#                     update_stock_quantity(request, stock.stock_item, stock.quantity)
+#                     messages.success(request, '{} is updated in the stock'.format(existing_stock.stock_item.__str__().upper()))
+#                     return render(request, 'stock/stock_form.html', {'form': form})
+#                 else:
+#                     messages.error(request, 'This addition is going beyond the purchased quantity of {}. Already added.'.format(existing_purchage.quantity))
+#                     return render(request, 'stock/stock_form.html', {'form': form})
 
-            stock.save()
-            messages.success(request, '{} is added in the stock'.format(stock))
-            return render(request, 'stock/stock_form.html', {'form': form})
+#             stock.save()
+#             messages.success(request, '{} is added in the stock'.format(stock))
+#             return render(request, 'stock/stock_form.html', {'form': form})
                    
-    form = StockForm()
-    return render(request, 'stock/stock_form.html', {'form': form})
+#     form = StockForm()
+#     return render(request, 'stock/stock_form.html', {'form': form})
 
 
 
 
 
-@login_required()
-def issue_kit(request):
-    # stock_items = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
-    stock_items = Stock.objects.all()
-    IssueItemFormSet = inlineformset_factory(Issue, IssueItem, form=IssueItemForm, extra=stock_items.count())
+# @login_required()
+# def issue_kit(request):
+#     # stock_items = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
+#     stock_items = Stock.objects.all()
+#     IssueItemFormSet = inlineformset_factory(Issue, IssueItem, form=IssueItemForm, extra=stock_items.count())
     
-    if request.method == 'POST':
-        enrollement = request.POST.get("enrollement")
-        quantities = request.POST.getlist("quantity") 
-        issuing_items = []
+#     if request.method == 'POST':
+#         enrollement = request.POST.get("enrollement")
+#         quantities = request.POST.getlist("quantity") 
+#         issuing_items = []
         
         
-        student = Student.objects.get(enrollement=enrollement)
+#         student = Student.objects.get(enrollement=enrollement)
         
-        try:
-            with transaction.atomic():
-                issue = Issue.objects.create(
-                    user=request.user,
-                    student=student,
-                    enrollement=enrollement
-                )
+#         try:
+#             with transaction.atomic():
+#                 issue = Issue.objects.create(
+#                     user=request.user,
+#                     student=student,
+#                     enrollement=enrollement
+#                 )
                
-                for index, item_id in enumerate(request.POST.getlist("items")):
-                    qty = int(quantities[index])
+#                 for index, item_id in enumerate(request.POST.getlist("items")):
+#                     qty = int(quantities[index])
 
-                    if qty > 0:
-                        item = Item.objects.get(pk=item_id)
-                        issued_items = IssueItem.objects.create(
-                            issue=issue,
-                            item=item,
-                            quantity=qty
-                        )
+#                     if qty > 0:
+#                         item = Item.objects.get(pk=item_id)
+#                         issued_items = IssueItem.objects.create(
+#                             issue=issue,
+#                             item=item,
+#                             quantity=qty
+#                         )
                         
-                        issued_items.quantity += 1
-                        issued_items.save()
-                        issuing_items.append(Item.objects.get(pk=item_id).name)
+#                         issued_items.quantity += 1
+#                         issued_items.save()
+#                         issuing_items.append(Item.objects.get(pk=item_id).name)
                         
-                        transac = Transaction.objects.create(
-                        item=Item.objects.get(pk=item_id),
-                        transaction_type=Transaction.ISSUE,
-                        quantity=qty,
-                        reference_id=issue.id,
-                        reference_model=issue.__class__.__name__,
-                        manager=request.user,
-                        notes="Item {} issued to {}".format(item, issue.student)
-                        )
+#                         transac = Transaction.objects.create(
+#                         item=Item.objects.get(pk=item_id),
+#                         transaction_type=Transaction.ISSUE,
+#                         quantity=qty,
+#                         reference_id=issue.id,
+#                         reference_model=issue.__class__.__name__,
+#                         manager=request.user,
+#                         notes="Item {} issued to {}".format(item, issue.student)
+#                         )
                         
-                        transac.save()
-                    update_stock_quantity(request, item_id, -qty)  
-                if(student.phone):
-                    send_sms(
-                        api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
-                        message_id = '186973',
-                        variables_values = ", ".join(issuing_items),
-                        numbers= student.phone, 
-                        sender_id="SCHDEN"
-                    )
-        except Exception as e:
-            print(e)
-            messages.error(request, "Couldn't add item")
+#                         transac.save()
+#                     update_stock_quantity(request, item_id, -qty)  
+#                 if(student.phone):
+#                     send_sms(
+#                         api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
+#                         message_id = '186973',
+#                         variables_values = ", ".join(issuing_items),
+#                         numbers= student.phone, 
+#                         sender_id="SCHDEN"
+#                     )
+#         except Exception as e:
+#             print(e)
+#             messages.error(request, "Couldn't add item")
          
         # form = IssueForm(request.POST)
 
@@ -281,41 +675,41 @@ def issue_kit(request):
 
 
     # find issued kit with the enrollement no and modify the selection
-    dob = request.GET.get('dob', None)
-    enrollement = request.GET.get('enrollement', None)
-    name = request.GET.get('name', None)
+    # dob = request.GET.get('dob', None)
+    # enrollement = request.GET.get('enrollement', None)
+    # name = request.GET.get('name', None)
     
-    student = find_student(name, dob, enrollement)
+    # student = find_student(name, dob, enrollement)
     
-    issued_kit = Issue.objects.filter(Q(enrollement=enrollement) | Q(student=student) )
-    items = []
+    # issued_kit = Issue.objects.filter(Q(enrollement=enrollement) | Q(student=student) )
+    # items = []
     
-    if issued_kit.exists():
-        for k in issued_kit:
-            for i in k.items.all():
-                items.append(i)
+    # if issued_kit.exists():
+    #     for k in issued_kit:
+    #         for i in k.items.all():
+    #             items.append(i)
     
     
-    items_in_stock = Item.objects.filter(id__in=stock_items)
+    # items_in_stock = Item.objects.filter(id__in=stock_items)
 
-    form = IssueForm()
-    item_issue_formset = IssueItemFormSet()
+    # form = IssueForm()
+    # item_issue_formset = IssueItemFormSet()
     
-    form.fields['items'].queryset = items_in_stock
-    # form.fields['enrollement'].initial = int(request.GET.get('enrollement'))
-    form.fields['enrollement'].initial = request.GET.get('enrollement')
-    form.fields['enrollement'].widget.attrs['readonly'] = True
-    form.fields['student'].initial = student
-    form.fields['student'].widget.attrs['readonly'] = True
+    # form.fields['items'].queryset = items_in_stock
+    # # form.fields['enrollement'].initial = int(request.GET.get('enrollement'))
+    # form.fields['enrollement'].initial = request.GET.get('enrollement')
+    # form.fields['enrollement'].widget.attrs['readonly'] = True
+    # form.fields['student'].initial = student
+    # form.fields['student'].widget.attrs['readonly'] = True
     
-    context = {'form': form, 'issued_kit': items, 'item_issue_formset': item_issue_formset, 'items':stock_items, 'student':student }
+    # context = {'form': form, 'issued_kit': items, 'item_issue_formset': item_issue_formset, 'items':stock_items, 'student':student }
     
-    return render(request, 'stock/issue_form.html', context)
-
-
+    # return render(request, 'stock/issue_form.html', context)
 
 
-class PurchaseListView(LoginRequiredMixin,ListView, FormView):
+
+
+class PurchaseListView(ListView, FormView):
     model = Purchase
     template_name = 'stock/tables/purchase_list.html'
     context_object_name = 'purchases'
@@ -323,11 +717,11 @@ class PurchaseListView(LoginRequiredMixin,ListView, FormView):
     ordering = ['-created_at']
     form_class = DownloadForm
 
-    def post(self, request, *args, **kwargs):
-        responce = download_purchases(self, request)
+    # def post(self, request, *args, **kwargs):
+    #     responce = download_purchases(self, request)
 
-        return responce
-class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
+    #     return responce
+class PurchaseUpdateView(UpdateView):
     model = Purchase
     template_name = 'stock/purchase_form.html'
     form_class = PurchaseForm
@@ -335,23 +729,24 @@ class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
 
 
 
-class PurchaseDetailView(LoginRequiredMixin, DetailView):
+class PurchaseDetailView(DetailView):
     model = Purchase
     template_name = 'stock/purchase_detail.html'
 
-class StockListView(LoginRequiredMixin, ListView, FormView):
-    model = Stock
-    template_name = 'stock/tables/stock_list.html'
-    context_object_name = 'stocks'
-    form_class = DownloadForm
-    paginate_by = PAGINATED_BY
+# class StockListView(ListView, FormView):
+#     model = Stock
+#     template_name = 'stock/tables/stock_list.html'
+#     context_object_name = 'stocks'
+#     form_class = DownloadForm
+#     paginate_by = PAGINATED_BY
 
-    def post(self, request, *args, **kwargs):
-        responce = download_stock(self, request)
+    # def post(self, request, *args, **kwargs):
+    #     # responce = download_stock(self, request)
+    #     pass
 
-        return responce
+    #     return responce
 
-class StudentListView(LoginRequiredMixin, ListView):
+class StudentListView(ListView):
     model = Student
     template_name = 'stock/tables/student_list.html'
     context_object_name = 'students'
@@ -360,25 +755,25 @@ class StudentListView(LoginRequiredMixin, ListView):
 
 
 
-class StockDetailView(LoginRequiredMixin, DetailView):
-    model = Stock
-    template_name = 'stock/stock_detail.html'
+# class StockDetailView(DetailView):
+#     model = Stock
+#     template_name = 'stock/stock_detail.html'
 
 
-class TransactionListView(LoginRequiredMixin, ListView, FormView):
-    model = Transaction
-    template_name = 'stock/tables/transaction_list.html'
-    context_object_name = 'transactions'
-    paginate_by = PAGINATED_BY
-    form_class = DownloadForm
+# class TransactionListView(ListView, FormView):
+#     model = Transaction
+#     template_name = 'stock/tables/transaction_list.html'
+#     context_object_name = 'transactions'
+#     paginate_by = PAGINATED_BY
+#     form_class = DownloadForm
 
-    def post(self, request, *args, **kwargs):
-        responce = download_transactions(self, request)
+    # def post(self, request, *args, **kwargs):
+    #     responce = download_transactions(self, request)
 
-        return responce
+    #     return responce
 
 # The list of issued kits
-class IssueListView(LoginRequiredMixin, ListView, FormView):
+class IssueListView(ListView, FormView):
     model = Issue
     template_name = 'stock/tables/issue_list.html'
     context_object_name = 'kits'
@@ -386,54 +781,54 @@ class IssueListView(LoginRequiredMixin, ListView, FormView):
     form_class = DownloadForm
     
 
-    def post(self, request, *args, **kwargs):
-        responce = download_kits(self, request)
+    # def post(self, request, *args, **kwargs):
+    #     responce = download_kits(self, request)
 
-        return responce
+        # return responce
     def get_context_data(self, **kwargs):
         kwargs['date_min'] =( date.today()- timedelta(days=365*10)).isoformat()
         kwargs['date_max'] = (date.today() - timedelta(days=365*5)).isoformat()
         return super().get_context_data(**kwargs)
     
-class IssueDetailView(LoginRequiredMixin, DetailView):
+class IssueDetailView(DetailView):
     model = Issue
     template_name = 'stock/issue_detail.html'
     context_object_name = 'kits'
 
-def search_issued_items(request):
-    """
-    Function to Search for issued items
-    """
-    kitlist= []
-    if request.method == 'POST':
+# def search_issued_items(request):
+#     """
+#     Function to Search for issued items
+#     """
+#     kitlist= []
+#     if request.method == 'POST':
         
-        name = request.POST.get('name', None)
-        dob = request.POST.get('dob', None)
-        enrollement = request.POST.get('enrollement', None)
+#         name = request.POST.get('name', None)
+#         dob = request.POST.get('dob', None)
+#         enrollement = request.POST.get('enrollement', None)
         
               
-        student = find_student(name, dob, enrollement)
-        context = {'kitlist': kitlist, 'name': name, 'dob': dob, 'enrollement': enrollement}
+#         student = find_student(name, dob, enrollement)
+#         context = {'kitlist': kitlist, 'name': name, 'dob': dob, 'enrollement': enrollement}
         
-        kits = Issue.objects.filter(student=student).first()
-        if  kits is None:
-            return render(request, 'partials/search_button.html', context )
-            # return HttpResponse("<p class='text-warning'>Please enter valid enrollement number</p><button type='button'>Search</button>")
-        else:
-            items = kits.items.all()
+#         kits = Issue.objects.filter(student=student).first()
+#         if  kits is None:
+#             return render(request, 'partials/search_button.html', context )
+#             # return HttpResponse("<p class='text-warning'>Please enter valid enrollement number</p><button type='button'>Search</button>")
+#         else:
+#             items = kits.items.all()
             
-            for i in items:
-                kitlist.append(i)
-        # return render(request, 'partials/return_list.html', {'kitlist': kitlist,  'name': name, 'dob': dob, 'enrollement': enrollement})
-        stock_items = Stock.objects.all()
-        context = {'kitlist': kitlist, 'student': student, 'stock_items': stock_items}
-        return render(request, 'partials/return_list.html', context)
+#             for i in items:
+#                 kitlist.append(i)
+#         # return render(request, 'partials/return_list.html', {'kitlist': kitlist,  'name': name, 'dob': dob, 'enrollement': enrollement})
+#         stock_items = Stock.objects.all()
+#         context = {'kitlist': kitlist, 'student': student, 'stock_items': stock_items}
+#         return render(request, 'partials/return_list.html', context)
   
-    context = dict(
-        min_date = (date.today() - timedelta(days=365*10)).isoformat(),
-        max_date = (date.today() - timedelta(days=365*5)).isoformat(),
-    )
-    return render(request, 'stock/return_form.html', context)    
+#     context = dict(
+#         min_date = (date.today() - timedelta(days=365*10)).isoformat(),
+#         max_date = (date.today() - timedelta(days=365*5)).isoformat(),
+#     )
+#     return render(request, 'stock/return_form.html', context)    
 
 def exchage_kit(request):
     
@@ -466,74 +861,74 @@ def exchage_kit(request):
     #     return render(request, 'partials/return_list.html', context)
     
     
-    if request.headers.get('hx-request'):
-        item_ids = request.GET.getlist('items[]', '0')
-        swapable_items = []
+    # if request.headers.get('hx-request'):
+    #     item_ids = request.GET.getlist('items[]', '0')
+    #     swapable_items = []
         
-        if len(item_ids) > 0:
-            for id in item_ids:
-                try:
-                    category = Category.objects.get(pk=int(id))
-                except Category.DoesNotExist:
-                    continue
+    #     if len(item_ids) > 0:
+    #         for id in item_ids:
+    #             try:
+    #                 category = Category.objects.get(pk=int(id))
+    #             except Category.DoesNotExist:
+    #                 continue
                 
-                items = Stock.objects.filter(stock_item__category=category)
-                print('stock cat', items[0].stock_item.category)
-                swapable_items.extend(items)
+    #             items = Stock.objects.filter(stock_item__category=category)
+    #             print('stock cat', items[0].stock_item.category)
+    #             swapable_items.extend(items)
             
-        context = {'swapable_items': swapable_items}
-        return render(request, 'partials/return_list.html', context)
+    #     context = {'swapable_items': swapable_items}
+    #     return render(request, 'partials/return_list.html', context)
 
-def return_kit(request):
-    if request.method == 'POST':
-        enrollement = request.POST.get('enrollement')
-        dob = request.POST.get('dob')
-        name = request.POST.get('name')
+# def return_kit(request):
+#     if request.method == 'POST':
+#         enrollement = request.POST.get('enrollement')
+#         dob = request.POST.get('dob')
+#         name = request.POST.get('name')
         
-        student = find_student(name, dob, enrollement)
+#         student = find_student(name, dob, enrollement)
         
-        issued_kit = Issue.objects.filter(student=student).first()
-        returning_items = []
+#         issued_kit = Issue.objects.filter(student=student).first()
+#         returning_items = []
         
-        if not issued_kit:
-            return JsonResponse({'error': 'No kit found'}, status=404)
+#         if not issued_kit:
+#             return JsonResponse({'error': 'No kit found'}, status=404)
 
-        for item in request.POST.getlist('items[]'):
-            item = Item.objects.get(pk=int(item))
-            issued_kit.items.remove(item)
+#         for item in request.POST.getlist('items[]'):
+#             item = Item.objects.get(pk=int(item))
+#             issued_kit.items.remove(item)
            
-            update_stock_quantity(request, item, issued_kit.quantity)
+#             update_stock_quantity(request, item, issued_kit.quantity)
             
-            if issued_kit.items.count() == 0:
-                issued_kit.delete()
-            else:
-                issued_kit.save()
+#             if issued_kit.items.count() == 0:
+#                 issued_kit.delete()
+#             else:
+#                 issued_kit.save()
 
-            returning_items.append(item)
+#             returning_items.append(item)
 
-            tr = Transaction.objects.create(
-                item=item,
-                transaction_type=Transaction.EXCHANGE,
-                quantity=issued_kit.quantity,
-                manager=request.user,
-                reference_id = issued_kit.student.pk,
-                notes='returned from {}'.format(issued_kit.student.name)
-            )
+#             tr = Transaction.objects.create(
+#                 item=item,
+#                 transaction_type=Transaction.EXCHANGE,
+#                 quantity=issued_kit.quantity,
+#                 manager=request.user,
+#                 reference_id = issued_kit.student.pk,
+#                 notes='returned from {}'.format(issued_kit.student.name)
+#             )
 
-            tr.save()
+#             tr.save()
 
            
-        messages.success(request, 'Kit {} for enrolement no. {} is returned'.format(returning_items, student.enrollement))
-        send_sms(
-            api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
-            message_id = '186973',
-            variables_values = returning_items,
-            numbers= student.phone, 
-            sender_id="SCHDEN"
-        )
+#         messages.success(request, 'Kit {} for enrolement no. {} is returned'.format(returning_items, student.enrollement))
+#         send_sms(
+#             api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
+#             message_id = '186973',
+#             variables_values = returning_items,
+#             numbers= student.phone, 
+#             sender_id="SCHDEN"
+#         )
         
        
-    return render(request, 'stock/return_success.html')
+#     return render(request, 'stock/return_success.html')
 
 
 

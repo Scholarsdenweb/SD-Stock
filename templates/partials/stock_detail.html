@@ -1,0 +1,76 @@
+
+
+{% if form_data %}
+<div class="message-body py-0 px-2">
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="font-size:10px;">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+</div>
+{% endif %}
+
+<div id="stock_detail">
+    {% if serialnumber_obj %}
+
+    <div class="message-body py-0 px-2">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="font-size:10px;">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    </div>
+
+    {% if serialnumber_obj.count > 0 %}
+        {% for obj in serialnumber_obj %}
+        <h3>{{obj.item}}</h3>
+        <div id="serial_detail_container">
+            <p>Serial No.: {{obj.serial_number}}</p>
+            <p>Varian: {{obj.product_variant}}</p>
+        </div>
+        <button type='button' class="btn btn-sm btn-dark" hx-get='{% url "stock:edit_serial" obj.id %}'>Edit</button>
+        <hr>
+        {% endfor %}
+    {% else %}
+        <h3>{{serialnumber_obj.item}}</h3>
+        <div id="serial_detail_container">
+            <p>Serial No.: {{serialnumber_obj.serial_number}}</p>
+            <p>Varian: {{serialnumber_obj.product_variant}}</p>
+        </div>
+        <button type='button' class="btn btn-sm btn-dark" hx-get='{% url "stock:edit_serial" serialnumber_obj.id %}'>Edit</button>
+        <hr>
+    {% endif %}
+
+    {% endif %}
+
+    {% if stock %}
+    <div class="message-body py-0 px-2">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="font-size:10px;">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    </div>
+    
+    <div id="stock_detail_container" hx-target="this" hx-swap='outerHTML'>
+        <h3>{{stock}}</h3>
+        <p class="{{class}}">{{message}}</p>
+        <p>Location: {{stock.location}}</p>
+        <p>quantity: {{stock.quantity}}</p>
+        <p>variant: {{stock.variant}}</p>
+        <button type='button' class="btn btn-sm btn-dark" hx-get='{% url "stock:edit_stock" stock.id %}'>Edit</button>
+    </div>
+    {% endif %}
+
+
+
+</div>

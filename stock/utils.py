@@ -1,6 +1,7 @@
-from stock.models import Stock, Transaction, Issue
+from stock.models import Issue
 from django.http import HttpResponse, JsonResponse
-from .admin import (StockResource, PurchaseResource, TransactionResouece,  KitResource)
+# from .admin import (StockResource, PurchaseResource, TransactionResouece,  KitResource)
+from .admin import ( KitResource)
 from datetime import datetime
 from django import forms
 from django.contrib import messages
@@ -10,73 +11,73 @@ from django.db.models import Q
 now = datetime.now()
 timestamp = datetime.timestamp(now)
 
-def update_stock_quantity(request, item_id, quantity):
+# def update_stock_quantity(request, item_id, quantity):
     
-    stock = Stock.objects.filter(stock_item=item_id).first()
-    if stock:
-        stock.quantity += quantity
-        stock.save()
-        return stock
-    else:
-        messages.error(request, '{} - Out of stock'.format(item_id))
-        return None
+#     stock = Stock.objects.filter(stock_item=item_id).first()
+#     if stock:
+#         stock.quantity += quantity
+#         stock.save()
+#         return stock
+#     else:
+#         messages.error(request, '{} - Out of stock'.format(item_id))
+#         return None
 
 
-def handle_issue_creation(user, issue_instance):
-    for item in issue_instance.items.all():
-        Transaction.objects.create(
-            issue=issue_instance,
-            item=item,
-            transaction_type=Transaction.ISSUE,
-            quantity=issue_instance.quantity,
-            user=user
-        )
+# def handle_issue_creation(user, issue_instance):
+#     for item in issue_instance.items.all():
+#         Transaction.objects.create(
+#             issue=issue_instance,
+#             item=item,
+#             transaction_type=Transaction.ISSUE,
+#             quantity=issue_instance.quantity,
+#             user=user
+#         )
 
 
-def create_export_file(self, request, resource, filename):
-        qs = self.get_queryset()
-        resource =resource()
-        dataset = resource.export(qs)
-        format = request.POST.get('format')
+# def create_export_file(self, request, resource, filename):
+#         qs = self.get_queryset()
+#         resource =resource()
+#         dataset = resource.export(qs)
+#         format = request.POST.get('format')
 
-        if format == 'csv':
-           ds = dataset.csv
-           content_type = 'text/csv'
-        elif format == 'xlsx':
-            ds = dataset.xlsx 
-            content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        elif format == 'json':
-            ds = dataset.json
-            content_type = 'application/json'
-        else:
-            return JsonResponse({'Error':'Please select a valid format'})
+#         if format == 'csv':
+#            ds = dataset.csv
+#            content_type = 'text/csv'
+#         elif format == 'xlsx':
+#             ds = dataset.xlsx 
+#             content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+#         elif format == 'json':
+#             ds = dataset.json
+#             content_type = 'application/json'
+#         else:
+#             return JsonResponse({'Error':'Please select a valid format'})
 
-        response = HttpResponse(ds, content_type={content_type})
-        response['Content-Disposition'] = f'attachment; filename={filename}-{now}.{format}'
+#         response = HttpResponse(ds, content_type={content_type})
+#         response['Content-Disposition'] = f'attachment; filename={filename}-{now}.{format}'
 
-        return response
+#         return response
 
-def download_stock(self, request):
-        response =create_export_file(self,request, StockResource, 'stock-list')
-        return response
-
-
-
-def download_purchases(self, request):
-
-        response =create_export_file(self,request, PurchaseResource, 'purchases-list')
-        return response
+# def download_stock(self, request):
+#         response =create_export_file(self,request, StockResource, 'stock-list')
+#         return response
 
 
-def download_transactions(self, request):
 
-        response =create_export_file(self,request, TransactionResouece, 'transactions-list')
-        return response
+# def download_purchases(self, request):
 
-def download_kits(self, request):
+#         response =create_export_file(self,request, PurchaseResource, 'purchases-list')
+#         return response
 
-        response =create_export_file(self,request, KitResource, 'kits-list')
-        return response
+
+# def download_transactions(self, request):
+
+#         response =create_export_file(self,request, TransactionResouece, 'transactions-list')
+#         return response
+
+# def download_kits(self, request):
+
+#         response =create_export_file(self,request, KitResource, 'kits-list')
+#         return response
 
 
 
@@ -141,9 +142,9 @@ def find_student(full_name=None, dob=None, enrollement=None):
         return None
     
     
-def calc_in_stock_items(item):
-    try:
-        stock = Stock.objects.get(stock_item=item)
-        return stock.in_stock()
-    except Stock.DoesNotExist:
-        return 0
+# def calc_in_stock_items(item):
+#     try:
+#         stock = Stock.objects.get(stock_item=item)
+#         return stock.in_stock()
+#     except Stock.DoesNotExist:
+#         return 0

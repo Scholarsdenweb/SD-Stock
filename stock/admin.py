@@ -7,7 +7,6 @@ from django.urls import path
 # imports for djnago import-export tool
 from import_export import resources
 from import_export.fields import Field  
-from authapp.forms import StudentForm
 
 
     
@@ -15,7 +14,8 @@ from authapp.forms import StudentForm
 # Register your models here.
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('id','name','size', 'description',  'created_at', 'updated_at')
+    # list_display = ('id','name', 'description',  'created_at', 'updated_at')
+    list_display = ('id','name', 'created_at', 'updated_at')
     ordering = ('created_at',)
 
 
@@ -23,7 +23,7 @@ class ItemAdmin(admin.ModelAdmin):
 
 
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id','item__name', 'item__id', 'item__size', 'unit_price', 'quantity', 'total_amount', 'user', 'created_at', 'updated_at')
+    list_display = ('id','item__name', 'item__id', 'unit_price', 'quantity', 'total_amount', 'user', 'created_at', 'updated_at')
     ordering = ('created_at',)
 
 
@@ -31,25 +31,24 @@ class PurchaseAdmin(admin.ModelAdmin):
     
 
 
-    def item__size(self, obj):
-        if obj.item.size == None:
-            return 'N/A'
-        else:
-            return obj.item.size.upper() # or however your relation is structured
-    item__size.short_description = 'Size'
+    # def item__size(self, obj):
+    #     if obj.item.size == None:
+    #         return 'N/A'
+    #     else:
+    #         return obj.item.size.upper() # or however your relation is structured
+    # item__size.short_description = 'Size'
 
 
 class StockAdmin(admin.ModelAdmin):
-    # list_display = ['id','stock_item', 'stock_item__item__size','stock_item__quantity', 'date','user',  'update_at']
-    list_display = ['id','stock_item__name', 'stock_item__id', 'stock_item__item__size', 'quantity', 'user' ]
-    ordering = ('date',)
+    list_display = ['id', 'variant']
+    # ordering = ('date',)
 
-    def stock_item__item__size(self, obj):
-        if obj.stock_item.size == None:
-            return 'N/A'
-        else:
-            return obj.stock_item.size.upper() # or however your relation is structured
-    stock_item__item__size.short_description = 'Size'  # Custom label in admin
+    # def stock_item__item__size(self, obj):
+    #     if obj.stock_item.size == None:
+    #         return 'N/A'
+    #     else:
+    #         return obj.stock_item.size.upper() # or however your relation is structured
+    # stock_item__item__size.short_description = 'Size'  # Custom label in admin
 
 
     def stock_item__id(self, obj):
@@ -78,86 +77,87 @@ class IssueAdmin(admin.ModelAdmin):
     
 
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['id','item__name', 'item__id' , 'item__size', 'reference_id', 'quantity', 'transaction_type', 'reference_model', 'manager','notes', 'created_at']
+    list_display = ['id','item__name', 'item__id' ,'reference_id', 'quantity', 'transaction_type', 'reference_model', 'manager','notes', 'created_at']
 
 
-    def item__size(self, obj):
-        if obj.item.size == None:
-            return 'N/A'
-        else:
-            return obj.item.size.upper() # or however your relation is structured
+    # def item__size(self, obj):
+    #     if obj.item.size == None:
+    #         return 'N/A'
+    #     else:
+    #         return obj.item.size.upper() # or however your relation is structured
     
 
 admin.site.register(Stock, StockAdmin)
 admin.site.register(Purchase, PurchaseAdmin)
 admin.site.register(Issue, IssueAdmin)
 admin.site.register(Item, ItemAdmin)
-admin.site.register(Transaction, TransactionAdmin)
+admin.site.register(Location)
+admin.site.register(Serialnumber)
 
 
-class StockResource(resources.ModelResource):
-    date = Field()
-    update_at = Field()
-    stock_item__size = Field()
-    class Meta:
-        model = Stock
-        fields = ('id','stock_item__name', 'stock_item__id', 'stock_item__size', 'quantity', 'date', 'update_at' )
+# class StockResource(resources.ModelResource):
+#     date = Field()
+#     update_at = Field()
+#     stock_item__size = Field()
+#     class Meta:
+#         model = Stock
+#         fields = ('id','stock_item__name', 'stock_item__id', 'stock_item__size', 'quantity', 'date', 'update_at' )
 
-    def dehydrate_date(self, obj):
-        return obj.date.strftime("%d-%m-%Y %H:%M:%S")
+#     def dehydrate_date(self, obj):
+#         return obj.date.strftime("%d-%m-%Y %H:%M:%S")
     
-    def dehydrate_update_at(self, obj):
-        return obj.update_at.strftime("%d-%m-%Y %H:%M:%S")
+#     def dehydrate_update_at(self, obj):
+#         return obj.update_at.strftime("%d-%m-%Y %H:%M:%S")
     
-    def dehydrate_created_at(self, obj):
-        return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
+#     def dehydrate_created_at(self, obj):
+#         return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
     
-    def dehydrate_stock_item__size(self, obj):
-        if obj.stock_item.size == None:
-            return 'N/A'
-        else:
-            return obj.stock_item.size.upper()
+#     def dehydrate_stock_item__size(self, obj):
+#         if obj.stock_item.size == None:
+#             return 'N/A'
+#         else:
+#             return obj.stock_item.size.upper()
 
-class PurchaseResource(resources.ModelResource):
-    created_at = Field()
-    user = Field()
-    item__size = Field
-    class Meta:
-        model = Purchase
-        fields = ('id','item__name', 'item__id', 'item__size', 'quantity', 'total_amount', 'user', 'supplier', 'created_at', 'updated_at')
+# class PurchaseResource(resources.ModelResource):
+#     created_at = Field()
+#     user = Field()
+#     item__size = Field
+#     class Meta:
+#         model = Purchase
+#         fields = ('id','item__name', 'item__id', 'item__size', 'quantity', 'total_amount', 'user', 'supplier', 'created_at', 'updated_at')
 
-    def dehydrate_created_at(self, obj):
-        return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
+#     def dehydrate_created_at(self, obj):
+#         return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
     
-    def dehydrate_user(self, obj):
-        return f"{obj.user.name}({obj.user.emp_id})"
+#     def dehydrate_user(self, obj):
+#         return f"{obj.user.name}({obj.user.emp_id})"
     
-    def dehydrate_item__size(self, obj):
-        if obj.item.size == None:
-            return 'N/A'
-        else:
-            return obj.item.size.upper()
+#     def dehydrate_item__size(self, obj):
+#         if obj.item.size == None:
+#             return 'N/A'
+#         else:
+#             return obj.item.size.upper()
     
 
-class TransactionResouece(resources.ModelResource):
-    created_at = Field(column_name="Transaction Date")
-    manager = Field()
-    item__size = Field(column_name="Item Size")
-    class Meta:
-        model = Transaction
-        fields = ('id','item__name', 'item__id', 'item__size', 'reference_id', 'quantity', 'transaction_type', 'reference_model', 'manager','notes', 'created_at')
+# class TransactionResouece(resources.ModelResource):
+#     created_at = Field(column_name="Transaction Date")
+#     manager = Field()
+#     item__size = Field(column_name="Item Size")
+#     class Meta:
+#         model = Transaction
+#         fields = ('id','item__name', 'item__id', 'item__size', 'reference_id', 'quantity', 'transaction_type', 'reference_model', 'manager','notes', 'created_at')
 
-    def dehydrate_created_at(self, obj):
-        return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
+#     def dehydrate_created_at(self, obj):
+#         return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
     
-    def dehydrate_manager(self, obj):
-        return f"{obj.manager.name}({obj.manager.emp_id})"
+#     def dehydrate_manager(self, obj):
+#         return f"{obj.manager.name}({obj.manager.emp_id})"
     
-    def dehydrate_item__size(self, obj):
-        if obj.item.size == None:
-            return 'N/A'
-        else:
-            return obj.item.size.upper()
+#     def dehydrate_item__size(self, obj):
+#         if obj.item.size == None:
+#             return 'N/A'
+#         else:
+#             return obj.item.size.upper()
         
 class KitResource(resources.ModelResource):
     issue_date = Field()
@@ -186,11 +186,12 @@ class KitResource(resources.ModelResource):
     
 
 
-class StudentAdmint(admin.ModelAdmin):
-    form = StudentForm
-    list_display = ['id', 'name', 'enrollement', 'receipt', 'phone']
+# class StudentAdmin(admin.ModelAdmin):
+#     form = StudentForm
+#     list_display = ['id', 'name', 'enrollement', 'receipt', 'phone']
     
     
-admin.site.register(Student, StudentAdmint)
-admin.site.register(IssueItem)    
-admin.site.register(Category)
+# admin.site.register(Student, StudentAdmin)
+# admin.site.register(IssueItem)    
+# admin.site.register(Category)
+# admin.site.register(Variant)

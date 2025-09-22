@@ -32,6 +32,10 @@
   --bs-btn-disabled-border-color: transparent;
 }
 
+.navbar-expand-lg{
+    background-color: var(--main-theme);
+}
+
 .form-control:focus{
     border-color: var(--main-theme);
     box-shadow: 0 0 0 0.25rem rgba(231, 197, 4, 0.25);
@@ -48,7 +52,7 @@
     background-color: var(--main-theme);
 }
 
-.navbar-expand-lg{
+.topnav{
     background-color: var(--main-theme);
 }
 
@@ -102,9 +106,9 @@
 
 .paginator-container a {
     display: inline-flex;
-    width: 2em;
-    height: 2em;
-    border-radius: 50%;
+    /* width: 2em; */
+    /* height: 2em; */
+    /* border-radius: 50%; */
     justify-content: center;
     align-items: center;
     background-color: var(--main-theme);
@@ -172,7 +176,7 @@
 input[type=checkbox] {
     accent-color: #3B38A0; 
     transform: scale(1.8); 
-    margin-right: 5px;     
+    margin: 5px;
 }
 
 .searchbar {
@@ -226,3 +230,18 @@ input[type=checkbox] {
     margin-right: .5em;
 }
 
+
+/* styling the form error */
+.errorlist.nonfield {
+    color:rgb(172, 18, 18);
+    list-style: none;
+}
+
+.errorlist.nonfield::marker {
+    visibility: none;
+}
+
+.errorlist.nonfield::before{
+    content:"⚠️ ";
+    color:red;
+}

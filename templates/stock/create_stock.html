@@ -1,0 +1,160 @@
+{% extends "dashboard/home.html" %}
+{% load static %}
+{% load partials %}
+
+{% block table %}
+
+<div class="add">
+    <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_stockform_modal' data-bs-toggle='modal'>Add Stock</button>
+</div>
+
+<div id="stock_add_form_container"></div>
+
+    <div class="message-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+<div class="modal fade" id="id_stockform_modal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Stock</h3>
+            </div>
+            <div class="modal-body">
+                {% startpartial optionpart %}
+                <div class="form-group" id="productoptions">
+                    <select name="{{form.variant.html_name}}" id="" class='form-select'
+                    hx-get="{% url 'stock:check_serializable' %}"
+                    hx-swap="innerHTML"
+                    hx-include='this'
+                    hx-select="#serial_number_form_container"
+                    required>
+                        {% for val, text in form.variant.field.choices %}
+                            <option value="{{val}}">{{text}}</option>
+                        {% endfor %}                
+                    </select>
+                </div>
+                {% endpartial %}
+
+                <form hx-post="{% url 'stock:create_stock' %}" hx-target="#response_message" hx-swap="innerHTML" id="stock_form">
+                    {% csrf_token %} 
+
+                    <table class="table table-responsize caption-top">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Location</th>
+                            <th>Variant</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for error in form.non_field_errors %}
+                            <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+                        {% endfor %}
+
+                        <td>
+                            <div class="form-group">
+                                <select name="{{form.item.html_name}}" class='form-select'
+                                hx-get="{% url 'stock:item_variant' %}"
+                                hx-swap="outerHTML"
+                                hx-trigger="change"
+                                hx-target="#productoptions"
+                                required>
+                                    {% for val, text in form.item.field.choices %}
+                                        <option value="{{val}}">{{text}}</option>
+                                    {% endfor %}                
+                                </select>
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <div class="form-group">
+                                {{form.location}}
+                            </div>
+                        </td>
+
+                        <td>
+                            {% partial optionpart %}
+                        </td>
+
+                        <td id="quantity_or_serial">
+
+                            {% comment %} <div class="form-group" >
+                                {{form.quantity}}
+                            </div> {% endcomment %}
+                        </td>
+                        
+                    </tbody>
+
+                    </table>
+
+                    <tfoot>
+                        <div id="serial_number_container"></div>
+                    </tfoot>
+                    <div id="response_message"></div>
+                </form>
+
+
+            </div>
+
+            <div class="modal-footer d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-danger" data-bs-dismiss='modal'>Cancel</button>
+                <button type="submit" class="btn btn-primary" form='stock_form'>Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<table class="table table-responsive">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Item</th>
+            <th>Location</th>
+            <th>Variant</th>
+            <th>Quantity</th>
+            <th>Last Updated</th>
+            <th>Edit</th>
+        </tr>
+    </thead>
+
+    {% if stocks %}
+    <tbody>
+        {% for stock in stocks %}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td>{{stock.variant.product}}</td>
+            <td>{{stock.location}}</td>
+            <td>{{stock.variant}}</td>
+            <td>{{stock.quantity}}</td>
+            <td>{{stock.updated_at}}</td>
+            {% if stock.variant.is_serialized %}
+            <td><a href="{% url 'stock:edit_stock_with_serials' stock.id %}"><i class="fa-solid fa-pen"></i></a></td>
+            {% else %}
+            <td><a href="{% url 'stock:update_stock' stock.id %}"><i class="fa-solid fa-pen"></i></a></td>
+            {% endif %}
+
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <p>Total Records:{{stocks.count}}</p>
+    </tfoot>
+    {% endif %}
+
+</table>
+    
+{% endblock table %}
+

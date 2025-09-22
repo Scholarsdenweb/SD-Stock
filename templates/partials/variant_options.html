@@ -1,0 +1,9 @@
+<select name="{{ form.variant.html_name }}" id="{{ form.variant.id_for_label }}">
+    <option value="">---------</option>
+    {% for val, text in form.fields.variant.queryset %}
+        <option value="{{ val.id }}"
+            {% if form.data.variant %}selected{% endif %}>
+            {{ val.name }}
+        </option>
+    {% endfor %}
+</select>

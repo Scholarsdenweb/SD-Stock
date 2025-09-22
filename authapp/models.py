@@ -1,75 +1,122 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
 from django.core.validators import RegexValidator
 import random
 
 # Create your models here.
-class StockUserManager(BaseUserManager):
-    
-    def create_user(self, emp_id, password=None, **extra_fields):
-        if not emp_id:
-            raise ValueError('The employee ID must be set.')
-        user = self.model(emp_id=emp_id, **extra_fields)
+class UserManager(BaseUserManager):
+    """Custom manager for User model with email as the unique identifier."""
+
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, emp_id, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
 
-        return self.create_user(emp_id, password, **extra_fields)
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self.create_user(email, password, **extra_fields) 
+ 
+class Roles(models.Model):
+    MANAGER = 1
+    EMPLOYEE = 2
+    FACULTY = 3
+    
+    ROLE_CHOICES = [
+        (MANAGER, 'Manager'),
+        (EMPLOYEE, 'Employee'),
+        (FACULTY, 'Faculty'),
+    ]
+    
+    id = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, primary_key=True)
+    
+    class Meta:
+        verbose_name = 'Role'
+        verbose_name_plural = 'Roles'
+    
+    def __str__(self):
+        return self.get_id_display()
     
     
     
-    
-class StockUser(AbstractBaseUser, PermissionsMixin):
-    emp_id = models.CharField(max_length=10, unique=True, verbose_name='Employee ID', validators=[RegexValidator(r'^\d+$')])
-    name = models.CharField(max_length=100)
-    email = models.EmailField(blank=True, null=True)
-    phone = models.CharField(max_length=15, default='79222222555', validators=[RegexValidator(r'^(\+\d{2})?\d{10}', message="Please enter the valid mobile number. Example +919999998888 or 7925666666")])
-    
-    
-    date_joined = models.DateTimeField(auto_now_add=True)
-    
-    is_active = models.BooleanField(default=True)
+
+class User(AbstractBaseUser, PermissionsMixin):
+    role = models.ManyToManyField("Roles")
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+
     is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
-    objects = StockUserManager()
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []  
 
-    USERNAME_FIELD = 'emp_id'
-    REQUIRED_FIELDS = ['name']
+    objects = UserManager()
 
     def __str__(self):
-        return f"{self.emp_id} - {self.name}"
+        return self.email    
     
-    class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
-
-
-
-
-class OTPCode(models.Model):
-    user = models.ForeignKey(StockUser, on_delete=models.CASCADE)
-    otp = models.CharField(max_length=6)
     
-    class Meta:
-        verbose_name_plural = 'OTPs'
+class Employee(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    emp_id = models.CharField(max_length=10, unique=True, verbose_name='Employee ID', validators=[RegexValidator(r'^\d+$')])
+    phone = models.CharField(
+        max_length=15,
+        blank=True,
+        validators=[RegexValidator(
+            r"^(\+\d{2})?\d{10}$",
+            message="Please enter a valid mobile number. Example +919999998888 or 7925666666"
+        )]
+    )
+
+    department = models.CharField(max_length=100)
+    designation = models.CharField(max_length=100)
     
     def __str__(self):
-        return self.otp
+        return self.user.full_name
     
     
-    def save(self, *args, **kwargs):
-        number_list =list(range(10)) # [0,1,2,3,4,5,6,7,8]
-        code = []
+    
+class Student(models.Model):
+    enrollement = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    program = models.CharField(max_length=100)
+    admission_year = models.CharField(max_length=4)
+    
+
+
+
+
+# class OTPCode(models.Model):
+#     user = models.ForeignKey(StockUser, on_delete=models.CASCADE)
+#     otp = models.CharField(max_length=6)
+    
+#     class Meta:
+#         verbose_name_plural = 'OTPs'
+    
+#     def __str__(self):
+#         return self.otp
+    
+    
+#     def save(self, *args, **kwargs):
+#         number_list =list(range(10)) # [0,1,2,3,4,5,6,7,8]
+#         code = []
         
-        for i in range(6):
-            num = random.choice(number_list)
-            code.append(num)
+#         for i in range(6):
+#             num = random.choice(number_list)
+#             code.append(num)
         
         
-        code_string = "".join(str(c) for c in code)
-        self.otp = code_string
-        super().save(*args, **kwargs)
+#         code_string = "".join(str(c) for c in code)
+#         self.otp = code_string
+#         super().save(*args, **kwargs)

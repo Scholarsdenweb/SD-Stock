@@ -6,10 +6,10 @@
 
 <div class="container text-white">
     <div class="row my-5">
-        
+        {% include "stock/catelogue_nav.html" %}
 
         <div class="flex-container">
-            {% if itemlist %}
+            {% comment %} {% if itemlist %}
             <div class="item_list_container p-3">
 
 
@@ -29,7 +29,7 @@
                     </div>              
                 {% endfor %}
             </div>
-            {% endif %}
+            {% endif %} {% endcomment %}
 
             <div class="col-md-6 col-lg-6 mx-auto shadow p-2 my-2" style="background-color: #7A85C1;">
    
@@ -43,9 +43,21 @@
             {% endif %}
     
             <form action="" method="post">
-                <h1>Add Items</h1>
+                <h3>Add Items</h3>
+                {% for error in form.non_field_errors %}
+                    <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+                {% endfor %}
+
                 {% csrf_token %} 
-                {{form}}
+                {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
                 <button class="btn btn-warning mt-3">Submit</button>
             </form>
     

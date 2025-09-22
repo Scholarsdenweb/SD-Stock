@@ -1,0 +1,39 @@
+{% extends "dashboard/home.html" %}
+
+
+{% block table %}
+<p>form count: {{formset.total_form_count}}</p>
+<button type="button" class="btn btn-primary btn-sm my-2"
+    hx-get="{% url 'stock:create_serial' variant.pk %}?form_count=1&current_total={{ formset.total_form_count }}"
+    hx-trigger="click"
+    hx-target="#serialform_container"
+    hx-swap="outerHTML">
+    Add More
+</button>
+
+
+
+<form action="" method='POST'>
+    {% csrf_token %}
+
+    <div id="serialform_container">
+        {{ formset.management_form }}
+
+        {% for form in formset %}
+            <div class="serial-form border p-2 mb-2 d-flex">
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field }}
+                    </div>
+                {% endfor %}
+                <button class="btn-close ms-3"></button>
+            </div>
+        {% endfor %}
+    </div>
+
+
+</form>
+
+
+
+{% endblock table %}

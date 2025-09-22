@@ -1,0 +1,80 @@
+
+{% load partials %}
+{% startpartial optionpart %}
+        <div class="form-group" id="productoptions">
+            <select name="{{form.variant.html_name}}" id="" class='form-select'
+            hx-get="{% url 'stock:check_serializable' %}"
+            hx-swap="innerHTML"
+            hx-include='this'
+             required>
+                {% for val, text in form.variant.field.choices %}
+                    <option value="{{val}}">{{text}}</option>
+                {% endfor %}                
+            </select>
+        </div>
+{% endpartial %}
+
+<form action="{% url 'stock:create_stock' %}" method="post" >
+    {% csrf_token %} 
+
+    <table class="table table-responsize w-auto caption-top">
+    <caption><h3>Add Stock</h3></caption>
+
+
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Location</th>
+            <th>Variant</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for error in form.non_field_errors %}
+            <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+        {% endfor %}
+
+        <td>
+            <div class="form-group">
+                <select name="{{form.item.html_name}}" class='form-select'
+                hx-get="{% url 'stock:item_variant' %}"
+                hx-swap="outerHTML"
+                hx-trigger="change"
+                hx-target="#productoptions"
+                required>
+                    {% for val, text in form.item.field.choices %}
+                        <option value="{{val}}">{{text}}</option>
+                    {% endfor %}                
+                </select>
+            </div>
+        </td>
+
+        <td>
+
+            <div class="form-group">
+                {{form.location}}
+
+            </div>
+        </td>
+
+        <td>
+
+            {% partial optionpart %}
+        </td>
+
+        <td id="quantity_or_serial">
+
+            {% comment %} <div class="form-group" >
+                {{form.quantity}}
+            </div> {% endcomment %}
+        </td>
+
+        <td>
+            <button type="submit" class="btn btn-primary" >Submit</button>
+        </td>
+    </tbody>
+
+    </table>
+    <div id="serial_number_container"></div>
+</form>

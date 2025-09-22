@@ -1,0 +1,16 @@
+
+<div id="serial_number_form_container">
+    <div class="d-flex gap-3 mt-2" id="input_fields">
+        <input type="text"  required name='serial' value='' class="" placeholder="Enter serial number">
+        <input type="number" hidden name='quantity' value='0'>
+        <input type="number" name="column_count" id="" value='1' min='1' max='5'>
+        <button type="button" id="add_more_btn" class="btn btn-sm btn-primary"
+        hx-get="{% url  'stock:add_serial' %}"
+        hx-target="#serial_number_form_container"
+        hx-swap="beforeend"
+        hx-select="#serial_input">Add More</button>
+    </div>
+
+</div>
+
+

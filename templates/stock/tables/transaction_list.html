@@ -55,9 +55,6 @@
                 <td><a href="" data-bs-toggle='modal' data-bs-target='#detailtransaction'
                 hx-get='{% url "stock:transaction_detail" t.reference_id %}?type={{t.get_transaction_type_display}}'  
                 hx-target='#transaction-detail'>{{t.get_transaction_type_display}}</a></td>
-
-             
-
                 <td>{{t.quantity}}</td>
                 <td>{{t.reference_id}}</td>
                 <td>{{t.reference_model}}</td>

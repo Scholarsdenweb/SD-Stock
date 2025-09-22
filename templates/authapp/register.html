@@ -1,10 +1,10 @@
 {% extends 'base.html' %}   
-
+{% load widget_tweaks %}
 {% block content %}
 
 <div class="container text-white">
     <div class="row my-5">
-        <div class="col-md-6 col-lg-6 mx-auto shadow  p-5" style="background-color: #7A85C1;">
+        <div class="col-md-6 col-lg-6 mx-auto shadow" style="background-color: #7A85C1;">
 
         
 
@@ -17,25 +17,27 @@
             {% endfor %}
         {% endif %}
 
-        <form action="" method="post" novalidate>
-            <h1>Register </h1>
-            {% csrf_token %} 
-            {% for field in form %}
-            <div class="form-group">
-                {{field.label_tag}}
-                {{field}}
+        <div class="form_container p-0 m-0">
+            <h2 class="">Register</h2>
+            <form action="" method="post" class="p-3" novalidate>
+                {% csrf_token %} 
+                {% for field in form %}
+         
+                <div class="form-group">
+                    {{field.label_tag}}
+                    {{field |add_class:'form-control'}}
+    
+                    {% if field.errors %}
+                        <span class="">{{field.errors}}</span>
+                        <span>{{field.help_text}}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <span>Already have an account? <a href="{% url 'authapp:login' %}" class="text-warning">Login</a></span><br>
+                <button class="btn btn-warning mt-3">Submit</button>
+            </form>
+        </div>
 
-                {% if field.errors %}
-                    <span class="">{{field.errors}}</span>
-                    <span>{{field.help_text}}</span>
-                {% endif %}
-
-             
-            </div>
-            {% endfor %}
-            <span>Already have an account? <a href="{% url 'authapp:login' %}" class="text-warning">Login</a></span><br>
-            <button class="btn btn-warning mt-3">Submit</button>
-        </form>
 
         </div>
     </div>

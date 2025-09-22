@@ -4,6 +4,52 @@ from stock.models import *
 from django.forms.widgets import DateInput
 from datetime import date
 from django.contrib import messages
+from django.urls import reverse
+
+
+class CategoryForm(ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name', 'cat_type', 'description']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'cat_type': forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
+        }
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+
+        if name and Category.objects.filter(name__iexact=name).exists():
+            raise forms.ValidationError('Category already exists.')
+
+        if name:
+            cleaned_data['name'] = name.lower()
+
+        return cleaned_data
+        
+ 
+class SerialEditForm(ModelForm):
+    class Meta:
+        model = Serialnumber
+        fields = ['product_variant','serial_number']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product_variant'].widget.attrs.update({
+            'readonly': True,
+            'style': 'background-color:#e9ecef; cursor:not-allowed;'
+        })
+ 
+        
+class StockEditForm(ModelForm):
+    class Meta:
+        model = Stock
+        fields = ['variant', 'location', 'quantity']
+        
+
 
 SHIRT_SIZE = ['xs','s', 'm', 'l', 'xl', 'xxl', 'xxxl', '4xl', '5xl']
 class StockDate(DateInput):
@@ -12,51 +58,74 @@ class StockDate(DateInput):
 class ItemForm(ModelForm):
     class Meta:
         model = Item
-        fields = ['name', 'size', 'description']
+        fields = ['name', 'category', 'code']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
-            'size': forms.Select(attrs={'class': 'form-select'})   
+            # 'description': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'code':forms.TextInput(attrs={'class': 'form-control'}), 
         }
 
-        def clean(self):
-            name = self.name.lower()
-            size = self.size.lower() if self.size else None
-            uniprice = self.unit_price
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        category = cleaned_data.get('category')
+        
+        if name and Item.objects.filter(name__iexact=name, category=category).exists():
+            raise forms.ValidationError('Item already exists.')
 
-            if name == 'bag' or name == 'pen' and self.size is not None:
-                if size:
-                    raise forms.ValidationError('Size should not be specified for item "pen" or "bag".')
+        if name:
+            cleaned_data['name'] = name.lower()
+
+        return cleaned_data
             
-            elif name == 'shirt' or name=='t-shirt' and self.size is not None:
-                if size not in SHIRT_SIZE:
-                    allowed_sizes = ', '.join(SHIRT_SIZE)
-                    raise forms.ValidationError('Invalid size for "shirt". Allowed values are {}'.format(allowed_sizes))
-            
-            elif name == 'diary' and self.size is not None:
-                if size not in ['small', 'big']:
-                    raise forms.ValidationError('Invalid size for "diary". Allowed values are "Small", "Big"')
-                
-            elif name not in ['bag', 'pen']:
-                valid_choices = [choice[0].lower() for choice in SIZE_CHOICES]
-                if not size or size not in valid_choices:
-                    raise forms.ValidationError(f'Invalid size for item "{self.name}". Allowed values are: {[choice[0] for choice in SIZE_CHOICES]}.')
-                
-            elif name and size and uniprice:
-                if Item.objects.filter(name=name, size=size, unit_price=uniprice).exists():
-                    print("Found")
-                    raise forms.ValidationError("An item with the same name, size, and unit price already exists.")
-                
-            try:
-                item = Item.objects.filter(name=name, size=size, unit_price=uniprice).exists
-                if item:
-                    raise forms.ValidationError('Item already exists')
-            except Item.DoesNotExist:
-                pass
 
 
+class VariantForm(ModelForm):    
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), widget=forms.Select(attrs={'class': 'form-select'}))
+    meta_data = forms.CharField(
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': """Enter additional data. e.g. {"color": "red", "size": "M"}"""
+            }
+        ),
+        label="Addtional Data"
+    )
+    class Meta:
+        model = Variant
+        fields = ['product', 'name', 'meta_data', 'is_serialized', 'is_active']
 
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'is_serialized': forms.CheckboxInput(),
+            'is_active': forms.CheckboxInput(),
+        }
+        
+        
+        
+    field_order = ['category', 'product', 'name', 'sku', 'is_serialized', 'is_active']
+    
+    
+    def __init__(self, *args, **kwargs):
+        super(VariantForm, self).__init__(*args, **kwargs)
+        self.fields['product'].queryset = Item.objects.all()
+        
+    def clean(self, *args, **kwargs):
+        cleaned_data = super(VariantForm, self).clean(*args, **kwargs)
+        name = cleaned_data.get('name')
+        category = cleaned_data.get('category')
+        if Variant.objects.filter(name = name, product__category = category).exists():
+            raise forms.ValidationError('Variant already exists.')
+        return self.cleaned_data
+        
+class SerialNumberForm(ModelForm):  
+    class Meta:
+        model = Serialnumber
+        fields = ['item', 'product_variant', 'serial_number', 'status']
 
 
 class PurchaseForm(ModelForm):
@@ -85,20 +154,39 @@ class PurchaseForm(ModelForm):
         self.initial['created_at'] = today_str
         
         
-
-
-
 class StockForm(ModelForm):
-    # item = forms.MultipleChoiceField(choices=ITEM_CHOICES, widget=forms.CheckboxSelectMultiple())
-
+    item = forms.ModelChoiceField(queryset=Item.objects.all())
+    
     class Meta:
         model = Stock
-        fields = ['stock_item', 'date']
-
+        fields = ['location', 'variant', 'quantity']
+        
         widgets = {
-            'stock_item':forms.Select(attrs={'class': 'form-select mt-2'}),
-            'date': StockDate(attrs={'class': 'form-control mt-2', 'max':date.today()})
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-select'}),
+            'variant': forms.Select(attrs={'class': 'form-select'}),
         }
+        
+    field_order = ['item', 'location', 'variant', 'quantity']
+        
+    def __init__(self, *args, **kwargs):
+        super(StockForm, self).__init__(*args, **kwargs)
+        self.label_suffix = ''
+        self.fields['variant'].queryset = Variant.objects.all()
+        
+
+
+# class StockForm(ModelForm):
+#     # item = forms.MultipleChoiceField(choices=ITEM_CHOICES, widget=forms.CheckboxSelectMultiple())
+
+#     class Meta:
+#         model = Stock
+#         fields = ['stock_item', 'date']
+
+#         widgets = {
+#             'stock_item':forms.Select(attrs={'class': 'form-select mt-2'}),
+#             'date': StockDate(attrs={'class': 'form-control mt-2', 'max':date.today()})
+#         }
 
     # def clean(self, *args, **kwargs):
     #     cleaned_data = super().clean()

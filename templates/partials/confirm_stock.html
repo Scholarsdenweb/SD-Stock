@@ -1,0 +1,26 @@
+<div class="alert alert-warning">
+    <p><strong class="{{class}}">{{message}}.</strong></p>
+    <p>Location: {{stock.location}}</p>
+    <p>quantity: {{stock.quantity}}</p>
+    <p>variant: {{stock.variant}}</p>
+    <p><strong class="text-success">The new record you are saving: Quantity ➡️ {{form_data.quantity}}</strong></p>
+    <p>Location: {{stock_data.location}}</p>
+    <p>Variant: {{stock_data.variant}}</p>
+    <p>New Quantity: {{stock_data.quantity}}</p>
+
+    <h4 class="text-danger">Do you want to continue and update?</h4>
+ 
+</div>
+
+<form hx-post="{% url 'stock:create_stock' %}" 
+      hx-target="#response_message" 
+      hx-swap="innerHTML"
+      id="confirm_form">
+    {% csrf_token %}
+    {% for key, value in form_data.items %}
+      <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <input type="hidden" name="confirm" value="1">
+    <button type="submit" class="btn btn-danger" id="override_btn">Yes, overwrite</button>
+    <button type="button" class="btn btn-secondary" onclick="this.closest('div').remove()">Cancel</button>
+</form>

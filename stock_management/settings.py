@@ -45,11 +45,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'stock.apps.StockConfig',
     'authapp.apps.AuthappConfig',
+    'kits',
     'dashboard',
     'import_export',
     'django_extensions',
     'django_htmx',
     'template_partials',
+    'product.apps.ProductConfig',
+    'formtools',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -163,8 +167,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custome user setting
-
-AUTH_USER_MODEL = 'authapp.StockUser' 
+AUTH_USER_MODEL = 'authapp.User'
 LOGIN_URL = 'authapp:login'
 LOGIN_REDIRECT_URL = 'dashboard:home'
 LOGOUT_REDIRECT_URL = LOGIN_URL

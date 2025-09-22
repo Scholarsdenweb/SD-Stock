@@ -4,65 +4,66 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.validators import RegexValidator
-
-
-User = get_user_model()
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db.models.functions import Lower
+from django.db.models import F
+from authapp.models import User
 
 
 class Category(models.Model):
+    DR = 'durable'
+    CN = 'consumable'
+    
+    TYPE_CHOICES = (
+        (DR, 'Durable'),
+        (CN, 'Consumable'),
+    )
+    
     name = models.CharField(max_length=50)
+    cat_type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name='Category Type')
+    description = models.CharField(max_length=254, blank=True)
+    
+    
+    class Meta:
+       verbose_name_plural = 'Categories'
+       verbose_name = 'Category'
     def __str__(self):
         return self.name
     
-    def save(self, *args, **kwargs):
-        if self.name:  # extra safety
-            self.name = self.name.lower()
-        super().save(*args, **kwargs)
         
 # Create your models here.
 
-class Item(models.Model):
-
-    T_SHIRT_S = 's'
-    T_SHIRT_M = 'm'
-    T_SHIRT_L = 'l'
-    T_SHIRT_XL = 'xl'
-    T_SHIRT_XXL = 'xxl'
-    SMALL = 'small'
-    BIG= 'big'
-    
-
-    SIZE_CHOICES = (
-    (None, 'NA'),
-    (T_SHIRT_S, 'S'),
-    (T_SHIRT_M, 'M'),
-    (T_SHIRT_L, 'L'),
-    (T_SHIRT_XL, 'XL'),
-    (T_SHIRT_XXL, 'XXL'),
-    (SMALL, 'Diary Small'),
-    (BIG, 'Diary Big'),
-
-    )
-
+class Variant(models.Model):
+    product = models.ForeignKey('Item', related_name='product', on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=254, null=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, default='1')
-    size = models.CharField(max_length=10, null=True, blank=True, choices=SIZE_CHOICES)
+    sku = models.CharField(max_length=50, blank=True)
+    meta_data = models.JSONField(null=True, blank=True,)
+    is_serialized = models.BooleanField(default=False, verbose_name='Have serial number')
+    is_active = models.BooleanField(default=True)
+    def __str__(self):
+        return self.name
+
+    
+class Item(models.Model):
+    name = models.CharField(max_length=50)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    variant = models.ManyToManyField(Variant, blank=True)
+    code = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        if self.size is None:
-            return f"{self.name.capitalize()}"
-        return f"{self.name.capitalize()} ({self.size.upper()})"
+        # if self.size is None:
+        #     return f"{self.name.capitalize()}"
+        return f"{self.name.capitalize()}"
 
     def save(self, *args, **kwargs):
         self.name = self.name.lower()
-        if Item.objects.filter(name=self.name, size=self.size).exclude(pk=self.pk).exists():
-            raise ValidationError("Item with the same name, size, and unit price already exists.")
+        if Item.objects.filter(name=self.name).exclude(pk=self.pk).exists():
+            raise ValidationError("This item is already added.")
         super().save(*args, **kwargs)
 
 
@@ -95,26 +96,30 @@ class Purchase(models.Model):
 
 
 class Stock(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    stock_item = models.ForeignKey(Item, on_delete=models.CASCADE, )
+    location = models.ForeignKey('Location', on_delete=models.CASCADE)
+    variant = models.ForeignKey("Variant", related_name='item_variant', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    date = models.DateField(default=datetime.now)
-    update_at = models.DateTimeField(auto_now=True)
-    quantity = models.PositiveIntegerField(default=1)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        if self.stock_item.size is None:
-            return f"{self.stock_item.name.capitalize()}"
-        else:
-            return f"{self.stock_item.name.capitalize()} ({self.stock_item.size.upper()})"
-        
-    def get_items(self):
-        return self.stock_item
+        return str(self.variant.product.name).capitalize()
     
-    def in_stock(self):
-        if self.quantity > 0:
-            return dict(status=True, quantity=self.quantity)
-        return dict(status=False, quantity=self.quantity)
+    @property
+    def get_absolute_url(self):
+        return reverse("stock:item_detail", kwargs={"pk": self.pk})
+    
+    class Meta:
+        ordering = [Lower('variant__product__name')]
+    
+        
+    # def get_items(self):
+    #     return self.stock_item
+    
+    # def in_stock(self):
+    #     if self.quantity > 0:
+    #         return dict(status=True, quantity=self.quantity)
+    #     return dict(status=False, quantity=self.quantity)
     
 
 
@@ -198,53 +203,192 @@ class Issue(models.Model):
         except Student.DoesNotExist:
            return None
        
-       
+
+# class Transaction(models.Model):
+#     PURCHASE = 'PU'
+#     ISSUE = 'IS'
+#     RETURN = 'RE'
+#     EXCHANGE = 'AD'
+
+#     TRANSACTION_TYPE = [
+#         (PURCHASE, 'Purchase'),
+#         (ISSUE, 'Issue'),
+#         (RETURN, 'Return'),
+#         (EXCHANGE, 'Exchange'),
+#     ]
+
+#     item = models.ForeignKey(Item, on_delete=models.CASCADE)
+#     transaction_type = models.CharField(max_length=2, choices=TRANSACTION_TYPE)
+#     quantity = models.PositiveIntegerField(default=1)
+#     reference_id = models.PositiveIntegerField(default=0)
+#     reference_model = models.CharField(max_length=50, null=True, blank=True)
+#     notes = models.TextField(null=True, blank=True)
+#     manager = models.ForeignKey(User, on_delete=models.CASCADE,  default=User)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
 
+#     class Meta:
+#         ordering = ['-created_at']
 
-class Transaction(models.Model):
-    PURCHASE = 'PU'
-    ISSUE = 'IS'
-    RETURN = 'RE'
-    EXCHANGE = 'AD'
-
-    TRANSACTION_TYPE = [
-        (PURCHASE, 'Purchase'),
-        (ISSUE, 'Issue'),
-        (RETURN, 'Return'),
-        (EXCHANGE, 'Exchange'),
-    ]
-
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    transaction_type = models.CharField(max_length=2, choices=TRANSACTION_TYPE)
-    quantity = models.PositiveIntegerField(default=1)
-    reference_id = models.PositiveIntegerField(default=0)
-    reference_model = models.CharField(max_length=50, null=True, blank=True)
-    notes = models.TextField(null=True, blank=True)
-    manager = models.ForeignKey(User, on_delete=models.CASCADE,  default=User)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.get_transaction_type_display()} - {self.item} x {self.quantity}"
+#     def __str__(self):
+#         return f"{self.get_transaction_type_display()} - {self.item} x {self.quantity}"
     
 
-    @classmethod
-    def record_transaction(cls, item, transaction_type, quantity, reference_obj, user):
-        """Helper method to record any stock transaction"""
-        return cls.objects.create(
-            item=item,
-            transaction_type=transaction_type,
-            quantity=quantity,
-            reference_id=reference_obj.id,
-            reference_model=reference_obj.__class__.__name__,
-            notes = "{}".format(transaction_type),
-            manager=user
-        )
+#     @classmethod
+#     def record_transaction(cls, item, transaction_type, quantity, reference_obj, user):
+#         """Helper method to record any stock transaction"""
+#         return cls.objects.create(
+#             item=item,
+#             transaction_type=transaction_type,
+#             quantity=quantity,
+#             reference_id=reference_obj.id,
+#             reference_model=reference_obj.__class__.__name__,
+#             notes = "{}".format(transaction_type),
+#             manager=user
+#         )
         
-        
+     
+     
+class Location(models.Model):
+    ST = 'store'
+    RM = 'room'
+    LB = 'lab'
+    CL = 'classroom'
+    
+    LOCATION_TYPE = [
+        (ST, 'Store'),
+        (RM, 'Room'),
+        (LB, 'Lab'),
+        (CL, 'Classroom'),
+    ]
+    name = models.CharField(max_length=50)
+    loc_type = models.CharField(max_length=50, choices=LOCATION_TYPE)
+    
+    
+    def __str__(self, *args, **kwargs):
+        return self.name
+    
+    
+    
+class Serialnumber(models.Model):
+    NS = 'in stock'
+    AL = 'allocated'
+    SC = 'scrapped'
+    
+    STATUS = [
+        (NS, 'In Stock'),
+        (AL, 'Allocated'),
+        (SC, 'Scrapped'),
+    ]
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    product_variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    serial_number = models.CharField(max_length=50, unique=True)
+    status = models.CharField(max_length=50, choices=STATUS, default=NS)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    
+    def __str__(self):
+        return str(self.serial_number)
+    
 
+
+class Vendor(models.Model):
+    vendor_name = models.CharField(max_length=50)
+    contact_person = models.CharField(max_length=50)
+    phone = models.CharField(max_length=50)
+    email = models.EmailField(blank=True, default='')
+    gst = models.CharField(max_length=50)
+    address = models.CharField(max_length=50)
+    
+    
+class PurchaseOrder(models.Model):
+    
+    DR = 'draft'
+    AP = 'approved'
+    RC = 'received'
+    CN = 'cancelled'
+    
+    STATUS_CHOICES = (
+        (DR, 'Draft'),
+        (AP, 'Approved'),
+        (RC, 'Received'),
+        (CN, 'Cancelled'),
+    )
+    
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
+    order_date = models.DateTimeField(default=datetime.now)
+    satatus = models.CharField(choices=STATUS_CHOICES, default=DR, max_length=50)
+    
+    
+    
+class PurchaseOrderItems(models.Model):
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.PositiveIntegerField(default=0)
+    tax_percent = models.PositiveIntegerField(default=0)
+    discount = models.PositiveIntegerField(default=0)
+    
+    
+class GoodsReceipt(models.Model):
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE)
+    recieved_data = models.DateField(default=datetime.now)
+    invoice_number = models.CharField(max_length=50)
+    invoice_file = models.FileField(upload_to='invoice/', null=True, blank=True)
+    
+    
+class GoodsReceiptItems(models.Model):
+    goods_receipt = models.ForeignKey(GoodsReceipt, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    quantity_received = models.PositiveIntegerField(default=1)
+    unit_cost = models.PositiveIntegerField(default=0)
+    
+    
+class StockTransactions(models.Model):
+    IN = 'in'
+    OT = 'out'
+    AD = 'adjustment'
+    TRANSACTION_TYPE = [
+        (IN, 'In'),
+        (OT, 'Out'),
+        (AD, 'Adjustment'),
+    ]
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    txn_type = models.CharField(max_length=50, choices=TRANSACTION_TYPE)
+    quantity = models.PositiveIntegerField(default=1)
+    txn_date = models.DateField(default=datetime.now)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    contenttype = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    reference = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('contenttype', 'reference')
+    
+    
+class Allocations(models.Model):
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    allocated_date = models.DateField(default=datetime.now)
+    issued_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    contenttype = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    allocated_to = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('contenttype', 'allocated_to')
         
+class Returns(models.Model):
+    GD = 'good'
+    DG = 'damaged'
+    LT = 'lost'
+    
+    CONDITION_CHOICES = [
+        (GD, 'Good'),
+        (DG, 'Damaged'),
+        (LT, 'Lost'),
+    ]
+    
+    allocation = models.ForeignKey(Allocations, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    returned_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    condition = models.CharField(max_length=50, choices=CONDITION_CHOICES)
+
+

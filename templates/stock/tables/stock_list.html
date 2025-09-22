@@ -1,7 +1,18 @@
 {% extends 'dashboard/home.html' %}
 {% load paginator_tag %}
+{% load partials %}
+
 
 {% block table %}
+{% startpartial optionpart %}
+        <div class="form-group" id="productoptions">
+            <select name="{{form.variant.html_name}}" id="" class='form-select'>
+                {% for val, text in form.variant.field.choices %}
+                    <option value="{{val}}">{{text}}</option>
+                {% endfor %}                
+            </select>
+        </div>
+{% endpartial %}
 
 <div>
     <h2>Stock</h2>
@@ -10,6 +21,70 @@
         <a class="btn btn-primary" role="button" href="{% url 'stock:add_stock' %}">Add</a>
         {% endcomment %}
         <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#downloadform">Download</button>
+        
+        <table class="table mx-auto w-auto table-responsive overflow-x-auto">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <thead>
+                <tr>
+                    {% for field in form %}
+                        <th>{{ field.label_tag }}</th>
+                    {% endfor %}
+
+                    <th></th>
+                </tr>
+
+                <tbody>
+                    <form action="{% url 'stock_list' %}" method='POST'>
+                        {% csrf_token %}
+                        <tr>
+                            <td>
+                                <div class="form-group">
+                                    <select name="{{form.item.html_name}}" class='form-select'
+                                    hx-get="{% url 'stock:item_variant' %}"
+                                    hx-swap="outerHTML"
+                                    hx-trigger="change"
+                                    hx-target="#productoptions">
+                                        {% for val, text in form.item.field.choices %}
+                                            <option value="{{val}}">{{text}}</option>
+                                        {% endfor %}                
+                                    </select>
+                                </div>
+                            </td>
+    
+                            <td>
+                                <div class='form-group'>
+                                    <select name="{{form.location.html_name}}"  class='form-select'>
+                                    {% for val, text in form.location.field.choices %}
+                                        <option value="{{val}}">{{text}}</option>
+                                    {% endfor %}   
+                                    </select>             
+                                </div>
+                            </td>
+    
+                            <td>
+                                {% partial optionpart %}
+                            </td>
+    
+                            <td>
+                                {{form.quantity}}
+                            </td>
+    
+                            <td>
+                                <button type='submit' class="btn btn-sm btn-primary mt-1">Submit</button>
+                            </td>
+                        </tr>
+                    </form>
+                </tbody>
+            </thead>
+        </table>
+
 
         <div class="modal fade" tabindex="-1" id="downloadform" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog ">
@@ -33,7 +108,7 @@
     </div>
 </div>
 
-    <table class="table my-3">
+    <table class="table my-3 table-responsive overflow-x-auto">
         <thead>
             <tr>
                 <th>S.N</th>
@@ -49,17 +124,17 @@
             {% for s in stocks %}
             <tr>
                 <td>
-                    <a href="{{s.get_absolute_url}}">{{s.id}}</a>
+                    <a href="#">{{s.id}}</a>
                 </td>
-                <td>{{s.stock_item.name | capfirst}}</td>
+                {% comment %} <td>{{s.stock_item.name | capfirst}}</td>
                 <td>{{s.stock_item.id}}</td>
                 <td>{{s.stock_item.get_size_display | upper}}</td>
                 <td>{{s.quantity}}</td>
                 <td>{{s.user.name}}({{s.user.emp_id}})</td>
                 <td>{{s.date | date:'d/m/Y'}}</td>
-                <td>{{s.update_at | date:'d/m/Y'}}
+                <td>{{s.update_at}}
                     <small></small>
-                </td>
+                </td> {% endcomment %}
             </tr>
             {% endfor %}
         <tbody>
