@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <ul class="nav justify-content-end">
+    <ul class="nav justify-content-end align-items-center">
     <li class="nav-item">
         <a class="nav-link" aria-current="page" href="{% url 'authapp:signup' %}">Sing Up</a>
     </li>
@@ -22,15 +22,15 @@
     </li>
     </ul>
 
-    <div class="container-fluid">
-        <div class="row align-items-center justify-content-center">
+    <div class="container-fluid border">
+        <div class="row align-items-center justify-content-center h-100">
             <div class="col">
-                <div class="d-flex justify-content-center gap-3">
-                    <div class="for-student">
-                        <a href="">For Student</a>
+                <div class="d-flex justify-content-center gap-3 mt-2 main_page_card rounded">
+                    <div class="for-student bg-light p-4 card shadow">
+                        <a href="#" class="stretched-link link-underline link-underline-opacity-0">For Student</a>
                     </div>
-                    <div class="for-office">
-                        <a href="{% url 'stock:create_stock' %}">For Office</a>
+                    <div class="for-office bg-light p-4 card shadown">
+                        <a href="{% url 'stock:create_stock' %}" class="stretched-link link-underline link-underline-opacity-0">For Office</a>
                     </div>
                 </div>
             </div>

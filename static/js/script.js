@@ -24,7 +24,7 @@ document.body.addEventListener('htmx:afterRequest', function (evt) {
     }
 });
 
-
+let inputAdded = false
 document.body.addEventListener('htmx:afterSwap', function(event) {
     $('.variant-select').select2({
         
@@ -34,10 +34,9 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 
     const addMoreBtn = document.getElementById('add_more_btn')
     const columnCount = document.querySelector("input[name='column_count']");
-    let inputAdded = false
 
     addMoreBtn.addEventListener('click', () => {
-        
+
         for (let i = 1; i < columnCount.value ; i++) {
             event.detail.elt.insertAdjacentHTML('beforeend', `<div class="mt-2 serial-input d-flex gap-3">
             <input type="text" required name="serial" placeholder="Enter serial number">
@@ -45,9 +44,7 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
             onclick="this.closest('.serial-input').remove()"></button>
             </div>`)
         }
-        
     })
-
 
 });
 

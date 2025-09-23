@@ -18,6 +18,10 @@ class CategoryForm(ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
         }
         
+        labels = {
+            'name': 'Category Name',
+        }
+        
     def clean(self):
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
@@ -66,6 +70,12 @@ class ItemForm(ModelForm):
             'category': forms.Select(attrs={'class': 'form-select'}),
             'code':forms.TextInput(attrs={'class': 'form-control'}), 
         }
+        
+        labels = {
+            'name': 'Item Name',
+            'category': 'Category',
+            'code': 'Item Code',
+        }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -93,7 +103,7 @@ class VariantForm(ModelForm):
                 'placeholder': """Enter additional data. e.g. {"color": "red", "size": "M"}"""
             }
         ),
-        label="Addtional Data"
+  
     )
     class Meta:
         model = Variant
@@ -103,6 +113,12 @@ class VariantForm(ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'is_serialized': forms.CheckboxInput(),
             'is_active': forms.CheckboxInput(),
+        }
+        
+              
+        labels = {
+            'meta_data': 'Additional Data',
+            'name': 'Variant Name',
         }
         
         

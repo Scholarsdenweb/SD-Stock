@@ -5,7 +5,7 @@ ul.nav {
 
 .container-fluid {
     height: calc(100vh - 10vh);
-    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/static/images/cover.jpg);
+    background-image: linear-gradient(rgba(0, 0, 0, .8), rgba(0, 0, 0, .8)), url(/static/images/cover.jpg);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -18,3 +18,4 @@ center div {
     font-size: 3rem;
     font-weight: 600;
 }
+
