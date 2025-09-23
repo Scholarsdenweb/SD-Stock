@@ -22,7 +22,7 @@ class CategoryForm(ModelForm):
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
 
-        if name and Category.objects.filter(name__iexact=name).exists():
+        if name and Category.objects.filter(name__icontains=name).exists():
             raise forms.ValidationError('Category already exists.')
 
         if name:

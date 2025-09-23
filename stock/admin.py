@@ -193,5 +193,5 @@ class KitResource(resources.ModelResource):
     
 # admin.site.register(Student, StudentAdmin)
 # admin.site.register(IssueItem)    
-# admin.site.register(Category)
-# admin.site.register(Variant)
+admin.site.register(Category)
+admin.site.register(Variant)

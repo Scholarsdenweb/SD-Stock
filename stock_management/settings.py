@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
-
+from django.urls import reverse_lazy
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -77,13 +77,14 @@ default_loaders = [
     "django.template.loaders.app_directories.Loader",
 ]
 cached_loaders = [("django.template.loaders.cached.Loader", default_loaders)]
+
 partial_loaders = [("template_partials.loader.Loader", cached_loaders)]
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        # 'APP_DIRS': True,
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 "django.template.context_processors.debug",
@@ -93,7 +94,7 @@ TEMPLATES = [
             ],
             "debug": True,
             # TODO: Add wrap_loaded function to the called from an AppConfig.ready().
-            "loaders": partial_loaders,
+            # "loaders": partial_loaders,
         },
     },
 ]
@@ -169,7 +170,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custome user setting
 AUTH_USER_MODEL = 'authapp.User'
 LOGIN_URL = 'authapp:login'
-LOGIN_REDIRECT_URL = 'dashboard:home'
+LOGIN_REDIRECT_URL = reverse_lazy('stock:create_stock')
 LOGOUT_REDIRECT_URL = LOGIN_URL
 SESSION_COOKIE_AGE = 60 * 60 * 24
 
