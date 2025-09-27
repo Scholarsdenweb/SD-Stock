@@ -42,7 +42,7 @@ class CreatePurchase(CreateView):
     template_name = 'orders/purchase_list.html'
     context_object_name = 'purchases'
     form_class = PurchaseForm
-    success_url = reverse_lazy('stock:purchase_list')
+    success_url = reverse_lazy('orders:purchase_list')
     
     def get_context_data(self, **kwargs):
         vendors = Purchase.objects.all()
@@ -68,15 +68,18 @@ class CreatePurchase(CreateView):
         self.object = None
         
         if request.headers.get('hx-request'):
+            order = request.GET.get('order')
             item = request.GET.get('item')
+            variant = request.GET.get('variant')
             quantity = request.GET.get('quantity')
             unit_price = request.GET.get('unit_price')
             
-            print('data', item, quantity, unit_price)
             total_amount = int(quantity) * int(unit_price)
             
             initial = {
+                'order':order,
                 'item':item,
+                'variant':variant,
                 'quantity':quantity,
                 'unit_price':unit_price,
                 'total_amount':total_amount

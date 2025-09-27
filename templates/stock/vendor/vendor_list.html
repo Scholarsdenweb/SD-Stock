@@ -16,7 +16,8 @@
     <div class="contact_card">
         {% for vendor in vendors  %}
             <div class="v_card rounded rounded-4">
-                <h3 class="text-center">{{vendor.vendor_name}}</h3>
+                <h3 class="text-center">{{vendor.vendor_name}}</h3><hr>
+                <p><strong>Name: </strong>{{vendor.contact_person}}</p>
                 <p><strong>Phone: </strong>{{vendor.phone}}</p>
                 <p><strong>Email: </strong>{{vendor.email}}</p>
                 <p><strong>Address: </strong>{{vendor.address}}</p>

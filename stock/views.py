@@ -316,7 +316,7 @@ class UpdateStock(UpdateView):
     model = Stock
     template_name = 'stock/editforms/stock_form.html'
     form_class = StockEditForm
-    success_url = '/'
+    success_url = reverse_lazy('stock:create_stock')
 
 
 
@@ -411,7 +411,7 @@ def load_product_by_category(request):
         items = Item.objects.filter(category=category)
         form = VariantForm()
         form.fields['product'].queryset = items
-        return render(request, 'stock/variant_form.html#optionpart', {'form': form})
+        return render(request, 'catalogue/variant_form.html#optionpart', {'form': form})
 
 def load_variant_by_item(request):
     if request.headers.get('hx-request'):
@@ -429,6 +429,12 @@ def check_serializable_view(request):
         variant_id = request.GET.get('variant')
         variant = get_object_or_404(Variant, id=variant_id)
         
+        try:
+            purchase = Purchase.objects.get(variant=variant)
+            total = purchase.quantity
+        except:
+            total = 0  
+        
         if variant.is_serialized:
             response = render(request, 'partials/serial_form_part.html')
             response['HX-Target'] = '#serial_number_container'
@@ -436,7 +442,7 @@ def check_serializable_view(request):
             
 
         response = HttpResponse(
-            "<label> Quantity </label><br><input type='number' value='1' name='quantity' size='1'>"
+            f"<p class='text-secondary'>You have total {total} purchase(s)</p><label> Quantity </label><br><input type='number' value='1' name='quantity' size='1'>"
         )
         response['HX-Target'] = '#quantity_or_serial'
         return response
@@ -737,11 +743,11 @@ class PurchaseListView(ListView, FormView):
     #     responce = download_purchases(self, request)
 
     #     return responce
-class PurchaseUpdateView(UpdateView):
-    model = Purchase
-    template_name = 'stock/purchase_form.html'
-    form_class = PurchaseForm
-    success_url = reverse_lazy('stock:purchase_list')
+# class PurchaseUpdateView(UpdateView):
+#     model = Purchase
+#     template_name = 'stock/purchase_form.html'
+#     form_class = PurchaseForm
+#     success_url = reverse_lazy('stock:purchase_list')
 
 
 

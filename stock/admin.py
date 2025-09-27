@@ -91,6 +91,7 @@ admin.site.register(Purchase, PurchaseAdmin)
 admin.site.register(Issue, IssueAdmin)
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Location)
+admin.site.register(PurchaseOrder)
 admin.site.register(Serialnumber)
 
 

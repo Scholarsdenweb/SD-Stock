@@ -26,8 +26,18 @@
                 <form action="" id="purchase_form" method="POST">
                     {% csrf_token %}
                     <div class="form-group">
+                        {{form.order.label_tag}}
+                        {{form.order}}
+                    </div>
+
+                    <div class="form-group">
                         {{form.item.label_tag}}
                         {{form.item}}
+                    </div>
+
+                    <div class="form-group">
+                        {{form.variant.label_tag}}
+                        {{form.variant}}
                     </div>
 
                     <div class="form-gourp">
@@ -51,6 +61,17 @@
                         {{form.total_amount.label_tag}}
                         {{form.total_amount}}
                     </div>
+
+                    <div class="form-gourp" id="id_total_amount">
+                        {{form.tax_percent.label_tag}}
+                        {{form.tax_percent}}
+                    </div>
+
+                    <div class="form-gourp" id="id_total_amount">
+                        {{form.discount.label_tag}}
+                        {{form.discount}}
+                    </div>
+
                     <div class="form-gourp">
                         {{form.created_at.label_tag}}
                         {{form.created_at}}
@@ -96,13 +117,16 @@
         <h3 class="text-capitalize">Purchase Record</h3>
     </div>
 
-    <table class="table table-responsive">
+    <table class="table table-sm table-responsive">
         <thead>
             <tr>
                 <th>#</th>
                 <th class="text-capitalize">Item</th>
+                <th class="text-capitalize">varaint</th>
                 <th class="text-capitalize">Quantity</th>
                 <th class="text-capitalize">Unit price</th>
+                <th class="text-capitalize">Tax percent</th>
+                <th class="text-capitalize">discount</th>
                 <th class="text-capitalize">Total amount</th>
                 <th class="text-capitalize">purchase Date</th>
                 <th class="text-capitalize">purchased by</th>
@@ -117,13 +141,16 @@
             <tr>
                 <td>{{forloop.counter}}</td>
                 <td>{{purchase.item}}</td>
+                <td>{{purchase.variant}}</td>
                 <td>{{purchase.quantity}}</td>
                 <td>{{purchase.unit_price}}</td>
+                <td>{{purchase.tax_percent}}</td>
+                <td>{{purchase.discount}}</td>
                 <td>{{purchase.total_amount}}</td>
                 <td>{{purchase.created_at}}</td>
                 <td>{{purchase.user.full_name}}</td>
-                <td>{{purchase.supplier}}</td>
-                <td>{{purchase.supplier_location}}</td>
+                <td>{{purchase.order.vendor.vendor_name}}</td>
+                <td>{{purchase.order.vendor.address}}</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -23,7 +23,7 @@ class Category(models.Model):
     )
     
     name = models.CharField(max_length=50)
-    cat_type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name='Category Type')
+    # cat_type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name='Category Type')
     description = models.CharField(max_length=254, blank=True)
     
     
@@ -281,22 +281,27 @@ class Serialnumber(models.Model):
 class Vendor(models.Model):
     vendor_name = models.CharField(max_length=50)
     contact_person = models.CharField(max_length=50)
-    phone = models.CharField(max_length=50)
+    phone = models.CharField(max_length=50, blank=True)
     email = models.EmailField(blank=True, default='', unique=True)
-    gst = models.CharField(max_length=50)
-    address = models.CharField(max_length=50)
+    gst = models.CharField(max_length=50, blank=True)
+    address = models.CharField(max_length=50, blank=True)
+    
+    def __str__(self):
+        return self.vendor_name
   
   
 class Purchase(models.Model):
+    order = models.ForeignKey('PurchaseOrder', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Order')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Purchased by')
     item = models.ForeignKey(Item, on_delete=models.CASCADE,  verbose_name='Item')
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE, verbose_name='Variant')
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    tax_percent = models.PositiveIntegerField()
+    discount = models.PositiveIntegerField()   
     created_at = models.DateTimeField(default=datetime.now, verbose_name='Date')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last updated')
-    supplier = models.CharField(max_length=100, null=True, blank=True)
-    supplier_location = models.CharField(max_length=100, null=True, blank=True, verbose_name='Supplier Location')
     
     class Meta:
         ordering = ['-created_at']
@@ -328,6 +333,9 @@ class PurchaseOrder(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     order_date = models.DateTimeField(default=datetime.now)
     status = models.CharField(choices=STATUS_CHOICES, default=DR, max_length=50)
+    
+    def __str__(self):
+        return str(self.vendor.vendor_name)
     
     
     

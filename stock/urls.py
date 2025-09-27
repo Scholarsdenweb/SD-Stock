@@ -23,7 +23,7 @@ urlpatterns = [
 
     # path('purchase/list/', views.PurchaseListView.as_view(), name='purchase_list'),
     path('purchase/<int:pk>/', views.PurchaseDetailView.as_view(), name='purchase_detail'),
-    path('purchase/update/<int:pk>', views.PurchaseUpdateView.as_view(), name = 'update_purchase'),
+    # path('purchase/update/<int:pk>', views.PurchaseUpdateView.as_view(), name = 'update_purchase'),
 
     # path('stock/<int:pk>/', views.StockDetailView.as_view(), name='stock_detail'),
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from authapp.decorators import is_manager
 from django.utils.decorators import method_decorator
-from stock.models import Variant
+from stock.models import Variant, Item
 from stock.forms import VariantForm, CategoryForm, ItemForm
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
@@ -57,17 +57,25 @@ class CreateVariant(CreateView):
 # Create your views here.
 @method_decorator(is_manager, name='dispatch')
 class ItemCreateView(CreateView):
+    model = Item
     template_name = 'catalogue/item_form.html'
     form_class = ItemForm
     success_url = reverse_lazy('catalogue:add_variant')
 
     def form_valid(self, form):
-        form.cleaned_data
-        messages.success(self.request, 'Item added successfully')
-        return super().form_valid(form)
+        name = form.cleaned_data.get('name')
+        category = form.cleaned_data.get('category')
+        
+        print(name, category)
 
+        if Item.objects.filter(name__iexact=name.lower(), category=category).exists():
+            messages.error(self.request, 'This item is already added.')
+            return self.form_invalid(form)
+
+        messages.success(self.request, 'Item added successfully')
+        return super().form_valid(form)    
+    
     def form_invalid(self, form):
-        messages.error(self.request, 'Item not added')
         return super().form_invalid(form)
   
 

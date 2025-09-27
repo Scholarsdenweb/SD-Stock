@@ -25,11 +25,10 @@ class VendorForm(ModelForm):
 class CategoryForm(ModelForm):
     class Meta:
         model = Category
-        fields = ['name', 'cat_type', 'description']
+        fields = ['name', 'description']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'cat_type': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
         }
         
@@ -96,18 +95,19 @@ class ItemForm(ModelForm):
             'code': 'Item Code',
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        name = cleaned_data.get('name')
-        category = cleaned_data.get('category')
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     name = cleaned_data.get('name')
+    #     category = cleaned_data.get('category')
         
-        if name and Item.objects.filter(name__iexact=name, category=category).exists():
-            raise forms.ValidationError('Item already exists.')
+    #     if name and Item.objects.filter(name__iexact=name, category=category).exists():
+    #         raise forms.ValidationError('Item already exists.')
 
-        if name:
-            cleaned_data['name'] = name.lower()
+    #     if name and category:
+    #         cleaned_data['name'] = name.lower()
+    #         cleaned_data['category'] = category
 
-        return cleaned_data
+    #     return cleaned_data
             
 
 
@@ -163,30 +163,33 @@ class SerialNumberForm(ModelForm):
         fields = ['item', 'product_variant', 'serial_number', 'status']
 
 
-class PurchaseForm(ModelForm):
-    # items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple)
+# class PurchaseForm(ModelForm):
+#     # items = forms.ModelMultipleChoiceField(queryset=Item.objects.all(), widget=forms.CheckboxSelectMultiple)
 
-    class Meta:
-        model = Purchase
-        fields = ['item', 'quantity', 'unit_price', 'total_amount','created_at', 'supplier', 'supplier_location']
+#     class Meta:
+#         model = Purchase
+#         fields = ['item', 'quantity', 'unit_price', 'total_amount', 'tax_percent', 'discount', 'created_at', 'supplier']
 
-        widgets = {
-            'item': forms.Select(attrs={'class': 'form-select mt-2'}),
-            'quantity': forms.NumberInput(attrs={
-                'class': 'form-control mt-2',
-            }),
-            'total_amount': forms.TextInput(attrs={'class': 'form-control mt-2'}),
-            'supplier': forms.TextInput(attrs={'class': 'form-control mt-2'}),
-            'supplier_location': forms.TextInput(attrs={'class': 'form-control mt-2'}),
-            'unit_price': forms.TextInput(attrs={'class': 'form-control mt-2'}),
-            'created_at':forms.TextInput(attrs={'class': 'form-control mt-2', 'type': 'date'})
-        }
+#         widgets = {
+#             'item': forms.Select(attrs={'class': 'form-select mt-2'}),
+#             'quantity': forms.NumberInput(attrs={
+#                 'class': 'form-control mt-2',
+#             }),
+#             'total_amount': forms.TextInput(attrs={'class': 'form-control mt-2'}),
+#             'supplier': forms.TextInput(attrs={'class': 'form-control mt-2'}),
+#             'unit_price': forms.TextInput(attrs={'class': 'form-control mt-2'}),
+#             'created_at':forms.TextInput(attrs={'class': 'form-control mt-2', 'type': 'date'})
+#         }
         
-    def __init__(self, *args, **kwargs):
-        super(PurchaseForm, self).__init__(*args, **kwargs)
-        today_str = date.today().strftime('%Y-%m-%d')
-        self.fields['created_at'].widget.attrs.update({'max': today_str})
-        self.initial['created_at'] = today_str
+#         labels = {
+#             'order': 'Order Taken by:',
+#         }
+        
+#     def __init__(self, *args, **kwargs):
+#         super(PurchaseForm, self).__init__(*args, **kwargs)
+#         today_str = date.today().strftime('%Y-%m-%d')
+#         self.fields['created_at'].widget.attrs.update({'max': today_str})
+#         self.initial['created_at'] = today_str
         
         
 class StockForm(ModelForm):

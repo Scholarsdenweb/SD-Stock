@@ -23,16 +23,16 @@
             <ul class="side-navigation ">
                 {% comment %} <li><a href="" class="{% if request.path == ADDSTUDENT %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li> {% endcomment %}
 
-                <li><a href="{% url 'catalogue:main' %}" class="{% active_class '/catalogue/' %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Catalogue</a></li>
+                <li><a href="{% url 'catalogue:main' %}" class="{% active_class '/catalogue/' %}"><i class="fa-solid fa-square-plus me-2" style="color: #5d0607ff;"></i>Catalogue</a></li>
 
 
-                <li><a href="{% url 'orders:main' %}" class="{% active_class '/orders/' %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Orders</a></li>
+                <li><a href="{% url 'orders:main' %}" class="{% active_class '/orders/' %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #7e080a;"></i>Orders</a></li>
 
-                <li><a href="{% url 'stock:create_stock' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
+                <li><a href="{% url 'stock:create_stock' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #7e080a;"></i>Stock</a></li>
 
-                <li><a href="" class="{% if request.path == TRANSACTIONLIST %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
+                <li><a href="" class="{% if request.path == TRANSACTIONLIST %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #7e080a;"></i>Transactions</a></li>
                 
-                <li><a href="{% url 'stock:vendor_list' %}" class="{% if request.path == VENDORS %} active {% endif %}"><i class="fa-solid fa-address-book me-2" style="color: #ffffff;"></i>Vendors</a></li>
+                <li><a href="{% url 'stock:vendor_list' %}" class="{% if request.path == VENDORS %} active {% endif %}"><i class="fa-solid fa-address-book me-2" style="color: #7e080a;"></i>Vendors</a></li>
 
 
                 
