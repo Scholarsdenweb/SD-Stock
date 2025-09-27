@@ -1,0 +1,106 @@
+{% extends "catalogue/main.html" %}
+{% load partials %}
+{% load widget_tweaks %}
+{% block page_content %}
+
+{% startpartial key_value %}
+    <div class="keyvalue">
+        <input type="text" placeholder="Key" name='key'>
+        <input type="text" placeholder="Value" name='val'>
+        <button class="btn btn-close border border-1 border-danger bg-danger text-white rounded-circle btn-danger"  onclick="this.closest('.keyvalue').remove()"></button>
+    </div>
+{% endpartial %}
+
+{% startpartial optionpart %}
+        <div class="form-group" id="productoptions">
+            <label for="{{form.product.id_for_label }}" class="form-label">{{form.product.label}}</label>
+            <select name="{{form.product.html_name}}" id="" class='form-select'>
+                {% for val, text in form.product.field.choices %}
+                    <option value="{{val}}">{{text}}</option>
+                {% endfor %}                
+            </select>
+        </div>
+{% endpartial %}
+
+
+
+<div class="container text-white">
+    <div class="row my-5">
+        <div class="flex-container">
+            <div class="col-md-6 col-lg-6 mx-auto shadow p-2 my-2 col" style="background-color: #c51315;">
+   
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+    
+            <form action="{% url 'catalogue:add_variant' %}" method="post">
+                <h3>Add Variant</h3>
+                {% for error in form.non_field_errors %}
+                    <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+                {% endfor %}
+
+                {% csrf_token %} 
+                <div class="form-group">
+                    <label for="{{form.category.id_for_label }}" class="form-label">{{form.category.label}}</label>
+                    <select name="{{form.category.html_name}}" class='form-select'
+                    hx-get="{% url 'stock:category_product' %}"
+                    hx-swap="outerHTML"
+                    hx-trigger="change"
+                    hx-target="#productoptions">
+                        {% for val, text in form.category.field.choices %}
+                            <option value="{{val}}">{{text}}</option>
+                        {% endfor %}                
+                    </select>
+                </div>
+
+                {% partial optionpart %}
+
+
+                <div class="form-group">
+                    <label for="{{form.name.id_for_label }}" class="form-label">{{form.name.label}}</label>
+                    {{form.name}}
+
+                </div>
+                <div class="form-group">
+                    <label for="{{form.sku.id_for_label }}" class="form-label">{{form.sku.label|upper}}</label>
+                    {{form.sku}}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{form.meta_data.id_for_label }}">{{form.meta_data.label}}</label><br>
+                    <p><small class="text-warning">Exmaple: key=color, value=red</small></p>
+                    <input type="text" placeholder="Key" name='key'>
+                    <input type="text" placeholder="Value" name='val'>
+                    <button type="text" value="Add More" role='button' class='btn btn-sm btn-dark'
+                     hx-get="{% url 'catalogue:add_variant' %}"
+                     hx-target="#id_key_value"
+                     hx-swap="beforeend">Add More</button>
+
+                </div>
+                <div id="id_key_value"></div>
+
+                <div class="form-group">
+                    {{form.is_serialized}}
+                    <label for="{{form.is_serialized.id_for_label }}" class="form-label">{{form.is_serialized.label}}</label>
+                    
+                </div>
+
+                <div class="form-group" id="serial_container">
+
+                </div>
+
+                <button type='submit' class="btn btn-light mt-3">Submit</button>
+            </form>
+           
+    
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock page_content %}

@@ -13,7 +13,7 @@
 {% csrf_token %}
 <div class="form_container d-flex gap-2">
     <div class="stock_form w-25 sm-w-100 border">
-                <form action="" method='POST'>
+                <form action="" method='POST' class="edit_stock_form">
                     {% csrf_token %}
                 <h3 class="px-2 bg-dark-subtle">Edit Stock</h3>
                     <div class="p-3">
@@ -39,31 +39,36 @@
 
         {% if serial_numbers %}
         <div>
-            <table class="table table-responsive w-auto">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Variant</th>
-                        <th>Serial Number</th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sr in serial_numbers %}
-                        <tr id="serial_row_{{ sr.id }}">
-                            <td>{{ sr.item }}</td>
-                            <td>{{ sr.product_variant }}</td>
-                            <td>{{ sr.serial_number }}</td>
-                            <td><a href="{% url 'stock:update_serial_number' sr.id %}" ><i class="fa-solid fa-pen" style="color:blue; cursor:pointer;"></i></a>
-                        </tr>       
-                            
-                   {% endfor %}
-
-                </tbody>
-                <tfoot>
-                    Total Records: {{serial_numbers.count}}
-                </tfoot>
-            </table>
+                <table class="table table-responsive w-auto">
+                    <thead>
+                        <tr>
+                            <td>Id</td>
+                            <th>Item</th>
+                            <th>Variant</th>
+                            <th>Serial Number</th>
+                            <th>Edit</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                        
+                        {% for sr in serial_numbers %}
+                        
+                            <tr id="serial_row_{{ sr.id }}">
+                                <td>{{sr.id}}</td>
+                                <td>{{ sr.item }}</td>
+                                <td>{{ sr.product_variant }}</td>
+                                <td>{{ sr.serial_number }}</td>
+                                <td><a href="{% url 'stock:update_serial_number' sr.id %}"><i class="fa-solid fa-pen" style="color:blue; cursor:pointer;"></i></a>
+                            </tr>       
+                                
+                        {% endfor %}
+    
+                    </tbody>
+                    <tfoot>
+                        Total Records: {{serial_numbers.count}}
+                    </tfoot>
+                </table>
         </div>
         {% endif %}
 

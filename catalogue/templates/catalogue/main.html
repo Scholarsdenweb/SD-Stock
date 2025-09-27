@@ -1,0 +1,21 @@
+{% extends "dashboard/home.html" %}
+
+{% block table %}
+
+    {% url 'catalogue:add_category' as CATEGORY %}
+    {% url 'catalogue:add_item' as ITEMS %}
+    {% url 'catalogue:add_variant' as VARIANT %}
+
+
+<div class="d-md-flex gap-2 justify-content-start flex-md-row mb-2">
+    <a class="p-2 px-5 btn btn-secondary link-light link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == CATEGORY %}active{% endif %}" href="{% url 'catalogue:add_category' %}" >Add Category</a>
+
+    <a class="p-2 px-5 btn btn-secondary link-light link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == ITEMS %}active{% endif %}" href="{% url 'catalogue:add_item' %}" >Add Item</a>
+
+
+    <a class="p-2 px-5 btn btn-secondary link-light link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == VARIANT %}active{% endif %}" href="{% url 'catalogue:add_variant' %}" >Add Variant</a>
+</div>
+
+
+    {% block page_content %}{% endblock page_content %}
+{% endblock table %}

@@ -1,0 +1,46 @@
+.contact_card {
+    display: grid;
+    grid-template-columns: 1fr; /* full width by default */
+    gap:.5em;
+}
+
+.contact_card.v_card {
+    grid-area: vcard;
+}
+
+.contact_card div {
+    border: 1px solid black;
+    padding:0 2em;
+    width:18rem;
+    width:18rem;
+    color:#fff;
+    color:#fff;
+    /* background-image: linear-gradient(to left, rgba(255, 255, 255, 1), rgb(197, 19, 21, .5)), url(/static/images/cover.jpg); */
+    background-image: linear-gradient(to left, rgba(255, 255, 0, 1), rgba(197, 19, 21, 1));
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}
+
+.contact_card h3 {
+    white-space: nowrap;          /* keep text in one line */
+    overflow: hidden;             /* hide overflow if too long */
+    text-overflow: ellipsis;      /* add ... if text exceeds */
+    font-size: clamp(1rem, 2.5vw, 1.5rem); /* responsive font size */
+    text-align: center;
+}
+
+/* From 576px upwards → still full width */
+@media (min-width: 576px) {
+    .contact_card {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* From 992px upwards → multiple cards side by side */
+@media (min-width: 992px) {
+    .contact_card {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

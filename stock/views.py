@@ -2,10 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
-from stock.forms import *
 from django.contrib import messages
-from django.core import serializers
-from django.views.generic.edit import FormMixin
 
 from django.views.generic import ListView, DetailView, FormView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -17,88 +14,64 @@ from .send_sms import send_sms
 from datetime import date, timedelta
 from django.db.models import Q
 from django.forms import inlineformset_factory, formset_factory
-from .forms import CategoryForm, ItemForm, VariantForm, StockForm
 from django.db import transaction, IntegrityError
-from formtools.wizard.views import SessionWizardView
 from django.utils.safestring import mark_safe
 from django.db.models import F
+
+from django.views.generic.edit import FormMixin
+from .models import *
+from django.utils.decorators import method_decorator
+from authapp.decorators import is_manager
+from .forms import *
 
 # from template_partials.shortcuts import render_partial
 import json
 
 
+
+
 PAGINATED_BY = 10
 
-class CreateCategory(CreateView):
-    template_name = 'stock/category_form.html'
-    form_class = CategoryForm
-    success_url = reverse_lazy('stock:add_item')
+@method_decorator(is_manager, name='dispatch')
+class VendorsCreateView(CreateView):
+    model = Vendor
+    template_name = 'stock/vendor/vendor_list.html'
+    context_object_name = 'vendors'
+    form_class = VendorForm
+    success_url = reverse_lazy('stock:vendor_list')
+    
+    def get_context_data(self, **kwargs):
+        vendors = Vendor.objects.all()
+        context =  super().get_context_data(**kwargs)
+        context['vendors'] = vendors
+        return context
     
     def form_valid(self, form):
-        messages.success(self.request, "Category added successfully")
+        print('valid')
+        form.save()
+        messages.success(self.request, 'Vendor added successfully')
         return super().form_valid(form)
     
-
-
-class CreateVariant(CreateView):
-    template_name = 'stock/variant_form.html'
-    form_class = VariantForm
-    success_url = reverse_lazy('stock:add_variant')
-    
-    def form_valid(self, form):
-        form_data = self.request.POST
-        keys = form_data.getlist('key')
-        vals = form_data.getlist('val')
-
-        # build dict safely
-        dict_data = dict(zip(keys, vals))
-
-        # attach to instance before save
-        form.instance.meta_data = dict_data
-        form.instance.is_active = True
-
-        messages.success(self.request, "Variant added successfully")
-        return super().form_valid(form)
-
-    
-    def get(self, request, *args, **kwargs):
-        if request.headers.get('hx-request'):
-            return render(request, 'stock/variant_form.html#key_value', {'form': self.form_class()})
-        return super().get(request, *args, **kwargs)
-    
-    
-
-    
-    
-# Create your views here.
-class ItemCreateView(CreateView):
-    template_name = 'stock/item_form.html'
-    form_class = ItemForm
-    success_url = reverse_lazy('stock:purchase_list')
-
-    def form_valid(self, form):
-        form.cleaned_data
-        messages.success(self.request, 'Item added successfully')
-        return super().form_valid(form)
-
     def form_invalid(self, form):
-        messages.error(self.request, 'Item not added')
-        return super().form_invalid(form)
-  
+        response = super().form_invalid(form)
+        messages.error(self.request, f'Vendor not added. Try again.')
+        return response
+    
+    
 def add_success_view(request):
     return render(request, 'stock/add_success.html') 
+        
 
 
-from django.views.generic.list import ListView
-from django.views.generic.edit import FormMixin
-from .forms import StockForm
-from .models import Stock, Item, Variant
-
-class StockCreate(LoginRequiredMixin, CreateView):
+@method_decorator(is_manager, name='dispatch')
+class StockCreate(CreateView):
+    model = Stock
     context_object_name = 'stocks'
     template_name = 'stock/create_stock.html'
     form_class = StockForm
     success_url = reverse_lazy('stock:create_stock')
+    
+    
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -115,6 +88,7 @@ class StockCreate(LoginRequiredMixin, CreateView):
         
         if in_stock and not variant.is_serialized and not self.request.POST.get("confirm"):
             if self.request.headers.get('hx-request'):
+                print('valid')
                 form_data = self.request.POST
                 stock_data = {
                     'location': Location.objects.get(pk = form_data.get('location')),
@@ -185,6 +159,7 @@ class StockCreate(LoginRequiredMixin, CreateView):
     
     def form_invalid(self, form):
         if self.request.headers.get('hx-request'):
+            print('invalid')
             item = form.cleaned_data['variant']
             variant = form.cleaned_data['variant']
             location = form.cleaned_data['location']
@@ -198,22 +173,50 @@ class StockCreate(LoginRequiredMixin, CreateView):
         return super().form_invalid(form)    
     
     def get(self, request, *args, **kwargs):
+        self.object = None  
+
         if request.headers.get('hx-request'):
             context = self.get_context_data(**kwargs)
             form = self.form_class()
             context['form'] = form
             return render(request, 'partials/create_stock_form.html', context)
-        return super().get(request, *args, **kwargs)
+
+        search_text = request.GET.get('search', '')
+        
+        if search_text:
+            stock = search_stock(search_text)
+        else:
+            stock = Stock.objects.all()
+        
+
+        context = self.get_context_data(**kwargs)
+        form = self.form_class()
+        context['form'] = form
+        context['stocks'] = stock
+
+        return render(request, self.template_name, context)
+    
+    def post(self, request, *args, **kwargs):
+        if request.headers.get('hx-request'):
+            return super().post(request, *args, **kwargs)
+        
+        response = download_stock_records(qs=Stock.objects.all())
+        
+        return response
 
 
 
-# stock edit view    
+
+
+# stock edit view   
+@is_manager 
 def edit_stock(request, pk):
     stock = get_object_or_404(Stock, pk=pk)
     form = StockEditForm(instance=stock)
     context = {'form': form, 'stock': stock}
     return render(request, 'stock/edit_stock_form.html', context)
-        
+ 
+@is_manager        
 def edit_stock_with_serials(request, pk): 
     context = {}
     stock = get_object_or_404(Stock, pk=pk)
@@ -283,7 +286,8 @@ def serial_detail(request, pk):
             return render(request, 'partials/stock_detail.html', {'serialnumber_obj': serial})
         context = {'form': form, 'serialnumber_obj': serial}
         return render(request, 'stock/edit_serial_form.html', context)
-    
+
+@is_manager    
 def edit_serial(request, pk):
     serial = get_object_or_404(Serialnumber, pk=pk)
     form = SerialEditForm(instance=serial)
@@ -300,17 +304,27 @@ class ItemDetailView(DetailView):
 
 
 # class base update views 
+@method_decorator(is_manager, name='dispatch')
 class UpdateSerialNumber(UpdateView):
     model = Serialnumber
     template_name = 'stock/editforms/serial_number_form.html'
     form_class = SerialEditForm
     success_url = '/'
 
+@method_decorator(is_manager, name='dispatch')
 class UpdateStock(UpdateView):
     model = Stock
     template_name = 'stock/editforms/stock_form.html'
     form_class = StockEditForm
     success_url = '/'
+
+
+
+
+    
+    
+
+        
 
 # class CreateSerialNumber(CreateView):
 #     model = Serialnumber
@@ -434,10 +448,10 @@ def add_serial_view(request):
     
 def remove_input_view(request):
     if request.headers.get('hx-request'):
-        print('remove_input_view')
         return render(request, 'partials/serial_form_part.html')   
 
 # @login_required()
+@is_manager
 def create_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
@@ -457,11 +471,13 @@ def create_item(request):
 
     return render(request, 'stock/item_form.html', {'form': form,})    
 
+@method_decorator(is_manager, name='dispatch')
 class ItemUpdateView(UpdateView):
     model = Item
     form_class = ItemForm
     success_url = reverse_lazy('stock:add_item')
     
+
 
 
 # @login_required()

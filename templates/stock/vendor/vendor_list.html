@@ -1,0 +1,56 @@
+{% extends "dashboard/home.html" %}
+
+{% block table %}
+
+<div>
+<button type="button" class="btn btn-primary mb-2 me-5" data-bs-target="#vendor_modal_form" data-bs-toggle="modal">Add Vendor</button>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+    <div class="contact_card">
+        {% for vendor in vendors  %}
+            <div class="v_card rounded rounded-4">
+                <h3 class="text-center">{{vendor.vendor_name}}</h3>
+                <p><strong>Phone: </strong>{{vendor.phone}}</p>
+                <p><strong>Email: </strong>{{vendor.email}}</p>
+                <p><strong>Address: </strong>{{vendor.address}}</p>
+                <p><strong>GST: </strong>{{vendor.gst}}</p>
+            </div>
+  
+        {% endfor %}
+    </div>
+</div>
+
+
+<div class="modal fade" id="vendor_modal_form" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header d-flex justify-content-between">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Add Vendor</h1>
+        <button type="button" class="btn btn-sm btn-secondary" aria-label="Close" onclick="document.getElementById('vendor_form').reset()">Refresh</button>
+      </div>
+      <div class="modal-body">
+   
+        <form action="" id="vendor_form" method="POST">
+            {% csrf_token %}
+            {% for field in form%}
+                {{field.label_tag}}
+                {{field}}
+                <small class="text-danger">{{field.errors}}</small>
+            {% endfor %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit"  class="btn btn-primary" form="vendor_form">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock table %}

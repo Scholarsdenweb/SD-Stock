@@ -32,7 +32,7 @@
     <tbody>
 
         {% for error in form.non_field_errors %}
-            <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+            <p class="bg-danger-subtle rounded text-danger">{{ error }}</p>
         {% endfor %}
 
         <td>

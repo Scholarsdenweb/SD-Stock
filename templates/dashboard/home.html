@@ -1,6 +1,6 @@
 {% extends 'base.html' %}   
 {% load static %}
-
+{% load nav_extras %}
 {% block content %}
  
 {#{% url 'authapp:add_student' as ADDSTUDENT %}#}
@@ -10,35 +10,46 @@
 {% url 'stock:purchase_list' as PURCHASELIST %}
 {#{% url 'stock:transaction_list' as TRANSACTIONLIST %}#}
 {% url 'stock:kit_list' as KITLIST %}
+{% url 'stock:vendor_list' as VENDORS %}
+{% url 'orders:main' as MAIN %}
 
-<div class="container-fluid my-3  ">
+<div class="container-fluid my-3" id="main_container">
 
-    <div class="row " >
+    <div class="row h-100 overflow-y-auto" >
 
         {% comment %} <--! home page side navigation. --> {% endcomment %}
 
         <div class="col-md-3 col-lg-2 col-sm-12 col-12  sidebar ">
             <ul class="side-navigation ">
-                <li><a href="" class="{% if request.path == ADDSTUDENT %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li>
+                {% comment %} <li><a href="" class="{% if request.path == ADDSTUDENT %} active {% endif %}"><i class="fa-solid fa-graduation-cap me-2" style="color: #ffffff;"></i>Add Student</a></li> {% endcomment %}
 
-                <li><a href="{% url 'stock:add_item' %}" class="{% if request.path == ADDITEM %} active {% endif %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Catalogue</a></li>
-                
-                <li><a href="{% url 'stock:student_list' %}" class="{% if request.path == STUDENTLIST %} active {% endif %}"><i class="fa-solid fa-database me-2" style="color: #ffffff;"></i>Students Data</a></li>
+                <li><a href="{% url 'catalogue:main' %}" class="{% active_class '/catalogue/' %}"><i class="fa-solid fa-square-plus me-2" style="color: #ffffff;"></i>Catalogue</a></li>
+
+
+                <li><a href="{% url 'orders:main' %}" class="{% active_class '/orders/' %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Orders</a></li>
 
                 <li><a href="{% url 'stock:create_stock' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #ffffff;"></i>Stock</a></li>
 
-
-                <li><a href="{% url 'stock:purchase_list' %}" class="{% if request.path == PURCHASELIST %} active {% endif %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #ffffff;"></i>Purchase Data</a></li>
-
                 <li><a href="" class="{% if request.path == TRANSACTIONLIST %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #ffffff;"></i>Transactions</a></li>
+                
+                <li><a href="{% url 'stock:vendor_list' %}" class="{% if request.path == VENDORS %} active {% endif %}"><i class="fa-solid fa-address-book me-2" style="color: #ffffff;"></i>Vendors</a></li>
 
-                <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == KITLIST %} active {% endif %}"><i class="fa-solid fa-gift me-2" style="color: #ffffff;"></i>Kits Data</a></li>
+
+                
+                {% comment %} <li><a href="{% url 'stock:student_list' %}" class="{% if request.path == STUDENTLIST %} active {% endif %}"><i class="fa-solid fa-database me-2" style="color: #ffffff;"></i>Students Data</a></li> {% endcomment %}
+
+
+
+
+
+
+                {% comment %} <li><a href="{% url 'stock:kit_list' %}" class="{% if request.path == KITLIST %} active {% endif %}"><i class="fa-solid fa-gift me-2" style="color: #ffffff;"></i>Kits Data</a></li> {% endcomment %}
 
 
               
                 {% comment %} <li><a href="{% url 'stock:search_kit' %}" class="{% if request.path == '/stock/return/kit/' %} active {% endif %}"><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;"></i>Return Kits</a></li> {% endcomment %}
 
-                <li><button type='button' data-bs-target='#studentsearch' data-bs-toggle='modal'   class="{% if request.path == '/stock/return/kit/' %} active {% endif %} ms-3 border-0 w-100 text-start bg-transparent text-light" ><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;" ></i>Exchange Item</button></li>
+                {% comment %} <li><button type='button' data-bs-target='#studentsearch' data-bs-toggle='modal'   class="{% if request.path == '/stock/return/kit/' %} active {% endif %} ms-3 border-0 w-100 text-start bg-transparent text-light" ><i class="fa-solid fa-rectangle-xmark me-2" style="color: #ffffff;" ></i>Exchange Item</button></li> {% endcomment %}
             </ul>
 
             <div class="modal fade" tabindex="-1" id="studentsearch"  data-bs-backdrop="static">
@@ -86,6 +97,14 @@
         <div class="col-lg-10 col-md-9 col-sm-12 col-12 p-3 overflow-y-auto"  style="max-height:100vh;" >
             {% block table %}
             {% endblock %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col text-bg-dark">
+            <center>
+                <p>footer area</p>
+            </center>
         </div>
     </div>
 </div>

@@ -26,25 +26,26 @@ document.body.addEventListener('htmx:afterRequest', function (evt) {
 
 let inputAdded = false
 document.body.addEventListener('htmx:afterSwap', function(event) {
-    $('.variant-select').select2({
-        
-    });
+    $('.variant-select').select2({});
+    const serialEditorForm = document.getElementById('serial_editor_form')
     const overrideBtn = document.querySelector('#override_btn')
-    const confirmForm = document.querySelector('#confirm_form')
 
     const addMoreBtn = document.getElementById('add_more_btn')
     const columnCount = document.querySelector("input[name='column_count']");
 
-    addMoreBtn.addEventListener('click', () => {
+    if(addMoreBtn){
 
-        for (let i = 1; i < columnCount.value ; i++) {
-            event.detail.elt.insertAdjacentHTML('beforeend', `<div class="mt-2 serial-input d-flex gap-3">
-            <input type="text" required name="serial" placeholder="Enter serial number">
-            <button type="button" class="btn btn-close border border-1 border-danger bg-danger text-white rounded-circle btn-danger"
-            onclick="this.closest('.serial-input').remove()"></button>
-            </div>`)
-        }
-    })
+        addMoreBtn.addEventListener('click', () => {
+    
+            for (let i = 1; i < columnCount.value ; i++) {
+                event.detail.elt.insertAdjacentHTML('beforeend', `<div class="mt-2 serial-input d-flex gap-3">
+                <input type="text" required name="serial" placeholder="Enter serial number">
+                <button type="button" class="btn btn-close border border-1 border-danger bg-danger text-white rounded-circle btn-danger"
+                onclick="this.closest('.serial-input').remove()"></button>
+                </div>`)
+            }
+        })
+    }
 
 });
 
@@ -88,6 +89,33 @@ document.body.addEventListener('htmx:afterSwap', () => {
 
 })
 
+
+
+function disableSubmitButton(){
+    const stockEditForm = document.querySelector('.edit_stock_form')
+    const submitButton = stockEditForm.getElementsByTagName('button')[0]
+    const selectElements = stockEditForm.querySelectorAll('select')
+
+    submitButton.disabled = true
+
+    if(stockEditForm){
+        let selectedItems = []
+        selectElements.forEach(dropdown => {
+            selectedItems.push(dropdown.selectedIndex)
+
+            console.log(selectedItems)
+            dropdown.addEventListener('change', (e) => {
+              if(selectedItems.includes(e.target.selectedIndex)){
+                submitButton.disabled = true
+              }else{
+                submitButton.disabled = false
+              }
+           })
+       })
+    }
+}
+
+disableSubmitButton()
 
 
 

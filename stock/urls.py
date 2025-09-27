@@ -8,10 +8,7 @@ urlpatterns = [
 
     # path('list/', views.StockListView.as_view(), name='stock_list'),
 
-    path('create-stock/', views.StockCreate.as_view(), name='create_stock'),
-    path('category/add/', views.CreateCategory.as_view(), name='add_category'),
-    path('item/add/', views.create_item, name='add_item'),
-    path('variant/add/', views.CreateVariant.as_view(), name='add_variant'),
+    path('', views.StockCreate.as_view(), name='create_stock'),
     # path('create-serial/<int:pk>/', views.CreateSerialNumber.as_view(), name='create_serial'),
     path('item-detail/<int:pk>/', views.ItemDetailView.as_view(), name='item_detail'),
     path('category-product/', views.load_product_by_category, name='category_product'),
@@ -24,7 +21,7 @@ urlpatterns = [
     
 
 
-    path('purchase/list/', views.PurchaseListView.as_view(), name='purchase_list'),
+    # path('purchase/list/', views.PurchaseListView.as_view(), name='purchase_list'),
     path('purchase/<int:pk>/', views.PurchaseDetailView.as_view(), name='purchase_detail'),
     path('purchase/update/<int:pk>', views.PurchaseUpdateView.as_view(), name = 'update_purchase'),
 
@@ -58,12 +55,18 @@ urlpatterns = [
 
 ]
 
+
+
+vendor_urlpatterns = [
+    path('vendor/list/', views.VendorsCreateView.as_view(), name='vendor_list'),
+]
+
 edit_urlpatterns = [
     path('<int:pk>/edit/', views.edit_stock, name='edit_stock'),
     path('stock-detail/<int:pk>/', views.stock_detail, name='stock_detail'),
     path('serial-detail/<int:pk>/', views.serial_detail, name='serial_detail'),
     path('edit-serial/<int:pk>/', views.edit_serial, name='edit_serial'),
-    path('edit-stock-serial/<int:pk>/', views.edit_stock_with_serials, name='edit_stock_with_serials'),
+    path('<int:pk>/', views.edit_stock_with_serials, name='edit_stock_with_serials'),
     path('update-serial-number/<int:pk>/', views.UpdateSerialNumber.as_view(), name='update_serial_number'),
     path('update-stock/<int:pk>/', views.UpdateStock.as_view(), name='update_stock'),
 ]
@@ -77,3 +80,4 @@ htmx_urlpatterns = [
 
 urlpatterns += htmx_urlpatterns
 urlpatterns += edit_urlpatterns
+urlpatterns += vendor_urlpatterns

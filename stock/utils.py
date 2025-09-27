@@ -1,15 +1,37 @@
 from stock.models import Issue
 from django.http import HttpResponse, JsonResponse
-# from .admin import (StockResource, PurchaseResource, TransactionResouece,  KitResource)
-from .admin import ( KitResource)
+from .admin import (StockResource)
+# from .admin import ( KitResource)
 from datetime import datetime
 from django import forms
 from django.contrib import messages
-from stock.models import Student
+from stock.models import Student, Stock, Purchase
 from django.db.models import Q
 
 now = datetime.now()
 timestamp = datetime.timestamp(now)
+
+
+
+
+def search_stock(search_text):
+    
+    text = str(search_text).strip().lower()
+    
+    return Stock.objects.filter(
+        Q(variant__name__icontains=text) | 
+        Q(variant__product__name__icontains=text)
+    )
+    
+    
+def search_purchase(search_text):
+    
+    text = str(search_text).strip().lower()
+    
+    return Purchase.objects.filter(
+        Q(item__name__icontains=text) | 
+        Q(supplier__icontains=text)
+    )
 
 # def update_stock_quantity(request, item_id, quantity):
     
@@ -148,3 +170,21 @@ def find_student(full_name=None, dob=None, enrollement=None):
 #         return stock.in_stock()
 #     except Stock.DoesNotExist:
 #         return 0
+
+
+def create_export_file(qs, resource):
+    now = datetime.now()
+    now = now.strftime("%d-%m-%Y %H:%M:%S")
+    resource =resource()
+    dataset = resource.export(qs)
+    ds = dataset.xlsx
+    content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response = HttpResponse(ds, content_type={content_type})
+    response['Content-Disposition'] = f'attachment; filename=stock-list-{now}.xlsx'
+
+    return response
+
+
+def download_stock_records(qs=None):
+    response = create_export_file(qs, StockResource)
+    return response

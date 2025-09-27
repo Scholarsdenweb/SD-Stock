@@ -6,13 +6,13 @@
     {% url 'kit:create_kititems' as KITITEMS %}
 
 
-    <a href="{% url 'stock:add_category' %}"  role="btton" class="btn btn-secondary rounded-0 {% if request.path == CATEGORY %} active border-info border-2 {% endif %}">Add Category</a>
+    <a href="{% url 'stock:add_category' %}"  role="btton" class="btn btn-danger rounded-0 {% if request.path == CATEGORY %} active{% endif %}">Add Category</a>
 
-    <a href="{% url 'stock:add_item' %}"  role="btton" class="btn btn-secondary rounded-0 {% if request.path == ITEM %} active border-info border-2 {% endif %}" >Add Item</a>
+    <a href="{% url 'stock:add_item' %}"  role="btton" class="btn btn-danger rounded-0 {% if request.path == ITEM %} active{% endif %}" >Add Item</a>
 
-    <a href="{% url 'stock:add_variant' %}" role="button" class="btn btn-secondary rounded-0 {% if request.path == VARIANT %} active border-info border-2 {% endif %}">Add Variant</a>
+    <a href="{% url 'stock:add_variant' %}" role="button" class="btn btn-danger rounded-0 {% if request.path == VARIANT %} active{% endif %}">Add Variant</a>
 
-    <a href="{% url 'kit:create_kit' %}" role="button" class="btn btn-secondary rounded-0 {% if request.path == KIT %} active border-info  border-2 {% endif %}">Kit</a>
+    {#<a href="{% url 'kit:create_kit' %}" role="button" class="btn btn-secondary rounded-0 {% if request.path == KIT %} active border-info  border-2 {% endif %}">Kit</a>#}
 
-    <a href="{% url 'kit:create_kititems' %}" role="button" class="btn btn-secondary rounded-0 {% if request.path == KITITEMS %} active border-info border-2 {% endif %}">Kit Items</a>
+    {#<a href="{% url 'kit:create_kititems' %}" role="button" class="btn btn-secondary rounded-0 {% if request.path == KITITEMS %} active border-info border-2 {% endif %}">Kit Items</a>#}
 </div>

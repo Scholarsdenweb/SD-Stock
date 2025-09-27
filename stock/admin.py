@@ -1,6 +1,5 @@
 from django.contrib import admin
 from stock.models import *
-from .forms import *
 from django.urls import path
 
 
@@ -95,28 +94,23 @@ admin.site.register(Location)
 admin.site.register(Serialnumber)
 
 
-# class StockResource(resources.ModelResource):
-#     date = Field()
-#     update_at = Field()
-#     stock_item__size = Field()
-#     class Meta:
-#         model = Stock
-#         fields = ('id','stock_item__name', 'stock_item__id', 'stock_item__size', 'quantity', 'date', 'update_at' )
+class StockResource(resources.ModelResource):
+    updated_at = Field(attribute='updated_at', column_name='Last Updated')
+    created_at = Field(attribute='created_at', column_name='Added On')
+    variant__product__name = Field(attribute='variant__product__name', column_name='Product Name')
+    location__name = Field(attribute='location__name', column_name='Location')
+    variant__name = Field(attribute='variant__name', column_name='Product Variant')
+    class Meta:
+        model = Stock
+        fields = ('id','variant__product__name', 'location__name', 'variant__name', 'quantity', 'created_at', 'updated_at')
 
-#     def dehydrate_date(self, obj):
-#         return obj.date.strftime("%d-%m-%Y %H:%M:%S")
     
-#     def dehydrate_update_at(self, obj):
-#         return obj.update_at.strftime("%d-%m-%Y %H:%M:%S")
+    def dehydrate_updated_at(self, obj):
+        return obj.updated_at.strftime("%d-%m-%Y %H:%M:%S")
     
-#     def dehydrate_created_at(self, obj):
-#         return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
+    def dehydrate_created_at(self, obj):
+        return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
     
-#     def dehydrate_stock_item__size(self, obj):
-#         if obj.stock_item.size == None:
-#             return 'N/A'
-#         else:
-#             return obj.stock_item.size.upper()
 
 # class PurchaseResource(resources.ModelResource):
 #     created_at = Field()
@@ -195,3 +189,4 @@ class KitResource(resources.ModelResource):
 # admin.site.register(IssueItem)    
 admin.site.register(Category)
 admin.site.register(Variant)
+admin.site.register(Vendor)

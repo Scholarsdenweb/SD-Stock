@@ -20,8 +20,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-print('base dir', BASE_DIR)
-print(os.path.join(BASE_DIR, 'templates'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -55,6 +53,8 @@ INSTALLED_APPS = [
     'product.apps.ProductConfig',
     'formtools',
     'widget_tweaks',
+    'orders',
+    'catalogue',
 ]
 
 MIDDLEWARE = [

@@ -7,6 +7,21 @@ from django.contrib import messages
 from django.urls import reverse
 
 
+
+class VendorForm(ModelForm):
+    class Meta:
+        model = Vendor
+        fields = ['vendor_name', 'contact_person', 'phone', 'email', 'address', 'gst']
+        
+        widgets = {
+            'vendor_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
+            'gst': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
 class CategoryForm(ModelForm):
     class Meta:
         model = Category
@@ -34,7 +49,11 @@ class CategoryForm(ModelForm):
 
         return cleaned_data
         
- 
+        
+  
+        
+
+        
 class SerialEditForm(ModelForm):
     class Meta:
         model = Serialnumber

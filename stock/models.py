@@ -76,25 +76,7 @@ class Item(models.Model):
     
 
 
-class Purchase(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Purchased by')
-    item = models.ForeignKey(Item, on_delete=models.CASCADE,  verbose_name='Item')
-    quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    created_at = models.DateTimeField(default=datetime.now, verbose_name='Date')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last updated')
-    supplier = models.CharField(max_length=100, null=True, blank=True)
-    supplier_location = models.CharField(max_length=100, null=True, blank=True, verbose_name='Supplier Location')
 
-    def __str__(self):
-        return str(self.item.name).capitalize() 
-    
-    def get_total_amount(self):
-        return self.quantity * self.item.unit_price
-
-    def get_absolute_url(self):
-        return reverse('stock:purchase_detail', args=[self.pk])
 
 
 class Stock(models.Model):
@@ -300,10 +282,34 @@ class Vendor(models.Model):
     vendor_name = models.CharField(max_length=50)
     contact_person = models.CharField(max_length=50)
     phone = models.CharField(max_length=50)
-    email = models.EmailField(blank=True, default='')
+    email = models.EmailField(blank=True, default='', unique=True)
     gst = models.CharField(max_length=50)
     address = models.CharField(max_length=50)
+  
+  
+class Purchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Purchased by')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE,  verbose_name='Item')
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    created_at = models.DateTimeField(default=datetime.now, verbose_name='Date')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last updated')
+    supplier = models.CharField(max_length=100, null=True, blank=True)
+    supplier_location = models.CharField(max_length=100, null=True, blank=True, verbose_name='Supplier Location')
     
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return str(self.item.name).capitalize() 
+    
+    @property
+    def get_total_amount(self):
+        return self.quantity * self.unit_price
+
+    def get_absolute_url(self):
+        return reverse('stock:purchase_detail', args=[self.pk])    
     
 class PurchaseOrder(models.Model):
     
@@ -321,7 +327,7 @@ class PurchaseOrder(models.Model):
     
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     order_date = models.DateTimeField(default=datetime.now)
-    satatus = models.CharField(choices=STATUS_CHOICES, default=DR, max_length=50)
+    status = models.CharField(choices=STATUS_CHOICES, default=DR, max_length=50)
     
     
     
@@ -331,14 +337,14 @@ class PurchaseOrderItems(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.PositiveIntegerField(default=0)
     tax_percent = models.PositiveIntegerField(default=0)
-    discount = models.PositiveIntegerField(default=0)
+    discount = models.PositiveIntegerField(default=0)   
     
     
 class GoodsReceipt(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE)
-    recieved_data = models.DateField(default=datetime.now)
+    recieved_date = models.DateField(default=datetime.now)
     invoice_number = models.CharField(max_length=50)
-    invoice_file = models.FileField(upload_to='invoice/', null=True, blank=True)
+    invoice_file = models.ImageField(upload_to='invoice/', null=True, blank=True)
     
     
 class GoodsReceiptItems(models.Model):

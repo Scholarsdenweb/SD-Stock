@@ -5,9 +5,14 @@ from .forms import *
 from django.urls import reverse_lazy
 from django.forms import formset_factory
 from django.contrib import messages
+from django.views.generic import TemplateView 
 
 
 # Create your views here.
+
+class StudentIndex(TemplateView):
+    template_name = 'kits/student_index.html'
+    
 
 class KitsCreateView(CreateView):
     model = Kits
