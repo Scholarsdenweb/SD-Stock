@@ -309,7 +309,12 @@ class UpdateSerialNumber(UpdateView):
     model = Serialnumber
     template_name = 'stock/editforms/serial_number_form.html'
     form_class = SerialEditForm
-    success_url = reverse_lazy('stock:create_stock')
+    
+    def form_valid(self, form):
+        form.save()
+        messages.success(self.request, 'Serial number updated successfully')
+        self.success_url = reverse_lazy('stock:update_serial_number', kwargs={'pk': self.kwargs['pk']})
+        return super().form_valid(form)
 
 @method_decorator(is_manager, name='dispatch')
 class UpdateStock(UpdateView):
@@ -317,6 +322,12 @@ class UpdateStock(UpdateView):
     template_name = 'stock/editforms/stock_form.html'
     form_class = StockEditForm
     success_url = reverse_lazy('stock:create_stock')
+    
+    def form_valid(self, form):
+        form.save()
+        messages.success(self.request, 'Stock updated successfully')
+        return super().form_valid(form)
+    
 
 
 
