@@ -14,7 +14,7 @@
     {% endif %}
 </div>
 
-
+                       
 
     <div class="modal fade" id="id_allocateform_modal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog">
@@ -36,6 +36,8 @@
                     <form action="" method='POST' id='allocation_form'>
                         {% csrf_token %}
 
+
+
                         <div class="form-group">
                         {{ form.item.label_tag }}
                         <select name="{{ form.item.html_name }}" class='form-select mt-1'
@@ -54,23 +56,29 @@
 
                   {% partial optionpart %}
 
-                  <div class="form-gourp">
-                      {{ form.allocated_to.label_tag }}
-                        <select name="{{ form.allocated_to.html_name }}" class='form-select mt-1'
-                        hx-get="{% url 'allocate:allocation_list' %}"
-                        hx-swap="outerHTML"
-                        hx-trigger="change"
-                        hx-target="#allocation_form"
-                        hx-include="#allocation_form"
-                        hx-select="#allocation_form"
-                        required>
-                            {% for val, text in form.allocated_to.field.choices %}
-                                <option value="{{ val }}" {% if val|stringformat:"s" == alloc_id|stringformat:"s" %}selected{% endif %}>
-                                    {{ text }}
-                                </option>
-                            {% endfor %}                
-                        </select>
-                  </div>
+                <div class="form-gourp">
+                    {{ form.have_serial.label_tag }}
+                    {{ form.have_serial }}
+                </div>
+
+                <div class="form-gourp">
+                    {{ form.allocated_to.label_tag }}
+                    <select name="{{ form.allocated_to.html_name }}" class='form-select mt-1'
+                    id='allocate_to'
+                    hx-get="{% url 'allocate:allocation_list' %}"
+                    hx-swap="outerHTML"
+                    hx-trigger="change"
+                    hx-target="#allocation_form"
+                    hx-include="#allocation_form"
+                    hx-select="#allocation_form"
+                    required>
+                        {% for val, text in form.allocated_to.field.choices %}
+                            <option value="{{ val }}" {% if val|stringformat:"s" == alloc_id|stringformat:"s" %}selected{% endif %}>
+                                {{ text }}
+                            </option>
+                        {% endfor %}                
+                    </select>
+                </div>
 
                   <div class="form-gourp">
                       {{ form.name.label_tag }}
@@ -88,7 +96,7 @@
                     </div>
 
 
-                    </form>
+                </form>
                 </div>
 
                 <div class="modal-footer d-flex justify-content-center gap-3">
@@ -161,6 +169,11 @@
     </table>
 </div>
 
+{% block scripts %}
 
+
+
+
+{% endblock %}
 
 {% endblock page_content %}

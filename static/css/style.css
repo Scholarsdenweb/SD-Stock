@@ -52,8 +52,10 @@
 
 
 
+
 #main_container{
     height: calc(100vh - 20vh);
+    max-height: calc(100vh - 20vh);
 }
 
 .navbar-expand-lg{
@@ -205,7 +207,7 @@ a.active {
 input[type=checkbox] {
     accent-color: #3B38A0; 
     transform: scale(1.8); 
-    margin: 5px;
+    margin: 1em 5px;
 }
 
 .searchbar {
@@ -296,5 +298,8 @@ tfoot button i {
     content:"⚠️ ";
     color:red;
 }
+
+
+/* category_from.html styling */
 
 

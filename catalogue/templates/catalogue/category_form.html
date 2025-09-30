@@ -2,42 +2,52 @@
 
 {% block page_content %}
 
-<div class="container text-white">
-    <div class="row my-5">
-        <div class="flex-container">
-            <div class="col-md-6 col-lg-6 mx-auto shadow p-2 my-2" style="background-color:#c51315;">
+<div class="container overflow-auto" >
+    <div class="row overflow-y-auto" >
+            <div class="col-md-6 col-lg-6  p-2" >
    
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-    
-            <form action="" method="post">
-                {% csrf_token %} 
-
-                <h3>Add Category</h3>
-                {% for error in form.non_field_errors %}
-                    <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
-                {% endfor %}
-                {% for field in form %}
-                <div class="mb-3">
-                    {{ field.label_tag }}
-                    {{ field }}
-                    {% for error in field.errors %}
-                        <div class="text-danger">{{ error }}</div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     {% endfor %}
-                </div>
-                {% endfor %}
-                <button class="btn btn-light mt-3">Submit</button>
-            </form>
+                {% endif %}
+        
+                <form action="{% if instance_id %}{% url 'catalogue:update_category' instance_id %}{% else %}{% url 'catalogue:add_category' %}{% endif %}" method="post" class="text-light p-2" style="background-color:#c51315;">
+                    {% csrf_token %} 
+                    {% if instance_id %}
+                    <h3>Update Category</h3>
+                    {% else %}
+                    <h3>Add Category</h3>
+                    {% endif %}
+                    {% for error in form.non_field_errors %}
+                        <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+                    {% endfor %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-light mt-3">Submit</button>
+                </form>
     
             </div>
-        </div>
+
+            <div class="col-md-6 col-lg-6 ">
+                <ul class='my-2 border overflow-y-auto category-grid'>
+                    {% for category in categories %}
+                        <li class='text-dark'><a href="{% url 'catalogue:update_category' category.pk %}">{{category.name|capfirst}}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
     </div>
+
 </div>
 
 {% endblock page_content %}

@@ -11,11 +11,12 @@ class AllocationForm(ModelForm):
     ]
     item = forms.ModelChoiceField(queryset=Item.objects.all(), widget=forms.Select(attrs={'class': 'form-select my-2'}))
     allocated_to = forms.ChoiceField(choices=CHOICES_LIST, widget=forms.Select(attrs={'class': 'form-select my-2'}))
-    name = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class': 'form-select name-select my-2'}))
+    name = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class': 'form-select my-2'}))
+    have_serial = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'my-3'}))
 
     class Meta:
         model = Allocations
-        fields = ['item', 'variant',  'allocated_to', 'name', 'quantity', 'allocated_date', ]
+        fields = ['item', 'variant',  'allocated_to', 'name', 'quantity', 'allocated_date', 'have_serial' ]
         
         widgets = {
             'quantity': forms.NumberInput(attrs={'class': 'form-control my-2'}),

@@ -2,10 +2,8 @@ const modal = document.getElementById('id_stockform_modal')
 const addMoreBtn = document.getElementById('id_add_more')
 const stockForm = document.querySelector('#stock_form')
 
-$('#test-select').select2()
 
 if(modal){
-
     modal.addEventListener('hide.bs.modal', () => {
         // clear form
         const stockDetailHtml = document.getElementById('response_message')
@@ -17,10 +15,12 @@ if(modal){
     })
 }
 
+
 document.body.addEventListener('htmx:afterRequest', function (evt) {
     if (evt.detail.elt.id === 'stock_form') {
         document.querySelector('#stock_form').reset();
     }
+ 
 });
 
 let inputAdded = false
