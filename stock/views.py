@@ -309,7 +309,7 @@ class UpdateSerialNumber(UpdateView):
     model = Serialnumber
     template_name = 'stock/editforms/serial_number_form.html'
     form_class = SerialEditForm
-    success_url = '/'
+    success_url = reverse_lazy('stock:update_serial_number')
 
 @method_decorator(is_manager, name='dispatch')
 class UpdateStock(UpdateView):
