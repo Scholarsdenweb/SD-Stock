@@ -3,18 +3,18 @@
 {% block table %}
 
     {% url 'orders:page_two' as TWO %}
-    {% url 'orders:page_three' as THREE %}
+    {% url 'orders:invoice_list' as INVOICE %}
     {% url 'orders:order_list' as ORDERS %}
     {% url 'orders:purchase_list' as PURCHASE %}
 
 
 <div class="d-md-flex gap-2 justify-content-start flex-md-row mb-2">
-    <a class="p-2 px-5 btn btn-secondary link-light link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == ORDERS %}active{% endif %}" href="{% url 'orders:order_list' %}" style="width:10rem">Orders</a>
+    <a class="p-2 px-5 btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == ORDERS %}active{% endif %}" href="{% url 'orders:order_list' %}" style="width:10rem">Orders</a>
 
-    <a class="p-2 px-5 btn btn-secondary link-light link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == PURCHASE %}active{% endif %}" href="{% url 'orders:purchase_list' %}" style="width:10rem">Purchases</a>
+    <a class="p-2 px-5 btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == PURCHASE %}active{% endif %}" href="{% url 'orders:purchase_list' %}" style="width:10rem">Purchases</a>
 
 
-    <a class="p-2 px-5 btn btn-secondary link-light link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == THREE %}active{% endif %}" href="" style="width:10rem">link 3</a>
+    <a class="p-2 px-5 btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == INVOICE %}active{% endif %}" href="{% url 'orders:invoice_list' %}" style="width:10rem">Invoices</a>
 </div>
 
 

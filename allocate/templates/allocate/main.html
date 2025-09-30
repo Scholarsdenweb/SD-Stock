@@ -1,0 +1,18 @@
+{% extends "dashboard/home.html" %}
+
+{% block table %}
+
+    {% url 'allocate:allocation_list' as ALLOCATION %}
+    {% url 'allocate:return_list' as RETURN %}
+
+
+<div class="d-md-flex gap-2 justify-content-start flex-md-row mb-2">
+    <a class="p-2 px-5 btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == ALLOCATION %}active{% endif %}" href="{% url 'allocate:allocation_list' %}" style="width:10rem">Allocate</a>
+
+    <a class="p-2 px-5 btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == RETURN %}active{% endif %}" href="{% url 'allocate:return_list' %}" style="width:10rem">Return</a>
+
+</div>
+
+
+    {% block page_content %}{% endblock page_content %}
+{% endblock table %}

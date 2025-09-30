@@ -28,8 +28,10 @@ urlpatterns = [
     path('stock/', include('stock.urls', namespace='stock')),
     path('kit/', include('kits.urls', namespace='kit')),
     path('auth/', include('authapp.urls', namespace='authapp')),
-    path('product/', include('product.urls', namespace='catelogue')),
+    path('allocate/', include('allocate.urls', namespace='allocate')),
 
 
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

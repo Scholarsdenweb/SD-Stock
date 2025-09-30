@@ -1,0 +1,166 @@
+{% extends "allocate/main.html" %}
+{% load partials %}
+{% load static %}
+
+{% block page_content %}
+<div class="message-body">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+
+
+    <div class="modal fade" id="id_allocateform_modal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Allocate</h3>
+                </div>
+                <div class="modal-body">
+
+                    
+                {% startpartial optionpart %}
+                <div class="form-group" id="productoptions">
+                     {{ form.variant.label_tag }}
+                     {{ form.variant }}
+                </div>
+                {% endpartial %}
+
+
+                    <form action="" method='POST' id='allocation_form'>
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                        {{ form.item.label_tag }}
+                        <select name="{{ form.item.html_name }}" class='form-select mt-1'
+                        hx-get="{% url 'allocate:load_variant' %}"
+                        hx-swap="outerHTML"
+                        hx-trigger="change"
+                        hx-target="#productoptions"
+                        required>
+                            {% for val, text in form.item.field.choices %}
+                                <option value="{{ val }}" {% if val|stringformat:"s" == item_id|stringformat:"s" %}selected{% endif %}>
+                                    {{ text }}
+                                </option>
+                            {% endfor %}                
+                        </select>
+                    </div>
+
+                  {% partial optionpart %}
+
+                  <div class="form-gourp">
+                      {{ form.allocated_to.label_tag }}
+                        <select name="{{ form.allocated_to.html_name }}" class='form-select mt-1'
+                        hx-get="{% url 'allocate:allocation_list' %}"
+                        hx-swap="outerHTML"
+                        hx-trigger="change"
+                        hx-target="#allocation_form"
+                        hx-include="#allocation_form"
+                        hx-select="#allocation_form"
+                        required>
+                            {% for val, text in form.allocated_to.field.choices %}
+                                <option value="{{ val }}" {% if val|stringformat:"s" == alloc_id|stringformat:"s" %}selected{% endif %}>
+                                    {{ text }}
+                                </option>
+                            {% endfor %}                
+                        </select>
+                  </div>
+
+                  <div class="form-gourp">
+                      {{ form.name.label_tag }}
+                      {{ form.name }}
+                  </div>
+
+                    <div class="form-gourp">
+                        {{ form.quantity.label_tag }}
+                        {{ form.quantity }}
+                    </div>
+
+                    <div class="form-gourp">
+                        {{ form.allocated_date.label_tag }}
+                        {{ form.allocated_date }}
+                    </div>
+
+
+                    </form>
+                </div>
+
+                <div class="modal-footer d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss='modal'>Cancel</button>
+                    <button type="submit" class="btn btn-primary" form='allocation_form'>Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<div>
+    <div class="d-flex gap-2 align-items-center justify-content-between">
+        <div class="add">
+            <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_allocateform_modal' data-bs-toggle='modal'>Allocate</button>
+        </div>
+    
+        <form action="" method='GET' class='flex-grow-1'>
+            <div class='searchbar'>
+                <input type="text" name='search' class="search-input" placeholder="Variant name...">
+                <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
+            </div>
+        </form>
+
+    </div>
+
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Supplier</th>
+                <th>Receiving Date</th>
+                <th>Invoice Number</th>
+                <th>Invoice</th>
+            </tr>
+        </thead>
+    
+        {% if invoices %}
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{forloop.counter}}</td>
+                <td>{{ invoice.purchase_order }}</td>
+                <td>{{ invoice.recieved_date|date:"m-d-Y" }}</td>
+                <td>{{ invoice.invoice_number }}</td>
+                <td>
+                    <a href="{{invoice.invoice_file.url}}" target='_blank'>
+                        <img src="{{invoice.invoice_file.url}}" alt="invoice" width='50'>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    
+        <tfoot>
+            <div class="d-flex  align-items-center gap-2">
+                <p class=''>Total Records:{{orders.count}}</p>
+
+                <p class=''>
+                    <form action="" method="GET" class="">
+                        <input type="text" name="search" value='' hidden>
+                        <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></button>
+                    </form>
+                </p>
+
+            </div>
+        </tfoot>
+        {% endif %}
+    
+    </table>
+</div>
+
+
+
+{% endblock page_content %}

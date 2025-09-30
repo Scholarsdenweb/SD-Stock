@@ -2,8 +2,7 @@ const modal = document.getElementById('id_stockform_modal')
 const addMoreBtn = document.getElementById('id_add_more')
 const stockForm = document.querySelector('#stock_form')
 
-
-
+$('#test-select').select2()
 
 if(modal){
 

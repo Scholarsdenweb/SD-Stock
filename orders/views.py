@@ -1,10 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.edit import CreateView
 from stock.models import PurchaseOrder, Purchase
-from .forms import OrderForm, PurchaseForm
+from .forms import OrderForm, PurchaseForm, InvoiceForm
 from django.urls import reverse_lazy
 from django.contrib import messages
 from stock.utils import search_purchase
+from stock.models import Variant, Item, GoodsReceipt
+from django.core.files.uploadhandler import FileUploadHandler
+from django.core.cache import cache
+from django.db import transaction
 # Create your views here.
 
 
@@ -52,8 +56,12 @@ class CreatePurchase(CreateView):
     
     def form_valid(self, form):
         purchase_obj = form.save(commit=False)
-        purchase_obj.user = self.request.user
-        purchase_obj.save()
+        with transaction.atomic():
+            order = get_object_or_404(PurchaseOrder, id=purchase_obj.order.id)
+            order.status = PurchaseOrder.RC
+            order.save()
+            purchase_obj.user = self.request.user
+            purchase_obj.save()
         
         messages.success(self.request, 'Purchase record added successfully')
         return super().form_valid(form)
@@ -70,7 +78,7 @@ class CreatePurchase(CreateView):
         if request.headers.get('hx-request'):
             order = request.GET.get('order')
             item = request.GET.get('item')
-            variant = request.GET.get('variant')
+            variant = request.GET.get('variant', None)
             quantity = request.GET.get('quantity')
             unit_price = request.GET.get('unit_price')
             
@@ -78,7 +86,6 @@ class CreatePurchase(CreateView):
             
             initial = {
                 'order':order,
-                'item':item,
                 'variant':variant,
                 'quantity':quantity,
                 'unit_price':unit_price,
@@ -86,8 +93,11 @@ class CreatePurchase(CreateView):
             }
             
             form = self.form_class(initial=initial)
+            if variant is not None:
+                form.fields['variant'].queryset = Variant.objects.filter(id=variant)
             context = self.get_context_data(**kwargs)
             context['form'] = form
+            context['item_id'] = item
             return render(request, 'orders/purchase_list.html', context)
         search_text = request.GET.get('search', '')
         if search_text:
@@ -99,3 +109,34 @@ class CreatePurchase(CreateView):
         context['form'] = form
         context['purchases'] = purchases
         return render(request, self.template_name, context)
+
+
+
+def load_variant_by_item(request):
+    if request.headers.get('hx-request'):
+        item_id = request.GET.get('item')
+        item = get_object_or_404(Item, id=int(item_id))
+        variants = Variant.objects.filter(product=item)
+        form = PurchaseForm()
+        form.fields['variant'].queryset = variants
+        response =  render(request, 'orders/purchase_list.html#optionpart', {'form': form})
+        response['HX-Target'] = '#productoptions'
+        return response
+    
+    
+class CreateInvoice(CreateView):
+    model = GoodsReceipt
+    form_class = InvoiceForm
+    template_name = 'orders/invoice_list.html'
+    context_object_name = 'invoices'
+    success_url = reverse_lazy('orders:invoice_list')
+    
+    def get_context_data(self, **kwargs):
+        invoices = GoodsReceipt.objects.all()
+        context =  super().get_context_data(**kwargs)
+        context['invoices'] = invoices
+        return context
+    
+    
+class ProgressBarUploadHander(FileUploadHandler):
+    pass

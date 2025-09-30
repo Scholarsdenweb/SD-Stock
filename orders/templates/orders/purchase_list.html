@@ -1,4 +1,6 @@
 {% extends "orders/main.html" %}
+{% load partials %}
+
 
 {% block page_content %}
 <div id="purchase_add_form_container"></div>
@@ -23,68 +25,98 @@
 
             </div>
             <div class="modal-body">
+
+                {% startpartial optionpart %}
+                <div class="form-group" id="productoptions">
+                     {{ form.variant.label_tag }}
+                     {{ form.variant }}
+                </div>
+                {% endpartial %}
+
+
                 <form action="" id="purchase_form" method="POST">
                     {% csrf_token %}
                     <div class="form-group">
-                        {{form.order.label_tag}}
-                        {{form.order}}
+                        {{ form.order.label_tag }}
+                        {{ form.order }}
                     </div>
 
                     <div class="form-group">
+                        {{ form.item.label_tag }}
+                        <select name="{{ form.item.html_name }}" class='form-select mt-1'
+                        hx-get="{% url 'orders:load_variant' %}"
+                        hx-swap="outerHTML"
+                        hx-trigger="change"
+                        hx-target="#productoptions"
+                        required>
+                            {% for val, text in form.item.field.choices %}
+                            
+                                <option value="{{ val }}" {% if val|stringformat:"s" == item_id|stringformat:"s" %}selected{% endif %}>
+                                    
+                                    {{ text }}
+                                </option>
+                            {% endfor %}                
+                        </select>
+                    </div>
+
+                    {% comment %} <div class="form-group">
                         {{form.item.label_tag}}
                         {{form.item}}
-                    </div>
+                    </div> {% endcomment %}
 
-                    <div class="form-group">
+                     {% partial optionpart %}
+
+                    {% comment %} <div class="form-group">
                         {{form.variant.label_tag}}
                         {{form.variant}}
-                    </div>
+                    </div> {% endcomment %}
 
                     <div class="form-gourp">
-                        {{form.quantity.label_tag}}
-                        {{form.quantity}}
+                        {{ form.quantity.label_tag }}
+                        {{ form.quantity }}
                     </div>
 
                     <div class="form-group">
-                        {{form.unit_price.label_tag}}
-                        <input type="text" name="{{form.unit_price.html_name}}" value="{{form.unit_price.value}}"
+                        {{ form.unit_price.label_tag }}
+                        <input type="text" name="{{ form.unit_price.html_name }}" value="{{ form.unit_price.value }}" required
                         class="form-control"
                         hx-get="{% url 'orders:purchase_list' %}"
                         hx-trigger="keyup delay:500ms"
                         hx-swap='outerHTML'
                         hx-target="#purchase_form"
                         hx-select='#purchase_form'
-                        hx-include='#purchase_form'>
+                        hx-include='#purchase_form'
+                        >
                     </div>
 
                     <div class="form-gourp" id="id_total_amount">
-                        {{form.total_amount.label_tag}}
-                        {{form.total_amount}}
+                        {{ form.total_amount.label_tag }}
+                        {{ form.total_amount }}
                     </div>
 
                     <div class="form-gourp" id="id_total_amount">
-                        {{form.tax_percent.label_tag}}
-                        {{form.tax_percent}}
+                        {{ form.tax_percent.label_tag }}
+                        {{ form.tax_percent }}
                     </div>
 
                     <div class="form-gourp" id="id_total_amount">
-                        {{form.discount.label_tag}}
-                        {{form.discount}}
+                        {{ form.discount.label_tag }}
+                        {{ form.discount }}
                     </div>
 
                     <div class="form-gourp">
-                        {{form.created_at.label_tag}}
-                        {{form.created_at}}
+                        {{ form.created_at.label_tag }}
+                        {{ form.created_at }}
                     </div>
 
                     <div class="form-gourp">
-                        {{form.supplier.label_tag}}
-                        {{form.supplier}}
+                        {{ form.supplier.label_tag }}
+                        {{ form.supplier }}
                     </div>
 
                     <div class="form-gourp">
-                        {{form.supplier_location.label_tag}}
-                        {{form.supplier_location}}
+                        {{ form.supplier_location.label_tag }}
+                        {{ form.supplier_location }}
                     </div>
             
                 </form>
@@ -147,7 +179,7 @@
                 <td>{{purchase.tax_percent}}</td>
                 <td>{{purchase.discount}}</td>
                 <td>{{purchase.total_amount}}</td>
-                <td>{{purchase.created_at}}</td>
+                <td>{{purchase.created_at|date:'d-m-Y'}}</td>
                 <td>{{purchase.user.full_name}}</td>
                 <td>{{purchase.order.vendor.vendor_name}}</td>
                 <td>{{purchase.order.vendor.address}}</td>

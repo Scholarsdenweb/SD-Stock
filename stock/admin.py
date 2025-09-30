@@ -93,6 +93,9 @@ admin.site.register(Item, ItemAdmin)
 admin.site.register(Location)
 admin.site.register(PurchaseOrder)
 admin.site.register(Serialnumber)
+admin.site.register(GoodsReceipt)
+admin.site.register(Allocations)
+admin.site.register(StockTransactions)
 
 
 class StockResource(resources.ModelResource):

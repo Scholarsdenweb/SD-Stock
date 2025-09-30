@@ -8,10 +8,11 @@
 {% url 'stock:student_list' as STUDENTLIST %}
 {% url 'stock:create_stock' as STOCKLIST %}
 {% url 'stock:purchase_list' as PURCHASELIST %}
-{#{% url 'stock:transaction_list' as TRANSACTIONLIST %}#}
+{% url 'allocate:main' as ALLOCATIONS %}
 {% url 'stock:kit_list' as KITLIST %}
 {% url 'stock:vendor_list' as VENDORS %}
 {% url 'orders:main' as MAIN %}
+
 
 <div class="container-fluid my-3" id="main_container">
 
@@ -30,7 +31,7 @@
 
                 <li><a href="{% url 'stock:create_stock' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #7e080a;"></i>Stock</a></li>
 
-                <li><a href="" class="{% if request.path == TRANSACTIONLIST %} active {% endif %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #7e080a;"></i>Transactions</a></li>
+                <li><a href="{% url 'allocate:main' %}" class="{% active_class '/allocate/' %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #7e080a;"></i>Allocations</a></li>
                 
                 <li><a href="{% url 'stock:vendor_list' %}" class="{% if request.path == VENDORS %} active {% endif %}"><i class="fa-solid fa-address-book me-2" style="color: #7e080a;"></i>Vendors</a></li>
 

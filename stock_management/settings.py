@@ -44,13 +44,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'stock.apps.StockConfig',
     'authapp.apps.AuthappConfig',
+    'allocate.apps.AllocateConfig',
     'kits',
     'dashboard',
     'import_export',
     'django_extensions',
     'django_htmx',
     'template_partials',
-    'product.apps.ProductConfig',
     'formtools',
     'widget_tweaks',
     'orders',
@@ -153,7 +153,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = 'media/'
-MEDIA_ROOT = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATICFILES_DIRS = [
    os.path.join(BASE_DIR, 'static'),

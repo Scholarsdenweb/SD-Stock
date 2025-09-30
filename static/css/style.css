@@ -33,6 +33,24 @@
   --bs-btn-disabled-border-color: transparent;
 }
 
+.btn-danger {
+  --bs-btn-color: #222;
+  --bs-btn-bg: #FFEADA;
+  --bs-btn-border-color: #FFEADA;
+  --bs-btn-hover-color: #222;
+  --bs-btn-hover-bg: #ecc9af;
+  --bs-btn-hover-border-color: #ecc9af;
+  --bs-btn-focus-shadow-rgb: 60,153,110;
+  --bs-btn-active-color: #222;
+  --bs-btn-active-bg: #ecc9af;
+  --bs-btn-active-border-color: #ecc9af;
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: #222;
+  --bs-btn-disabled-bg: #FFEADA;
+  --bs-btn-disabled-border-color: #FFEADA;
+}
+
+
 
 #main_container{
     height: calc(100vh - 20vh);
