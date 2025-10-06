@@ -96,6 +96,7 @@ admin.site.register(Serialnumber)
 admin.site.register(GoodsReceipt)
 admin.site.register(Allocations)
 admin.site.register(StockTransactions)
+admin.site.register(Returns)
 
 
 class StockResource(resources.ModelResource):

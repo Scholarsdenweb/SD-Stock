@@ -1,0 +1,113 @@
+{% extends "allocate/main.html" %}
+{% load partials %}
+{% load static %}
+
+{% block page_content %}
+
+<div class="w-50 mx-auto">
+    
+    <div class="message-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {% startpartial optionpart %}
+    <div class="form-group" id="productoptions">
+            {{ form.variant.label_tag }}
+            {{ form.variant }}
+    </div>
+    {% endpartial %}
+
+    <form action="" method='POST' id='allocation_form' style="background:#c51315" class="p-3 text-light">
+    <h3>Update Allocation</h3>
+
+    {% csrf_token %}
+
+
+
+    <div class="form-group">
+    {{ form.item.label_tag }}
+    <select name="{{ form.item.html_name }}" class='form-select mt-1'
+    hx-get="{% url 'allocate:load_variant' %}"
+    hx-swap="outerHTML"
+    hx-trigger="change"
+    hx-target="#productoptions"
+    required>
+        {% for val, text in form.item.field.choices %}
+            <option value="{{ val }}" {% if val|stringformat:"s" == item_id|stringformat:"s" %}selected{% endif %}>
+                {{ text }}
+            </option>
+        {% endfor %}                
+    </select>
+        </div>
+
+    {% partial optionpart %}
+
+    <div class="form-gourp">
+        {{ form.is_serialized }}
+        {{ form.is_serialized.label_tag }}
+    </div>
+
+    <div id="serial_container" class="form-group">
+        {% if serial_number %}
+        <input type="text" class="form-control" placeholder="Serial Number" name='serial_number' value="{{serial_number}}" required>
+        {% endif %}
+    </div>
+
+    <div class="form-gourp">
+        {{ form.allocated_to.label_tag }}
+        <select name="{{ form.allocated_to.html_name }}" class='form-select mt-1'
+        id='allocate_to'
+        hx-get="{% url 'allocate:update_allocation' form.instance.pk %}"
+        hx-swap="outerHTML"
+        hx-trigger="change"
+        hx-target="#allocation_form"
+        hx-include="#allocation_form"
+        hx-select="#allocation_form"
+        required>
+            {% for val, text in form.allocated_to.field.choices %}
+                <option value="{{ val }}" {% if val|stringformat:"s" == alloc_id|stringformat:"s" %}selected{% endif %}>
+                    {{ text }}
+                </option>
+            {% endfor %}                
+        </select>
+    </div>
+
+    <div class="form-gourp">
+        {{ form.name.label_tag }}
+        {#<input type="text" name='name' class='form-control' value="{{  }}" require>#}
+        
+        <select name="{{ form.name.html_name }}" id="" class="form-select">
+            {% for val, text in form.name.field.choices %}
+                <option value="{{ val }}" {% if val|stringformat:"s" == recipient_id|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-gourp">
+        {{ form.quantity.label_tag }}
+        {{ form.quantity }}
+    </div>
+
+    <div class="form-gourp">
+        {{ form.allocated_date.label_tag }}
+        {{ form.allocated_date }}
+    </div>
+
+                    
+    <div class="modal-footer d-flex justify-content-center gap-3">
+        <a href="{% url 'allocate:allocation_list' %}" role="button" class="btn btn-danger">Cancel</a>
+        <button type="submit" class="btn btn-primary" form='allocation_form'>Submit</button>
+    </div>
+
+
+</form>
+</div>
+
+{% endblock%}

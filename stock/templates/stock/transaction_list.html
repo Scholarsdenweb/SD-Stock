@@ -1,0 +1,67 @@
+{% extends "dashboard/home.html" %}
+{% load static %}
+
+
+{% block table %}
+{% url 'stock:transaction_list' as TRANSACTION %}
+{% url 'stock:create_stock' as STOCK %}
+
+    <div class="d-md-flex gap-2 justify-content-start flex-md-row mb-2">
+        <a class="p-2  btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == STOCK %}active{% endif %}" href="{% url 'stock:create_stock' %}" style="width:10rem">Stock</a>
+
+        <a class="p-2  btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == TRANSACTION %}active{% endif %}" href="{% url 'stock:transaction_list' %}" style="width:10rem">Transations</a>
+    </div>
+
+    <div>
+        <table class="table table-sm table-responsive">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Type/Serial No.</th>
+                    <th>Quantity</th>
+                    <th>Operator</th>
+                    <th>Action</th>
+                    <th>To/From</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% if transactions %}
+
+                {% for txn in transactions %}
+                <tr class="
+                {% if txn.txn_type == 'in' %} table-success
+                {% elif txn.txn_type == 'out' %} table-danger
+                {% elif txn.txn_type == 'return' %} table-info
+                {% else %} table-warning
+                {% endif %}">
+                    <td>{{ txn.variant.product }}</td>
+                    <td>{{ txn.variant }}
+                        {% if txn.variant.is_serialized %}
+                            <p style="font-size:.8em;" class="text-primary fw-bold">{{ txn.get_serial_number }}</p>
+                        {% endif %}
+                    </td>
+                    <td>{{ txn.quantity }}</td>
+                    <td>{{ txn.created_by}}
+                        <p style="font-size:.8em" class="text-success fw-bold">{{ txn.created_by.full_name }}</p>
+                    </td>
+                    <td >{{ txn.txn_type|capfirst }}</td>
+                    <td>{{ txn.contenttype.model|capfirst }}
+                        <p style="font-size:.8em;" class="text-primary fw-bold">{{ txn.get_object }}</p>
+                    </td>
+                        
+                    <td class="fw-bold">{{ txn.txn_date|date:"d-m-Y" }}
+                        <p style="font-size:.8em" class="text-danger fw-normal">{{ txn.txn_date|time:"h:i:s A" }}</p>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+
+            <tfoot>
+                <p>Total Records:{{ transactions.count }}</p>
+            </tfoot>
+        </table>
+    </div>
+{% endblock table %}

@@ -14,6 +14,7 @@ urlpatterns = [
     path('category-product/', views.load_product_by_category, name='category_product'),
     path('item-variant/', views.load_variant_by_item, name='item_variant'),
     path('item/update/<int:pk>/', views.ItemUpdateView.as_view(), name = 'update_item'),
+    path('transaction-list/', views.StockTransactionList.as_view(), name='transaction_list'),
     # path('purchase/add/', views.create_purchase_view, name='purchase'),
     # path('stock/add/', views.create_stock_view, name='add_stock'),
     path('stock/add-success', views.add_success_view, name='add_success'),

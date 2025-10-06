@@ -205,9 +205,10 @@ a.active {
 }
 
 input[type=checkbox] {
-    accent-color: #3B38A0; 
+    accent-color: #c51315; 
     transform: scale(1.8); 
     margin: 1em 5px;
+    border:1px solid #fff;
 }
 
 .searchbar {
@@ -299,7 +300,15 @@ tfoot button i {
     color:red;
 }
 
+ul.dropdown-menu li a:hover {
+    background-color: #c51315;
+    color: white;
+}
 
-/* category_from.html styling */
+.dropdown.dropdown-toggle:focus {
+    box-shadow: none;
+    outline: none;
+}
 
+/* allocation_list.html styling */
 

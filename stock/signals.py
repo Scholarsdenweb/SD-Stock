@@ -1,10 +1,17 @@
 from django.db.models.signals import post_save, post_delete, m2m_changed, pre_delete
 from django.dispatch import receiver
-from stock.models import Issue, Student, Serialnumber, Stock
+from stock.models import Issue, Student, Serialnumber, Stock, Allocations
 from .send_sms import send_sms
 from django.http import JsonResponse
 from django.db import transaction
 from django.db.models import F
+
+
+
+# @receiver(post_save, sender=Stock)
+# def delete_stock_if_zero(sender, instance, **kwargs):
+#     if instance.quantity == 0:
+#         instance.delete()
 
 # @receiver(post_save, sender=Issue)
 # def on_kit_issue(sender, instance, created, **kwargs):
@@ -64,3 +71,4 @@ def delete_serial_on_stock_delete(sender, instance, **kwargs):
     """
     serials = Serialnumber.objects.filter(product_variant=instance.variant)
     serials.delete()
+  

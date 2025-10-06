@@ -1,5 +1,54 @@
 {% extends "allocate/main.html" %}
 
 {% block page_content %}
-return
+<form action="" method='GET' class='flex-grow-1'>
+    <div class='searchbar'>
+        <input type="text" name='search' class="search-input" placeholder="Recipient name...">
+        <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
+    </div>
+</form>
+
+{% if returns %}
+
+<table class="table table-sm table responsive">
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Type/Serial No.</th>
+            <th>Quantity</th>
+            <th>Condition</th>
+            <th>Collected By</th>
+            <th>Returned From</th>
+            <th>Returned On</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rn in returns  %}
+        <tr class="
+            {% if rn.condition == 'good' %} table-success
+            {% elif rn.condition == 'damaged' %} table-danger
+            {% else %} table-warning
+            {% endif %}">
+            <td>{{ rn.variant.product}}</td>
+
+            {% if allocation.variant.is_serialized %}
+            <td>{{ rn.allocation.variant.get_serial_number }}</td>
+            {% else %}
+            <td>{{ rn.allocation.variant.name }}</td>
+            {% endif %}
+            <td>{{ rn.quantity }}</td>
+            <td >{{ rn.condition|capfirst }}</td>
+            <td class="fw-bold">{{ rn.returned_by }}
+                <p style="font-size:.8em;" class='text-info fw-normal'>{{ rn.returned_by.full_name }}</p>
+            </td>
+            <td>{{ rn.allocation.content_object }}</td>
+            <td class="fw-bold">{{ rn.return_date|date:'d-m-Y' }}
+               <p style="font-size:.8em;" class='text-danger fw-normal'>{{ rn.return_date|time:"H:i:s" }}</p>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot></tfoot>
+</table>
+{% endif %}
 {% endblock page_content %}

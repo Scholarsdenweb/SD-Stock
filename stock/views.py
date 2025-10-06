@@ -88,7 +88,6 @@ class StockCreate(CreateView):
         
         if in_stock and not variant.is_serialized and not self.request.POST.get("confirm"):
             if self.request.headers.get('hx-request'):
-                print('valid')
                 form_data = self.request.POST
                 stock_data = {
                     'location': Location.objects.get(pk = form_data.get('location')),
@@ -101,7 +100,17 @@ class StockCreate(CreateView):
             if self.request.headers.get('hx-request'):
                 form = StockForm(self.request.POST, instance=in_stock)
                 in_stock.quantity += int(self.request.POST.get('quantity'))
-                stock = in_stock.save()
+                
+                with transaction.atomic():
+                    stock = in_stock.save()
+                    StockTransactions.objects.create(
+                        variant= in_stock.variant,
+                        quantity = int(self.request.POST.get('quantity')),
+                        txn_type = StockTransactions.AD,
+                        created_by = self.request.user,
+                        contenttype =  ContentType.objects.get_for_model(Stock),
+                        reference = in_stock.pk
+                    )
                 messages.success(self.request, "Stock updated successfully")
                 return render(self.request, "partials/stock_detail.html", {"stock": stock})
         else:
@@ -135,7 +144,14 @@ class StockCreate(CreateView):
                                 except IntegrityError:
                                     messages.warning(self.request, f"⚠️ Serial number '{serial.strip()}' is duplicate and not allowed. Try again.")
                                     return render (self.request, 'partials/stock_detail.html', {'class': 'text-danger'})
-                                 
+                            StockTransactions.objects.create(
+                                variant= stock.variant,
+                                quantity = len(created_serials),
+                                txn_type = StockTransactions.IN,
+                                created_by = self.request.user,
+                                contenttype =  ContentType.objects.get_for_model(Stock),
+                                reference = stock.pk
+                            )     
                             stock.refresh_from_db()
                             
                             if created_serials:
@@ -150,7 +166,16 @@ class StockCreate(CreateView):
                             messages.error(self.request, f'Error: {str(e)}')
                             return render(self.request, 'partials/stock_detail.html', {'class': 'text-danger'})
                 else:
-                    stock = form.save()
+                    with transaction.atomic():
+                        stock = form.save()
+                        StockTransactions.objects.create(
+                            variant= stock.variant,
+                            quantity = stock.quantity,
+                            txn_type = StockTransactions.IN,
+                            created_by = self.request.user,
+                            contenttype =  ContentType.objects.get_for_model(Stock),
+                            reference = stock.pk
+                        )
                     message = f'Stock added successfully'
                     context = {'stock': stock, 'message': message, 'class': 'text-success'}
                     response =  render(self.request, 'partials/stock_detail.html', context)
@@ -496,6 +521,11 @@ class ItemUpdateView(UpdateView):
     
 
 
+class StockTransactionList(ListView):
+    model = StockTransactions
+    context_object_name = 'transactions'
+    template_name = 'stock/transaction_list.html'
+    ordering = ['-txn_date']
 
 # @login_required()
 # def create_purchase_view(request):

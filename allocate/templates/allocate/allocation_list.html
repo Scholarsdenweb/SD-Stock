@@ -3,177 +3,294 @@
 {% load static %}
 
 {% block page_content %}
-<div class="message-body">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-</div>
 
-                       
 
-    <div class="modal fade" id="id_allocateform_modal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">Allocate</h3>
+    <div class="message-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-
-                    
-                {% startpartial optionpart %}
-                <div class="form-group" id="productoptions">
-                     {{ form.variant.label_tag }}
-                     {{ form.variant }}
-                </div>
-                {% endpartial %}
-
-
-                    <form action="" method='POST' id='allocation_form'>
-                        {% csrf_token %}
-
-
-
-                        <div class="form-group">
-                        {{ form.item.label_tag }}
-                        <select name="{{ form.item.html_name }}" class='form-select mt-1'
-                        hx-get="{% url 'allocate:load_variant' %}"
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+                           
+    
+        <div class="modal fade" id="id_allocateform_modal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header d-flex justify-content-between">
+                        <h3 class="modal-title">Allocate</h3>
+                        <button type="button" id="refreshBtn" class="btn btn-sm btn-secondary" aria-label="Close" onclick="document.getElementById('allocation_form').reset()">Refresh</button>
+                    </div>
+    
+                    <div class="modal-body">
+    
+                        
+                    {% startpartial optionpart %}
+                    <div class="form-group" id="productoptions">
+                         {{ form.variant.label_tag }}
+                         {{ form.variant }}
+                    </div>
+                    {% endpartial %}
+    
+    
+                        <form action="" method='POST' id='allocation_form'>
+                            {% csrf_token %}
+                            <div class="form-group">
+                            {{ form.item.label_tag }}
+                            <select name="{{ form.item.html_name }}" class='form-select mt-1'
+                            hx-get="{% url 'allocate:load_variant' %}"
+                            hx-swap="outerHTML"
+                            hx-trigger="change"
+                            hx-target="#productoptions"
+                            required>
+                                {% for val, text in form.item.field.choices %}
+                                    <option value="{{ val }}" {% if val|stringformat:"s" == item_id|stringformat:"s" %}selected{% endif %}>
+                                        {{ text }}
+                                    </option>
+                                {% endfor %}                
+                            </select>
+                        </div>
+    
+                      {% partial optionpart %}
+    
+                    <div class="form-gourp">
+                        {{ form.is_serialized }}
+                        {{ form.is_serialized.label_tag }}
+                    </div>
+    
+                    <div id="serial_container" class="form-group">
+                        {% if serial_number %}
+                        <input type="text" class="form-control" placeholder="Serial Number" name='serial_number' value="{{serial_number}}" required>
+                        {% endif %}
+                    </div>
+    
+                    <div class="form-gourp">
+                        {{ form.allocated_to.label_tag }}
+                        <select name="{{ form.allocated_to.html_name }}" class='form-select mt-1'
+                        id='allocate_to'
+                        hx-get="{% url 'allocate:allocation_list' %}"
                         hx-swap="outerHTML"
                         hx-trigger="change"
-                        hx-target="#productoptions"
+                        hx-target="#allocation_form"
+                        hx-include="#allocation_form"
+                        hx-select="#allocation_form"
                         required>
-                            {% for val, text in form.item.field.choices %}
-                                <option value="{{ val }}" {% if val|stringformat:"s" == item_id|stringformat:"s" %}selected{% endif %}>
+                            {% for val, text in form.allocated_to.field.choices %}
+                                <option value="{{ val }}" {% if val|stringformat:"s" == alloc_id|stringformat:"s" %}selected{% endif %}>
                                     {{ text }}
                                 </option>
                             {% endfor %}                
                         </select>
                     </div>
-
-                  {% partial optionpart %}
-
-                <div class="form-gourp">
-                    {{ form.have_serial.label_tag }}
-                    {{ form.have_serial }}
-                </div>
-
-                <div class="form-gourp">
-                    {{ form.allocated_to.label_tag }}
-                    <select name="{{ form.allocated_to.html_name }}" class='form-select mt-1'
-                    id='allocate_to'
-                    hx-get="{% url 'allocate:allocation_list' %}"
-                    hx-swap="outerHTML"
-                    hx-trigger="change"
-                    hx-target="#allocation_form"
-                    hx-include="#allocation_form"
-                    hx-select="#allocation_form"
-                    required>
-                        {% for val, text in form.allocated_to.field.choices %}
-                            <option value="{{ val }}" {% if val|stringformat:"s" == alloc_id|stringformat:"s" %}selected{% endif %}>
-                                {{ text }}
-                            </option>
-                        {% endfor %}                
-                    </select>
-                </div>
-
-                  <div class="form-gourp">
-                      {{ form.name.label_tag }}
-                      {{ form.name }}
-                  </div>
-
-                    <div class="form-gourp">
-                        {{ form.quantity.label_tag }}
-                        {{ form.quantity }}
-                    </div>
-
-                    <div class="form-gourp">
-                        {{ form.allocated_date.label_tag }}
-                        {{ form.allocated_date }}
-                    </div>
-
-
-                </form>
-                </div>
-
-                <div class="modal-footer d-flex justify-content-center gap-3">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss='modal'>Cancel</button>
-                    <button type="submit" class="btn btn-primary" form='allocation_form'>Submit</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-<div>
-    <div class="d-flex gap-2 align-items-center justify-content-between">
-        <div class="add">
-            <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_allocateform_modal' data-bs-toggle='modal'>Allocate</button>
-        </div>
     
-        <form action="" method='GET' class='flex-grow-1'>
-            <div class='searchbar'>
-                <input type="text" name='search' class="search-input" placeholder="Variant name...">
-                <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
-            </div>
-        </form>
-
-    </div>
-
-    <table class="table table-responsive">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Supplier</th>
-                <th>Receiving Date</th>
-                <th>Invoice Number</th>
-                <th>Invoice</th>
-            </tr>
-        </thead>
+                      <div class="form-gourp">
+                          {{ form.name.label_tag }}
+                          {{ form.name }}
+                      </div>
     
-        {% if invoices %}
-        <tbody>
-            {% for invoice in invoices %}
-            <tr>
-                <td>{{forloop.counter}}</td>
-                <td>{{ invoice.purchase_order }}</td>
-                <td>{{ invoice.recieved_date|date:"m-d-Y" }}</td>
-                <td>{{ invoice.invoice_number }}</td>
-                <td>
-                    <a href="{{invoice.invoice_file.url}}" target='_blank'>
-                        <img src="{{invoice.invoice_file.url}}" alt="invoice" width='50'>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+                        <div class="form-gourp">
+                            {{ form.quantity.label_tag }}
+                            {{ form.quantity }}
+                        </div>
     
-        <tfoot>
-            <div class="d-flex  align-items-center gap-2">
-                <p class=''>Total Records:{{orders.count}}</p>
-
-                <p class=''>
-                    <form action="" method="GET" class="">
-                        <input type="text" name="search" value='' hidden>
-                        <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></button>
+                        <div class="form-gourp">
+                            {{ form.allocated_date.label_tag }}
+                            {{ form.allocated_date }}
+                        </div>
+    
+    
                     </form>
-                </p>
-
-            </div>
-        </tfoot>
-        {% endif %}
+                    </div>
     
-    </table>
-</div>
+                    <div class="modal-footer d-flex justify-content-end gap-3">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss='modal'>Cancel</button>
+                        <button type="submit" class="btn btn-primary" form='allocation_form'>Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    
+    <div>
+        <div class="d-flex gap-2 align-items-center justify-content-between">
+            <div class="add">
+                <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_allocateform_modal' data-bs-toggle='modal'>Allocate</button>
+            </div>
+        
+            <form action="" method='GET' class='flex-grow-1'>
+                <div class='searchbar'>
+                    <input type="text" name='search' class="search-input" placeholder="Variant name...">
+                    <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
+                </div>
+            </form>
+    
+        </div>
+    
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th >Allocated To</th>
+                    <th>Allocated By</th>
+                    <th>Allocated On</th>
+                    <th>Action</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+        
+            {% if allocations %}
+            <tbody>
+                {% for alloc in allocations %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ alloc.variant.product }}</td>
+    
+                    {% if alloc.variant.is_serialized %}
+                    <td>
+                        {{ alloc.variant|capfirst}}
+                        <p style="font-size:.8em;" class="fw-bold text-primary">{{ alloc.get_object }}</p>
+                    </td>
+                    {% else %}
+                    <td>{{ alloc.variant.name }} </td>
+                    {% endif %}
+                    <td>{{ alloc.quantity }}</td>
+                    <td>{{ alloc.get_recipient }} {% if alloc.get_recipient.emp_id %} <p class="text-primary fw-bold" style="font-size:.8em;">{{ alloc.get_recipient.emp_id }}</p>  {% endif %} </td>
+                    <td>{{ alloc.issued_by }}
+                        <p class="text-primary fw-bold" style="font-size:.8em;">{{ alloc.issued_by.full_name}}</p>
+                    </td>
+                    <td>{{ alloc.allocated_date|date:"m-d-Y" }}</td>
+                    <td>
+                        {% if alloc.quantity > 0 %}
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#return_modal_form_{{ alloc.id }}">Return</button>
+                        {% endif %}
+                    </td>
+                    {#<td><a href="{% url 'allocate:update_allocation' alloc.pk %}?allocated_to={{ alloc.content_object}} "><i class="fa-solid fa-pen"></i></a>#}
+                    {#<td><a href=""><i class="fa-solid fa-pen"></i></a>#}
+                    <td><a href="" role='button' data-bs-toggle="modal" data-bs-target="#delete_modal_{{ alloc.id }}"><i class="fa-solid fa-trash" style="color:#c51315;"></i></a></td>
 
-{% block scripts %}
+                    
+                </tr>
+                <div class="modal fade" id="delete_modal_{{ alloc.id }}">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Delete</h3>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-danger">Are you sure you want to delete?</p>
+                                <form action="{% url 'allocate:delete_allocation' %}" id="delete_form_{{ alloc.id }}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="allocation_id" value="{{ alloc.id }}">
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-success" form="delete_form_{{ alloc.id }}">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="return_modal_form_{{ alloc.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Return  {% if alloc.variant.is_serialized %}
+                                {{ alloc.variant.get_serial_number }}
+                                {% else %}
+                                {{ alloc.variant.name }}
+                                {% endif %}</h3>
+                            </div>
+                            <div class="modal-body">
+
+                                {% if alloc.variant.is_serialized %}
+                                <p class="fs-5 text-danger">Are you sure you want to return {{ alloc.variant.get_serial_number }}</p>
+
+                                <form action="{% url 'allocate:return_item' %}" id="serial_return_form_{{ alloc.id}}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="serial_number" value={{ alloc.variant.get_serial_number }}>
+                                    <input type="hidden" name="variant" value="{{ alloc.variant.id }}">
+                                    <input type="hidden" name="allocation_id" value='{{ alloc.id }}'>
+                                    <select name="condition" id="">
+                                        <option value="0"></option>
+                                        <option value="1"></option>
+                                        <option value="2"></option>
+                                    </select>
+                                </form>
+                                {% else %}
+                                <form action="{% url 'allocate:return_item' %}" id="item_return_form_{{ alloc.id }}" method='POST'>
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="" class="form-label">Quantity</label>
+                                    </div>
+                                    <input type="number" name="quantity" id="" min='1' class="form-control" value={{ alloc.quantity }}>
+                                    <input type="hidden" name="variant" value="{{ alloc.variant.id }}">
+                                    <input type="hidden" name="allocation_id" value='{{ alloc.id }}'>
+                                    <select name="condition" id="" class="form-select mt-2">
+                                        <option value="0">Good</option>
+                                        <option value="1">Damaged</option>
+                                        <option value="2">Lost</option>
+                                    </select>
+
+                                </form>
+                                {% endif %}
 
 
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                {% if alloc.variant.is_serialized %}
+                                <button type="submit" class="btn btn-sm btn-success"  form="serial_return_form_{{ alloc.id }}">Submit</button>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#confirm_modal_form_{{ alloc.id }}">Submit</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="modal fade" id="confirm_modal_form_{{ alloc.id }}">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Confirm</h3>
+                            </div>
+                            <div class="modal-body"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-success" form="item_return_form_{{ alloc.id }}">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                {% endfor %}
+            </tbody>
+        
+            <tfoot>
+                <div class="d-flex  align-items-center gap-2">
+                    <p class=''>Total Records:{{ allocations.count }}</p>
+    
+                    <p class=''>
+                        <form action="" method="GET" class="">
+                            <input type="text" name="search" value='' hidden>
+                            <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></button>
+                        </form>
+                    </p>
+    
+                </div>
+            </tfoot>
+            {% endif %}
+        
+        </table>
+    </div>
 
-{% endblock %}
 
 {% endblock page_content %}

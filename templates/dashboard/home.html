@@ -29,7 +29,7 @@
 
                 <li><a href="{% url 'orders:main' %}" class="{% active_class '/orders/' %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #7e080a;"></i>Orders</a></li>
 
-                <li><a href="{% url 'stock:create_stock' %}" class="{% if request.path == STOCKLIST %} active {% endif %}"><i class="fa-solid fa-box-open me-2" style="color: #7e080a;"></i>Stock</a></li>
+                <li><a href="{% url 'stock:create_stock' %}" class="{% active_class '/stock/' %}"><i class="fa-solid fa-box-open me-2" style="color: #7e080a;"></i>Stock</a></li>
 
                 <li><a href="{% url 'allocate:main' %}" class="{% active_class '/allocate/' %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #7e080a;"></i>Allocations</a></li>
                 

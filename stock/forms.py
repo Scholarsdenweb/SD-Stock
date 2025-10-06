@@ -130,7 +130,7 @@ class VariantForm(ModelForm):
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'is_serialized': forms.CheckboxInput(),
+            'is_serialized': forms.CheckboxInput(attrs={'id': 'is_serialized'}),
             'is_active': forms.CheckboxInput(),
         }
         

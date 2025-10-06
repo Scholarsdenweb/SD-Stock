@@ -46,32 +46,50 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
         })
     }
 
+    addSerialInput()
+
+    if (event.target.id === 'allocation_form') {
+        console.log(event.target)
+        initializeRefreshButton(event.target);
+    }
+
+   
 });
 
 
+function addSerialInput(){
 
-let sku = document.querySelector('#id_is_serialized')
-let serialContainer = document.querySelector('#serial_container')
+    let serialNumCheckbox = document.querySelector('#id_is_serialized')
+    let serialContainer = document.querySelector('#serial_container')
 
+    if(serialNumCheckbox) {
+       serialNumCheckbox.addEventListener('change', (e) => { 
+    
+            if(e.target.checked){
+                let inputElement = document.createElement('input')
+                inputElement.setAttribute('type', 'text')
+                inputElement.setAttribute('name', 'serial_number')
+                inputElement.setAttribute('class', 'form-control')
+                inputElement.setAttribute('id', 'id_serial_number')
+                inputElement.setAttribute('placeholder', 'Serial Number')
+                inputElement.setAttribute('required', 'true')
 
-// if(sku) {
-//    sku.addEventListener('change', (e) => { 
+                if(!serialContainer.childElementCount > 0){
+                    console.log('child append')
+                    serialContainer.appendChild(inputElement)
+                    e.target.setAttribute('required', 'true')
+                }
+            }
+            else{
+                const serialInput = document.querySelector('#id_serial_number')
+                serialContainer.removeChild(serialInput)
+            }
+       })
+    }
+}
 
-//         if(e.target.checked){
-//             let inputElement = document.createElement('input')
-//             inputElement.setAttribute('type', 'text')
-//             inputElement.setAttribute('name', 'is_serialized')
-//             inputElement.setAttribute('class', 'form-control')
-//             inputElement.setAttribute('id', 'id_serial_number')
-//             inputElement.setAttribute('placeholder', 'Serial Number')
-//             serialContainer.appendChild(inputElement)
-//         }
-//         else{
-//             const serialInput = document.querySelector('#id_serial_number')
-//             serialContainer.removeChild(serialInput)
-//         }
-//    })
-// }
+addSerialInput()
+
 
 
 document.body.addEventListener('htmx:afterSwap', () => {
@@ -85,7 +103,6 @@ document.body.addEventListener('htmx:afterSwap', () => {
         })
     }
 
-
 })
 
 
@@ -95,8 +112,8 @@ function disableSubmitButton(){
     const submitButton = stockEditForm.getElementsByTagName('button')[0]
     const selectElements = stockEditForm.querySelectorAll('select')
 
+    
     submitButton.disabled = true
-
     if(stockEditForm){
         let selectedItems = []
         selectElements.forEach(dropdown => {
@@ -115,6 +132,31 @@ function disableSubmitButton(){
 }
 
 disableSubmitButton()
+
+
+
+function initializeRefreshButton(form) {
+    const refreshBtn = document.querySelector('#refreshBtn');
+
+    console.log(refreshBtn)
+
+    // Remove previous click handlers if any
+    refreshBtn.replaceWith(refreshBtn.cloneNode(true));
+    const newBtn = document.querySelector('#refreshBtn');
+
+    // Add click handler
+    newBtn.addEventListener('click', () => {
+        form.reset(); // reset the current form instance
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.querySelector('#allocation_form');
+    initializeRefreshButton(form);
+});
+
+
 
 
 

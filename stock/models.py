@@ -11,6 +11,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db.models.functions import Lower
 from django.db.models import F
 from authapp.models import User
+from django.core.validators import MinValueValidator
+
 
 
 class Category(models.Model):
@@ -47,6 +49,10 @@ class Variant(models.Model):
     is_active = models.BooleanField(default=True)
     def __str__(self):
         return self.name
+    
+    def get_serial_number(self):
+        serial_number_obj = Serialnumber.objects.filter(product_variant=self)
+        return serial_number_obj
 
     
 class Item(models.Model):
@@ -249,8 +255,9 @@ class Location(models.Model):
     loc_type = models.CharField(max_length=50, choices=LOCATION_TYPE)
     
     
-    def __str__(self, *args, **kwargs):
+    def __str__(self):
         return self.name
+    
     
     
     
@@ -275,6 +282,9 @@ class Serialnumber(models.Model):
     
     def __str__(self):
         return str(self.serial_number)
+    
+    def get_content_object_model(self):
+        return self.content_type.model
     
 
 
@@ -365,30 +375,64 @@ class GoodsReceiptItems(models.Model):
 class StockTransactions(models.Model):
     IN = 'in'
     OT = 'out'
+    RN = 'return'
     AD = 'adjustment'
     TRANSACTION_TYPE = [
         (IN, 'In'),
         (OT, 'Out'),
+        (RN, 'Return'),
         (AD, 'Adjustment'),
     ]
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
     txn_type = models.CharField(max_length=50, choices=TRANSACTION_TYPE)
     quantity = models.PositiveIntegerField(default=1)
-    txn_date = models.DateField(default=datetime.now)
+    txn_date = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     contenttype = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     reference = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('contenttype', 'reference')
     
+    class Meta:
+        ordering = ['-txn_date']
+        
+    def get_object(self):
+        return self.contenttype.get_object_for_this_type(pk=self.reference)
+    
+    def get_serial_number(self):
+        if self.variant.is_serialized:
+            serial_number = Serialnumber.objects.filter(content_type=self.contenttype, object_id=self.reference).first()
+            return serial_number
+            
+
+    
     
 class Allocations(models.Model):
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     allocated_date = models.DateField(default=datetime.now)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE)
     contenttype = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     allocated_to = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('contenttype', 'allocated_to')
+    
+    class Meta:
+        verbose_name_plural = 'Allocations'
+    
+    @property
+    def get_recipient(self):
+        recipient = self.contenttype.get_object_for_this_type(pk=self.allocated_to)
+        # return recipient
+        return recipient
+    def get_object(self):
+        if self.variant.is_serialized:
+            serial_number = Serialnumber.objects.filter(content_type=self.contenttype, object_id=self.allocated_to).first()
+            return serial_number
+        else:
+            return self.contenttype.get_object_for_this_type(pk=self.allocated_to)
+    
+    def __str__(self):
+        return str(self.variant)
+  
         
 class Returns(models.Model):
     GD = 'good'
@@ -406,5 +450,12 @@ class Returns(models.Model):
     returned_by = models.ForeignKey(User, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     condition = models.CharField(max_length=50, choices=CONDITION_CHOICES)
+    return_date = models.DateTimeField(auto_now_add=True)
+    
+    
+    class Meta:
+        verbose_name_plural = 'Returns'
+        
+    
 
 

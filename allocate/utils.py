@@ -1,6 +1,13 @@
 from django.shortcuts import get_object_or_404, render
 from stock.models import Variant, Item
+from django.db.models import Q
+from stock.models import Allocations
 
+
+def find_allocation(search_text, *arge, **kwargs):
+    modela_class = kwargs.get('modela_class', Allocations)
+    
+    
 
 def load_variant_by_item(request, f, template):
     response = None

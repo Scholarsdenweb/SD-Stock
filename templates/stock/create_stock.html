@@ -4,6 +4,8 @@
 
 {% block table %}
 
+{% url 'stock:transaction_list' as TRANSACTION %}
+{% url 'stock:create_stock' as STOCK %}
 
 
 <div id="stock_add_form_container"></div>
@@ -44,7 +46,7 @@
                 <form hx-post="{% url 'stock:create_stock' %}" hx-target="#response_message" hx-swap="innerHTML" id="stock_form">
                     {% csrf_token %} 
 
-                    <table class="table table-responsize caption-top">
+                    <table class="table table-responsize table-sm caption-top">
                     <thead>
                         <tr>
                             <th>Item</th>
@@ -115,11 +117,21 @@
 
 
 <div>
+    <div class="d-md-flex gap-2 justify-content-start flex-md-row mb-2">
+        <a class="p-2  btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == STOCK %}active{% endif %}" href="{% url 'stock:create_stock' %}" style="width:10rem">Stock</a>
+
+        <a class="p-2  btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == TRANSACTION %}active{% endif %}" href="{% url 'stock:transaction_list' %}" style="width:10rem">Transations</a>
+
+    </div>
+
     <div class="d-flex gap-2 align-items-center justify-content-between">
+
+
         <div class="add">
             <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_stockform_modal' data-bs-toggle='modal'>Add Stock</button>
         </div>
-        <div>
+        
+        <div class=''>
             <form action="" method='POST'>
                 {% csrf_token %}
                 <button class="btn btn-sm btn-secondary">Download</button>
@@ -132,9 +144,11 @@
             </div>
         </form>
 
+
+
     </div>
 
-    <table class="table table-responsive">
+    <table class="table table-responsive table-sm table-responsive">
         <thead>
             <tr>
                 <th>#</th>

@@ -6,7 +6,7 @@ from datetime import datetime
 from django import forms
 from django.contrib import messages
 from stock.models import Student, Stock, Purchase
-from django.db.models import Q
+from django.db.models import Q, F
 
 now = datetime.now()
 timestamp = datetime.timestamp(now)
@@ -33,17 +33,8 @@ def search_purchase(search_text):
         Q(supplier__icontains=text)
     )
 
-# def update_stock_quantity(request, item_id, quantity):
-    
-#     stock = Stock.objects.filter(stock_item=item_id).first()
-#     if stock:
-#         stock.quantity += quantity
-#         stock.save()
-#         return stock
-#     else:
-#         messages.error(request, '{} - Out of stock'.format(item_id))
-#         return None
-
+def update_stock_quantity(request, item_id, quantity):
+    Stock.objects.filter(variant=item_id).update(quantity=F('quantity') + quantity)
 
 # def handle_issue_creation(user, issue_instance):
 #     for item in issue_instance.items.all():
@@ -185,6 +176,5 @@ def create_export_file(qs, resource):
     return response
 
 
-def download_stock_records(qs=None):
-    response = create_export_file(qs, StockResource)
-    return response
+def download_stock_records(qs, resource=StockResource):
+    return create_export_file(qs, resource)
