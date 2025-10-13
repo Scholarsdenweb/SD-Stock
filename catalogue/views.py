@@ -80,7 +80,7 @@ class ItemCreateView(CreateView):
     model = Item
     template_name = 'catalogue/item_form.html'
     form_class = ItemForm
-    success_url = reverse_lazy('catalogue:add_variant')
+    success_url = reverse_lazy('catalogue:add_item')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
