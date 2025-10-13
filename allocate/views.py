@@ -93,10 +93,13 @@ class AllocationView(CreateView):
                     reference = allocation.allocated_to
                 )
                 if not allocation.variant.is_serialized:
-                    variant = update_stock_quantity(self.request, allocation.variant.id, -allocation.quantity)
+                    stock = update_stock_quantity(self.request, item_id = allocation.variant.id, quantity = -allocation.quantity)
+                    stock.movement_type = Stock.OT
+                    stock.save()
+                    
                 if msg_text:
                     messages.success(self.request, msg_text)
-                messages.success(self.request, f'{allocation.variant} Allocated successfully')    
+                messages.success(self.request, f'{allocation.variant} allocated successfully')    
                 return super().form_valid(form )
             messages.error(self.request, 'Out of stock. Only {} available'.format(stock.quantity))
             return self.form_invalid(form)
@@ -273,7 +276,7 @@ def return_item(request):
                     # allocation.delete()
                     StockTransactions.objects.create(
                         variant= serial_number_obj.product_variant,
-                        quantity = 1,
+                        quantity = int(quantity),
                         txn_type = StockTransactions.RN,
                         txn_date = datetime.now(),
                         created_by = request.user,
@@ -292,12 +295,14 @@ def return_item(request):
         else:
             with transaction.atomic():
                 allocation = Allocations.objects.filter(pk=int(allocation_id)).update(quantity=F('quantity') - int(quantity))
-                update_stock_quantity(request, int(variant), int(quantity))
+                stock = update_stock_quantity(request, int(variant), int(quantity))
+                stock.movement_type = Stock.RN
+                stock.save()
                 allocation = Allocations.objects.get(pk=int(allocation_id))
                 
                 StockTransactions.objects.create(
                         variant= allocation.variant,
-                        quantity = 1,
+                        quantity = int(quantity),
                         txn_type = StockTransactions.RN,
                         txn_date = datetime.now(),
                         created_by = request.user,

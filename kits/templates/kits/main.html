@@ -1,0 +1,31 @@
+{% extends "dashboard/home.html" %}
+{% load static %}
+{% load nav_extras %}
+
+{% block sidenav %}
+
+    {% url 'kit:student_index' as STDINDEX %}
+    {% url 'kit:allocate_list' as ALLOCLIST %}
+    <ul class="side-navigation ">
+        <li><a href="{% url 'kit:student_index' %}" class="{% if '/add-item/' in request.path %}active{% elif '/create-kit/' in request.path %}{% endif %}"><i class="fa-solid fa-gift me-2" style="color: #5d0607ff;"></i>Prepare Kit</a></li>
+        <li><a href="{% url 'kit:allocate_list' %}" class="{% if '/list/' in request.path %}active{% endif %}"><i class="fa-solid fa-share-from-square me-2" style="color: #7e080a;"></i>Allocate & Sale</a></li>
+    </ul>
+
+{% endblock sidenav %}
+
+{% block table %} 
+
+    {% url 'kit:item_form' as ITEMFORM %}
+    {% url 'kit:create_kititems' as KITS %}
+    {% url 'catalogue:add_variant' as VARIANT %}
+
+
+    <div class="d-md-flex gap-2 justify-content-start flex-md-row mb-2">
+        <a class="p-2 px-5 btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == ITEMFORM %}active{% endif %}" href="{% url 'kit:item_form' %}" >Kits</a>
+
+        <a class="p-2 px-5 btn btn-outline-danger link-underline-opacity-0 rounded rounded-5 mt-2 {% if request.path == KITS %}active{% endif %}" href="{% url 'kit:create_kititems' %}" >Create kit package</a>
+
+    </div>
+    {% block page_content %}
+    {% endblock page_content %}
+{% endblock table %}

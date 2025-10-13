@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from authapp.decorators import is_manager
 from django.utils.decorators import method_decorator
 from stock.models import Variant, Item, Category
@@ -16,7 +16,7 @@ def main(request):
 class CreateCategory(CreateView):
     template_name = 'catalogue/category_form.html'
     form_class = CategoryForm
-    success_url = reverse_lazy('catalogue:add_item')
+    success_url = reverse_lazy('catalogue:add_category')
     
     
     def get_context_data(self, **kwargs):
@@ -58,6 +58,12 @@ class CreateVariant(CreateView):
 
         messages.success(self.request, "Variant added successfully")
         return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        print('invalid' , form.errors)
+        return super().form_invalid(form)
+
+   
 
     
     def get(self, request, *args, **kwargs):
@@ -156,5 +162,8 @@ class UpdateCategory(UpdateView):
         messages.success(self.request, 'Category updated successfully')
         return super().form_valid(form)
     
-    
-
+def delete_category(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    category.delete()
+    messages.success(request, 'Category deleted successfully')
+    return redirect('catalogue:add_category')

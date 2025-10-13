@@ -10,7 +10,6 @@ from stock.utils import *
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
-from .send_sms import send_sms
 from datetime import date, timedelta
 from django.db.models import Q
 from django.forms import inlineformset_factory, formset_factory
@@ -54,7 +53,6 @@ class VendorsCreateView(CreateView):
     
     def form_invalid(self, form):
         response = super().form_invalid(form)
-        messages.error(self.request, f'Vendor not added. Try again.')
         return response
     
     
@@ -70,8 +68,6 @@ class StockCreate(CreateView):
     template_name = 'stock/create_stock.html'
     form_class = StockForm
     success_url = reverse_lazy('stock:create_stock')
-    
-    
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -167,7 +163,10 @@ class StockCreate(CreateView):
                             return render(self.request, 'partials/stock_detail.html', {'class': 'text-danger'})
                 else:
                     with transaction.atomic():
-                        stock = form.save()
+                        stock = form.save(commit=False)
+                        stock.movement_type = Stock.IN
+                        stock.save()
+                        print('new record')
                         StockTransactions.objects.create(
                             variant= stock.variant,
                             quantity = stock.quantity,
@@ -250,7 +249,6 @@ def edit_stock_with_serials(request, pk):
 
     if request.method == 'POST':
         stock_form = StockEditForm(request.POST, instance=stock)
-        print('data', request.POST)
         if stock_form.is_valid():
             stock_instance = stock_form.save(commit=False)
             old_variant = Stock.objects.get(pk=stock_instance.pk).variant
@@ -349,91 +347,22 @@ class UpdateStock(UpdateView):
     success_url = reverse_lazy('stock:create_stock')
     
     def form_valid(self, form):
-        form.save()
-        messages.success(self.request, 'Stock updated successfully')
+        stock = form.save(commit=False)
+        stock.movement_type = Stock.AD
+        
+        with transaction.atomic():
+            stock.save()        
+            StockTransactions.objects.create(
+                variant = stock.variant,
+                txn_type = StockTransactions.AD,
+                quantity = int(self.request.POST.get('quantity')),
+                created_by = self.request.user,
+                contenttype = ContentType.objects.get_for_model(stock),
+                reference = stock.id
+            )
+            messages.success(self.request, 'Stock updated successfully')
         return super().form_valid(form)
     
-
-
-
-
-    
-    
-
-        
-
-# class CreateSerialNumber(CreateView):
-#     model = Serialnumber
-#     template_name = 'stock/create_serial_number.html'
-#     form_class = SerialNumberForm
-#     success_url = reverse_lazy('stock:create_stock')
-
-#     def get_variant(self):
-#         return Variant.objects.get(pk=self.kwargs['pk'])
-
-#     def get_formset(self, data=None, extra=0):
-#         variant = self.get_variant()
-#         SerialFormSet = formset_factory(SerialNumberForm, extra=extra)
-#         formset = SerialFormSet()
-
-#         if data:
-#             return SerialFormSet(data, prefix="serial")
-#         else:
-#             initial_data = [{'item': variant.product, 'product_variant': variant}]
-#             formset = SerialFormSet(initial=initial_data, prefix="serial")
-#             for form in formset:
-#                 form.fields['product_variant'].disabled = True
-#                 form.fields['item'].disabled = True
-#             return formset
-
-#     def get_context_data(self, **kwargs):
-#         self.object = getattr(self, "object", None)
-#         context = super().get_context_data(**kwargs)
-#         context['variant'] = self.get_variant()
-#         context['formset'] = kwargs.get("formset") or self.get_formset()
-#         return context
-
-
-#     def post(self, request, *args, **kwargs):
-#         formset = self.get_formset(data=request.POST)
-#         if formset.is_valid():
-#             for form in formset:
-#                 if form.cleaned_data:
-#                     print(formset) # avoid empty rows
-#                     form.save()
-#             messages.success(request, "Serial numbers added successfully")
-#             return redirect(self.success_url)
-#         return self.render_to_response(self.get_context_data(formset=formset))
-
-#     def get(self, request, *args, **kwargs):
-#         if request.headers.get('hx-request'):
-#             variant = self.get_variant()
-#             add_count = int(request.GET.get('form_count', 1))
-
-#             # Current total forms already rendered
-#             current_total = int(request.GET.get('current_total', 0))
-
-#             # New total = existing + newly requested
-#             total_forms = current_total + add_count
-#             print('total_forms', total_forms)
-
-#             SerialFormSet = formset_factory(SerialNumberForm, extra=0)
-#             initial_data = [
-#                 {'item': variant.product, 'product_variant': variant}
-#                 for _ in range(total_forms)
-#             ]
-#             formset = SerialFormSet(initial=initial_data, prefix="serial")
-
-#             for form in formset:
-#                 form.fields['product_variant'].disabled = True
-#                 form.fields['item'].disabled = True
-
-#             # Render ONLY the partial
-#             return render(request, 'partials/serial_form_part.html', {'formset': formset})
-
-#         return super().get(request, *args, **kwargs)
-    
-#********************************************************************************
 class ProductList(ListView):
     model = Item
     template_name = 'stock/item_list.html'
@@ -527,247 +456,6 @@ class StockTransactionList(ListView):
     template_name = 'stock/transaction_list.html'
     ordering = ['-txn_date']
 
-# @login_required()
-# def create_purchase_view(request):
-    
-#     if request.method == 'POST':
-#         form = PurchaseForm(request.POST)
-#         if form.is_valid():
-#             purchase = form.save(commit=False)
-#             purchase.user = request.user
-
-#             purchase.save()
-
-#             # find item in stock
-#             item_in_stock = Stock.objects.filter( stock_item=purchase.item).first()
-
-#             if item_in_stock:
-#                 item_in_stock.quantity += purchase.quantity
-#                 item_in_stock.save()
-
-#             else:
-#                 stock = Stock.objects.create(user=request.user, stock_item=purchase.item, quantity=purchase.quantity)
-#                 stock.save()
-               
-
-
-
-#             # Record the transaction
-#             transaction = Transaction.objects.create(item=purchase.item, transaction_type=Transaction.PURCHASE, quantity=purchase.quantity, reference_id=purchase.pk, reference_model=purchase.__class__.__name__, notes="Item purchased" ,manager=request.user)
-#             transaction.save()
-
-
-#             messages.success(request, "{}, {} updated in purchase list".format(purchase.quantity,  purchase))
-
-#             return render(request, 'stock/purchase_success.html', {'form': form})
-
-
-#         else:
-#             messages.error(request, "Couldn't add item")
-#             return render(request, 'stock/purchase_form.html', {'form': form})
-        
-#     form = PurchaseForm()
-    
-    
-#     return render(request, 'stock/purchase_form.html', {'form': form})
-
-
-
-# @login_required()
-# def create_stock_view(request):
-#     if request.method == "POST":
-
-#         """
-#         Function to add an item to the stock.
-#         """
-
-#         form = StockForm(request.POST)
-
-#         if form.is_valid():
-#             stock = form.save(commit=False)
-#             stock.user = request.user
-#             existing_stock = Stock.objects.filter(user=request.user, stock_item=stock.stock_item.id).first()
-#             existing_purchage = Purchase.objects.get(user=request.user, item=stock.stock_item.id)
-
-#             if existing_stock:
-
-#                 if existing_stock.quantity < existing_purchage.quantity:
-#                     update_stock_quantity(request, stock.stock_item, stock.quantity)
-#                     messages.success(request, '{} is updated in the stock'.format(existing_stock.stock_item.__str__().upper()))
-#                     return render(request, 'stock/stock_form.html', {'form': form})
-#                 else:
-#                     messages.error(request, 'This addition is going beyond the purchased quantity of {}. Already added.'.format(existing_purchage.quantity))
-#                     return render(request, 'stock/stock_form.html', {'form': form})
-
-#             stock.save()
-#             messages.success(request, '{} is added in the stock'.format(stock))
-#             return render(request, 'stock/stock_form.html', {'form': form})
-                   
-#     form = StockForm()
-#     return render(request, 'stock/stock_form.html', {'form': form})
-
-
-
-
-
-# @login_required()
-# def issue_kit(request):
-#     # stock_items = Stock.objects.filter(quantity__gt=0).values_list('stock_item', flat=True)
-#     stock_items = Stock.objects.all()
-#     IssueItemFormSet = inlineformset_factory(Issue, IssueItem, form=IssueItemForm, extra=stock_items.count())
-    
-#     if request.method == 'POST':
-#         enrollement = request.POST.get("enrollement")
-#         quantities = request.POST.getlist("quantity") 
-#         issuing_items = []
-        
-        
-#         student = Student.objects.get(enrollement=enrollement)
-        
-#         try:
-#             with transaction.atomic():
-#                 issue = Issue.objects.create(
-#                     user=request.user,
-#                     student=student,
-#                     enrollement=enrollement
-#                 )
-               
-#                 for index, item_id in enumerate(request.POST.getlist("items")):
-#                     qty = int(quantities[index])
-
-#                     if qty > 0:
-#                         item = Item.objects.get(pk=item_id)
-#                         issued_items = IssueItem.objects.create(
-#                             issue=issue,
-#                             item=item,
-#                             quantity=qty
-#                         )
-                        
-#                         issued_items.quantity += 1
-#                         issued_items.save()
-#                         issuing_items.append(Item.objects.get(pk=item_id).name)
-                        
-#                         transac = Transaction.objects.create(
-#                         item=Item.objects.get(pk=item_id),
-#                         transaction_type=Transaction.ISSUE,
-#                         quantity=qty,
-#                         reference_id=issue.id,
-#                         reference_model=issue.__class__.__name__,
-#                         manager=request.user,
-#                         notes="Item {} issued to {}".format(item, issue.student)
-#                         )
-                        
-#                         transac.save()
-#                     update_stock_quantity(request, item_id, -qty)  
-#                 if(student.phone):
-#                     send_sms(
-#                         api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
-#                         message_id = '186973',
-#                         variables_values = ", ".join(issuing_items),
-#                         numbers= student.phone, 
-#                         sender_id="SCHDEN"
-#                     )
-#         except Exception as e:
-#             print(e)
-#             messages.error(request, "Couldn't add item")
-         
-        # form = IssueForm(request.POST)
-
-        # if form.is_valid():
-        #     obj = form.save(commit=False)
-        #     obj.user = request.user
-
-        #     # check if there exists a issuance with this enrollement
-
-        #     issuance_exist = Issue.objects.filter(student=obj.student).first()
-
-        #     if issuance_exist:
-        #         selected_items = request.POST.getlist('items', None)
-
-        #         for item in selected_items:
-        #             stock = update_stock_quantity(request, item, -1)
-
-        #             if stock.quantity > 0:
-        #                 issuance_exist.items.add(item)
-        #                 issuance_exist.save()
-        #             else:
-        #                 messages.error(request, '{} - Out of stock'.format(item))
-        #                 return render(request, 'stock/tables/issue_list.html', {'form': form})
-
-        #             if stock.quantity == 0:
-        #                 stock.delete()
-        #                 stock.save()
-        #             tr_item = Item.objects.get(pk=int(item))
-
-        #             transaction = Transaction.objects.create(item=tr_item, transaction_type=Transaction.ISSUE, quantity=issuance_exist.quantity, reference_id=issuance_exist.student.pk, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
-        #             transaction.save()
-
-
-        #         messages.success(request, 'Kit issued successfully')
-        #         return render(request, 'stock/success.html', {'form': form})
-        #     else:
-        #         # obj.save()
-        #         # form.save_m2m()
-        #         selected_items = form.cleaned_data['items']
-
-        #         for item in selected_items:
-        #             # stock = Stock.objects.get(user=request.user, stock_item=item)
-                    
-        #             try:
-        #                 # stock = Stock.objects.get(stock_item=item)
-        #                 stock = Stock.objects.get(pk=int(item.id))
-        #                 if stock.quantity > 0:
-        #                     stock = update_stock_quantity(request, item.id, -1)
-        #                     obj.save()
-        #                     form.save_m2m()
-        #                     transaction = Transaction.objects.create(item=item, transaction_type=Transaction.ISSUE, quantity=obj.quantity, reference_id=obj.id, reference_model=obj.__class__.__name__, manager=request.user, notes="Item issued")
-        #                     transaction.save()
-        #                     messages.success(request, 'Kit {} issued successfully'.format(selected_items))
-        #                     return render(request, 'stock/success.html', {'form': form})
-        #                 else:
-        #                     messages.error(request, '{} - Out of stock'.format(selected_items))
-        #                     return render(request, 'stock/issue_form.html', {'form': form})
-        #             except Stock.DoesNotExist:
-        #                 messages.error(request, '{} - Out of stock'.format(selected_items))
-        #                 return render(request, 'stock/success.html', {'form': form})
-
-        # else:
-        #     messages.error(request, 'Form is not valid')
-        #     print(form.errors)
-        #     return render(request, 'stock/issue_form.html', {'form': form})
-
-
-    # find issued kit with the enrollement no and modify the selection
-    # dob = request.GET.get('dob', None)
-    # enrollement = request.GET.get('enrollement', None)
-    # name = request.GET.get('name', None)
-    
-    # student = find_student(name, dob, enrollement)
-    
-    # issued_kit = Issue.objects.filter(Q(enrollement=enrollement) | Q(student=student) )
-    # items = []
-    
-    # if issued_kit.exists():
-    #     for k in issued_kit:
-    #         for i in k.items.all():
-    #             items.append(i)
-    
-    
-    # items_in_stock = Item.objects.filter(id__in=stock_items)
-
-    # form = IssueForm()
-    # item_issue_formset = IssueItemFormSet()
-    
-    # form.fields['items'].queryset = items_in_stock
-    # # form.fields['enrollement'].initial = int(request.GET.get('enrollement'))
-    # form.fields['enrollement'].initial = request.GET.get('enrollement')
-    # form.fields['enrollement'].widget.attrs['readonly'] = True
-    # form.fields['student'].initial = student
-    # form.fields['student'].widget.attrs['readonly'] = True
-    
-    # context = {'form': form, 'issued_kit': items, 'item_issue_formset': item_issue_formset, 'items':stock_items, 'student':student }
-    
-    # return render(request, 'stock/issue_form.html', context)
 
 
 
@@ -780,34 +468,11 @@ class PurchaseListView(ListView, FormView):
     ordering = ['-created_at']
     form_class = DownloadForm
 
-    # def post(self, request, *args, **kwargs):
-    #     responce = download_purchases(self, request)
-
-    #     return responce
-# class PurchaseUpdateView(UpdateView):
-#     model = Purchase
-#     template_name = 'stock/purchase_form.html'
-#     form_class = PurchaseForm
-#     success_url = reverse_lazy('stock:purchase_list')
-
-
 
 class PurchaseDetailView(DetailView):
     model = Purchase
     template_name = 'stock/purchase_detail.html'
 
-# class StockListView(ListView, FormView):
-#     model = Stock
-#     template_name = 'stock/tables/stock_list.html'
-#     context_object_name = 'stocks'
-#     form_class = DownloadForm
-#     paginate_by = PAGINATED_BY
-
-    # def post(self, request, *args, **kwargs):
-    #     # responce = download_stock(self, request)
-    #     pass
-
-    #     return responce
 
 class StudentListView(ListView):
     model = Student
@@ -818,22 +483,6 @@ class StudentListView(ListView):
 
 
 
-# class StockDetailView(DetailView):
-#     model = Stock
-#     template_name = 'stock/stock_detail.html'
-
-
-# class TransactionListView(ListView, FormView):
-#     model = Transaction
-#     template_name = 'stock/tables/transaction_list.html'
-#     context_object_name = 'transactions'
-#     paginate_by = PAGINATED_BY
-#     form_class = DownloadForm
-
-    # def post(self, request, *args, **kwargs):
-    #     responce = download_transactions(self, request)
-
-    #     return responce
 
 # The list of issued kits
 class IssueListView(ListView, FormView):
@@ -844,10 +493,6 @@ class IssueListView(ListView, FormView):
     form_class = DownloadForm
     
 
-    # def post(self, request, *args, **kwargs):
-    #     responce = download_kits(self, request)
-
-        # return responce
     def get_context_data(self, **kwargs):
         kwargs['date_min'] =( date.today()- timedelta(days=365*10)).isoformat()
         kwargs['date_max'] = (date.today() - timedelta(days=365*5)).isoformat()
@@ -858,40 +503,6 @@ class IssueDetailView(DetailView):
     template_name = 'stock/issue_detail.html'
     context_object_name = 'kits'
 
-# def search_issued_items(request):
-#     """
-#     Function to Search for issued items
-#     """
-#     kitlist= []
-#     if request.method == 'POST':
-        
-#         name = request.POST.get('name', None)
-#         dob = request.POST.get('dob', None)
-#         enrollement = request.POST.get('enrollement', None)
-        
-              
-#         student = find_student(name, dob, enrollement)
-#         context = {'kitlist': kitlist, 'name': name, 'dob': dob, 'enrollement': enrollement}
-        
-#         kits = Issue.objects.filter(student=student).first()
-#         if  kits is None:
-#             return render(request, 'partials/search_button.html', context )
-#             # return HttpResponse("<p class='text-warning'>Please enter valid enrollement number</p><button type='button'>Search</button>")
-#         else:
-#             items = kits.items.all()
-            
-#             for i in items:
-#                 kitlist.append(i)
-#         # return render(request, 'partials/return_list.html', {'kitlist': kitlist,  'name': name, 'dob': dob, 'enrollement': enrollement})
-#         stock_items = Stock.objects.all()
-#         context = {'kitlist': kitlist, 'student': student, 'stock_items': stock_items}
-#         return render(request, 'partials/return_list.html', context)
-  
-#     context = dict(
-#         min_date = (date.today() - timedelta(days=365*10)).isoformat(),
-#         max_date = (date.today() - timedelta(days=365*5)).isoformat(),
-#     )
-#     return render(request, 'stock/return_form.html', context)    
 
 def exchage_kit(request):
     
@@ -910,88 +521,6 @@ def exchage_kit(request):
        
         return JsonResponse({'message':tuple(resultant)})    
     
-    # if request.headers.get('hx-request'):
-    #     item_ids = request.GET.getlist('items[]', [])
-    #     history_ids = request.session.get('selected_items', [])
-
-    #     # merge + deduplicate
-    #     all_ids = list(set(history_ids + [int(i) for i in item_ids if i.isdigit()]))
-
-    #     request.session['selected_items'] = all_ids
-
-    #     swapable_items = Stock.objects.filter(stock_item__category__in=all_ids)
-    #     context = {'swapable_items': swapable_items}
-    #     return render(request, 'partials/return_list.html', context)
-    
-    
-    # if request.headers.get('hx-request'):
-    #     item_ids = request.GET.getlist('items[]', '0')
-    #     swapable_items = []
-        
-    #     if len(item_ids) > 0:
-    #         for id in item_ids:
-    #             try:
-    #                 category = Category.objects.get(pk=int(id))
-    #             except Category.DoesNotExist:
-    #                 continue
-                
-    #             items = Stock.objects.filter(stock_item__category=category)
-    #             print('stock cat', items[0].stock_item.category)
-    #             swapable_items.extend(items)
-            
-    #     context = {'swapable_items': swapable_items}
-    #     return render(request, 'partials/return_list.html', context)
-
-# def return_kit(request):
-#     if request.method == 'POST':
-#         enrollement = request.POST.get('enrollement')
-#         dob = request.POST.get('dob')
-#         name = request.POST.get('name')
-        
-#         student = find_student(name, dob, enrollement)
-        
-#         issued_kit = Issue.objects.filter(student=student).first()
-#         returning_items = []
-        
-#         if not issued_kit:
-#             return JsonResponse({'error': 'No kit found'}, status=404)
-
-#         for item in request.POST.getlist('items[]'):
-#             item = Item.objects.get(pk=int(item))
-#             issued_kit.items.remove(item)
-           
-#             update_stock_quantity(request, item, issued_kit.quantity)
-            
-#             if issued_kit.items.count() == 0:
-#                 issued_kit.delete()
-#             else:
-#                 issued_kit.save()
-
-#             returning_items.append(item)
-
-#             tr = Transaction.objects.create(
-#                 item=item,
-#                 transaction_type=Transaction.EXCHANGE,
-#                 quantity=issued_kit.quantity,
-#                 manager=request.user,
-#                 reference_id = issued_kit.student.pk,
-#                 notes='returned from {}'.format(issued_kit.student.name)
-#             )
-
-#             tr.save()
-
-           
-#         messages.success(request, 'Kit {} for enrolement no. {} is returned'.format(returning_items, student.enrollement))
-#         send_sms(
-#             api_key = "2MLivU4Q3tyFXr1WJcNB8l5YhzT0pAesdoIxRPGwuCSgObZmkVMbkSmGBYOAgHrNosjUhXy854JL269E", 
-#             message_id = '186973',
-#             variables_values = returning_items,
-#             numbers= student.phone, 
-#             sender_id="SCHDEN"
-#         )
-        
-       
-#     return render(request, 'stock/return_success.html')
 
 
 

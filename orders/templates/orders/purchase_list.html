@@ -133,22 +133,26 @@
 
 <div>
     <div class="d-flex gap-5  align-items-center justify-content-between">
+
         <div class="add">
             <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_purchaseform_modal' data-bs-toggle='modal'>Add Purchase</button>
         </div>
+        {% if purchases %}
         <form action="" method='GET' class='flex-grow-1'>
             <div class='searchbar'>
                 <input type="text" name='search' class="search-input" placeholder="Item name or supplier...">
                 <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
             </div>
         </form>
+        {% endif %}
 
     </div>
 
+    {% if purchases %}
+    
     <div>
         <h3 class="text-capitalize">Purchase Record</h3>
     </div>
-
     <table class="table table-sm table-responsive">
         <thead>
             <tr>
@@ -204,6 +208,8 @@
         </tfoot>
     
     </table>
+    {% endif %}
+
 </div>
 
 {% endblock page_content %}

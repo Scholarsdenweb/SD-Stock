@@ -1,7 +1,6 @@
 from django.db.models.signals import post_save, post_delete, m2m_changed, pre_delete
 from django.dispatch import receiver
-from stock.models import Issue, Student, Serialnumber, Stock, Allocations
-from .send_sms import send_sms
+from stock.models import Issue, Student, Serialnumber, Stock, Allocations, Variant
 from django.http import JsonResponse
 from django.db import transaction
 from django.db.models import F
@@ -72,3 +71,9 @@ def delete_serial_on_stock_delete(sender, instance, **kwargs):
     serials = Serialnumber.objects.filter(product_variant=instance.variant)
     serials.delete()
   
+
+
+@receiver(post_delete, sender=Variant)
+def on_variant_delete(sender, instance, **kwargs):
+    if instance.photo:
+        instance.photo.delete(save=False)

@@ -1,0 +1,129 @@
+{% extends "./main.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block page_content %}
+<div class="row text-light">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            ⚠️{{ error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
+
+        <div class="modal fade" tabindex='-1' id="add_kit_modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Add Kit</h3>
+                        <button class="btn-close" data-bs-dismiss="modal" data-bs-target="#add_kit_modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="" method="POST" class="p-3 text-dark opacity-3" id="add_kit_form">
+                            {% csrf_token %} 
+
+                            {% for field in form %}
+                            <div class="mb-3 form-group">
+                                {{ field.label_tag }}
+                                {{ field}}
+                                {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger mt-3" data-bs-dismiss="modal" data-bs-target="#add_kit_modal">Cancel</button>
+                        <button class="btn btn-outline-dark mt-3" form="add_kit_form">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    <div class="col">
+        <table class="table table-sm table resposive">
+            <thead>
+                <tr>
+                    <th>Kit Name</th>
+                    <th>Kit Type</th>
+                    <th>Academic Year</th>
+                    <th>Total Items</th>
+                    <th>Payable Amount</th>
+                    <th>Description</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for kit in kits  %}
+
+                    <tr>
+                        <td>{{ kit.name }}</td>
+                        <td>{{ kit.type }}</td>
+                        <td>{{ kit.academic_year }}</td>
+                        <td>{{ kit.item_count }}</td>
+                        <td>{{ kit.total_price }}</td>
+                        <td>{{ kit.description }}</td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-3">
+                                {% if kit.item_count %}
+                                <a href="{% url 'kit:update_kit' kit.pk %}"><i class="fa-solid fa-pen"></i></a>
+                                <a role="button" data-bs-toggle="modal" data-bs-target="#kit_delete_{{ kit.pk }}"><i class="fa-solid fa-trash-can" style="color:#c51315"></i></a>
+                                {% else %}
+                                <a href="{% url 'kit:create_kititems' %}"><i class="fa-solid fa-pen"></i></a>
+                                {% endif %}
+                            </div>
+
+                            <div class="modal fade" tabindex="-1" id="kit_delete_{{ kit.pk }}">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h3 class="modal-title text-danger">Delete Kit</h3>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="{% url 'kit:delete_kit' kit.pk %}" id="delete_form_{{ kit.pk }}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="kit" value="{{ kit.pk }}">
+                                            </form>
+                                            <p class="font-monospace text-danger">Are you sure you want delete kit?</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal">Cancel</button>
+                                            <button class="btn btn-sm btn-danger" form="delete_form_{{ kit.pk }}">Confirm</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <div>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#add_kit_modal">Add Kit</button>
+                </div>
+
+                <div class="text-dark">Total Kits: {{ kits.count }}</div>
+            </tfoot>
+        </table>
+    </div>
+
+
+</div>
+
+{% endblock page_content %}

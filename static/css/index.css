@@ -6,6 +6,7 @@
 ul.nav {
     background-color: var(--theme-color);
     height: 10vh;
+    border-bottom: .2em solid #fff;
 }
 
 .container-fluid {

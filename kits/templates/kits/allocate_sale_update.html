@@ -1,0 +1,84 @@
+{% extends "./main.html" %}
+{% load static %}
+
+
+
+
+{% block table %}
+<button class="btn btn-sm btn-primary" onclick="history.back()">Back</button>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <form action="" method="POST" class="rounded p-2" style="border:1px solid #c51315">
+            {% csrf_token %}
+            <h3>Update Kit (ID:{{ kit_alloc.pk }})</h3>
+            {{stdform}}
+
+            <div id="alloc_form">
+                <label for="">{{ allocform.type.label }}</label>
+                <div class="mt-2" id="id_type">
+
+                        {% for text, val in allocform.fields.type.choices %}
+                        <div>
+                            <label for="{{ allocform.type.id_for_label}}">
+                                <input type="radio" name="{{ allocform.type.html_name }}" value="{{ val }}" required
+                                {#{% if kit_alloc.kit.type == val %}checked {% endif %}#}
+                                {% if val == type %}checked {% endif %}
+                                hx-get="{% url 'kit:update_allocation' kit_alloc.pk %}"
+                                hx-trigger="change"
+                                hx-target="#alloc_form"
+                                hx-select="#alloc_form"
+                                hx-include="this"
+                                hx-swap="outerHTML">
+                                {{ text|capfirst }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    
+                </div>
+
+                <div class="form-group">
+                    {{ allocform.kit.label }}
+                    {{ allocform.kit }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ allocform.kititems.id_for_label}}" class="form-label">{{ allocform.kititems.label }}</label><br>
+             
+                    <ul>
+                    {% for kititem in allocform.fields.kititems.queryset %}
+                        <li class="text-center">
+                            <input type="checkbox"
+                                value="{{ kititem.pk }}"
+                                name="{{ allocform.kititems.html_name }}"
+                                id="item_id_{{ forloop.counter }}"
+                                {% if kititem in allocform.instance.kititems.all %}checked {% elif not kititem.variant.is_stocked %} disabled {% endif %}>
+                            <label for="item_id_{{ forloop.counter }}" class="text-center">
+                                {% if kititem.variant.photo %}
+                                    <figure class="figure m-0 fw-bold">
+                                        <img src="{{ kititem.variant.photo.url }}" alt="photo_{{forloop.counter}}" class="figure-img img-fluid rounded m-0">
+                                        {% if kititem.variant.is_stocked %} <p class="text-success fw-normal m-0" style="font-size:.7em">In Stock</p>{% else %} <p class="text-danger  fw-normal m-0" style="font-size:.7em">Out Of Stock</p> {% endif %}
+                                        <figcaption class="figure-caption text-center  m-0">{{ kititem.variant.name}}</figcaption>
+                                    </figure>
+                                {% endif %}
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                </div>
+            </div>
+            <button class="btn btn-danger w-100">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock table %}
+

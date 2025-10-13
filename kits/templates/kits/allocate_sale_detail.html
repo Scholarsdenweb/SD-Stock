@@ -1,0 +1,40 @@
+{% extends "./main.html" %}
+{% load static %}
+
+
+
+
+{% block table %}
+<button class="btn btn-sm btn-primary" onclick="history.back()">Back</button>
+<div class="row">
+    <div class="col-md-6 mx-auto border border-danger d-flex justify-content-between gap-2 rounded p-2">
+
+        <div>
+            <p><strong>Name: </strong>{{ kit_alloc.student }}</p>
+            <p><strong>Enrollement: </strong>{{ kit_alloc.student.enrollement }}</p>
+            <p><strong>Programe: </strong>{{ kit_alloc.student.program }}</p>
+            <p><strong>Admission Year: </strong>{{ kit_alloc.student.admission_year }}</p>
+            <p><strong>Kit Type: </strong>{{ kit_alloc.kit.type|capfirst }}</p>
+
+        </div>
+
+        <div class="w-50">
+            <h4>Kit Items</h4>
+            <div class="d-flex gap-2 flex-wrap">
+                {% for item in kit_alloc.kititems.all %}
+                    {% if item.variant.photo  %}
+                    <div class="d-flex flex-column border border-danger p-1 rounded">
+                        <div><img src="{{ item.variant.photo.url }}" alt="photo"></div>
+                        <div>{{ item }}</div>
+                        
+                        {% else %}
+                        <div>{{ item }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock table %}

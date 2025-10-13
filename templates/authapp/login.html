@@ -4,7 +4,7 @@
 
 <div class="container text-white">
     <div class="row my-5">
-        <div class="col-md-6 col-lg-6 mx-auto shadow  p-5" style="background-color: #c51315;">
+        <div class="col-md-6 col-lg-6 mx-auto shadow text-dark border border-danger p-5">
 
         
 
@@ -18,7 +18,7 @@
         {% endif %}
 
         <form action="" method="POST" novalidate>
-            <h1>Login </h1>
+            <h2 class="text-danger">Login </h2>
             {% csrf_token %} 
             {% for field in form %}
             <div class="form-group">
@@ -34,7 +34,7 @@
             </div>
             {% endfor %}
             {% comment %} <span class="text-white">Don't have an account? <a href="{% url 'authapp:register' %}" class="text-warning">Register</a></span><br> {% endcomment %}
-            <button class="btn btn-light mt-3">Submit</button>
+            <button class="btn btn-danger mt-3">Submit</button>
         </form>
 
         </div>

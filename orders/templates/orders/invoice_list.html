@@ -50,51 +50,52 @@
         </form>
 
     </div>
-
-    <table class="table table-responsive">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Supplier</th>
-                <th>Receiving Date</th>
-                <th>Invoice Number</th>
-                <th>Invoice</th>
-            </tr>
-        </thead>
+    {% if invoices %}
     
-        {% if invoices %}
-        <tbody>
-            {% for invoice in invoices %}
-            <tr>
-                <td>{{forloop.counter}}</td>
-                <td>{{ invoice.purchase_order }}</td>
-                <td>{{ invoice.recieved_date|date:"m-d-Y" }}</td>
-                <td>{{ invoice.invoice_number }}</td>
-                <td>
-                    <a href="{{invoice.invoice_file.url}}" target='_blank'>
-                        <img src="{{invoice.invoice_file.url}}" alt="invoice" width='50'>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Supplier</th>
+                    <th>Receiving Date</th>
+                    <th>Invoice Number</th>
+                    <th>Invoice</th>
+                </tr>
+            </thead>
+        
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{ invoice.purchase_order }}</td>
+                    <td>{{ invoice.recieved_date|date:"m-d-Y" }}</td>
+                    <td>{{ invoice.invoice_number }}</td>
+                    <td>
+                        <a href="{{invoice.invoice_file.url}}" target='_blank'>
+                            <img src="{{invoice.invoice_file.url}}" alt="invoice" width='50'>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        
+            <tfoot>
+                <div class="d-flex  align-items-center gap-2">
+                    <p class=''>Total Records:{{orders.count}}</p>
     
-        <tfoot>
-            <div class="d-flex  align-items-center gap-2">
-                <p class=''>Total Records:{{orders.count}}</p>
-
-                <p class=''>
-                    <form action="" method="GET" class="">
-                        <input type="text" name="search" value='' hidden>
-                        <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></button>
-                    </form>
-                </p>
-
-            </div>
-        </tfoot>
-        {% endif %}
+                    <p class=''>
+                        <form action="" method="GET" class="">
+                            <input type="text" name="search" value='' hidden>
+                            <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></button>
+                        </form>
+                    </p>
     
-    </table>
+                </div>
+            </tfoot>
+        
+        </table>
+    
+    {% endif %}
 </div>
 
 {% endblock %}

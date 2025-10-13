@@ -6,6 +6,7 @@ app_name = 'catalogue'
 urlpatterns = [
     path('', views.main, name="main"),
     path('category/add/', views.CreateCategory.as_view(), name='add_category'),
+    path('delete/category/<int:pk>/', views.delete_category, name="delete_category"),
     path('item/add/', views.ItemCreateView.as_view(), name='add_item'),
     path('variant/add/', views.CreateVariant.as_view(), name='add_variant'),
     path('update-variant/<int:pk>/', views.UpdateVariant.as_view(), name='update_variant'),

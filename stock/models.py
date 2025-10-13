@@ -47,12 +47,19 @@ class Variant(models.Model):
     meta_data = models.JSONField(null=True, blank=True,)
     is_serialized = models.BooleanField(default=False, verbose_name='Have serial number')
     is_active = models.BooleanField(default=True)
+    photo = models.ImageField(upload_to='variant/', blank=True)
     def __str__(self):
         return self.name
     
     def get_serial_number(self):
         serial_number_obj = Serialnumber.objects.filter(product_variant=self)
         return serial_number_obj
+    
+    def is_stocked(self):
+        stock_obj = Stock.objects.get(variant=self)
+        if stock_obj.quantity > 0:
+            return True
+        return False
 
     
 class Item(models.Model):
@@ -86,14 +93,31 @@ class Item(models.Model):
 
 
 class Stock(models.Model):
+    
+    IN = 1
+    OT = 2
+    RN = 3
+    AD = 4
+    MOVEMENT_TYPE = [
+        (IN, 'In'),
+        (OT, 'Out'),
+        (RN, 'Return'),
+        (AD, 'Adjustment'),
+    ]
+    
     location = models.ForeignKey('Location', on_delete=models.CASCADE)
     variant = models.ForeignKey("Variant", related_name='item_variant', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    movement_type = models.PositiveIntegerField(choices=MOVEMENT_TYPE, default=1)
+    
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return str(self.variant.product.name).capitalize()
+    
     
     @property
     def get_absolute_url(self):
@@ -101,6 +125,8 @@ class Stock(models.Model):
     
     class Meta:
         ordering = [Lower('variant__product__name')]
+        
+        
     
         
     # def get_items(self):
@@ -291,14 +317,13 @@ class Serialnumber(models.Model):
 class Vendor(models.Model):
     vendor_name = models.CharField(max_length=50)
     contact_person = models.CharField(max_length=50)
-    phone = models.CharField(max_length=50, blank=True)
+    phone = models.CharField(max_length=50, blank=True, validators=[RegexValidator(r'^(\+?\d{2})?\d{10}$', message="Please enter a valid mobile number. Example +919999998888 or 7925666666")])
     email = models.EmailField(blank=True, default='', unique=True)
     gst = models.CharField(max_length=50, blank=True)
     address = models.CharField(max_length=50, blank=True)
     
     def __str__(self):
         return self.vendor_name
-  
   
 class Purchase(models.Model):
     order = models.ForeignKey('PurchaseOrder', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Order')

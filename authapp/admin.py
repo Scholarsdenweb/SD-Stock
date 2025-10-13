@@ -5,7 +5,12 @@ admin.site.register(User)
 admin.site.register(Roles)
 admin.site.register(Employee)
 
-
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'enrollement', 'program', 'admission_year']
+    search_fields = ['name', 'enrollement']
+    
+    
+admin.site.register(Student, StudentAdmin)
 
 # @admin.register(OTPCode) 
 # class OTPCodeAdmin(admin.ModelAdmin):

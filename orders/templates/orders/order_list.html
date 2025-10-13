@@ -43,10 +43,12 @@
             <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_orderform_modal' data-bs-toggle='modal'>Add Order</button>
         </div>
         <div>
+            {% if orders %}
             <form action="" method='POST'>
                 {% csrf_token %}
                 <button class="btn btn-sm btn-secondary">Download</button>
             </form>
+            {% endif %}
         </div>
         <form action="" method='GET' class='flex-grow-1'>
             <div class='searchbar'>
@@ -57,6 +59,7 @@
 
     </div>
 
+    {% if orders %}
     <table class="table table-responsive">
         <thead>
             <tr>
@@ -83,6 +86,7 @@
             <div class="d-flex  align-items-center gap-2">
                 <p class=''>Total Records:{{orders.count}}</p>
 
+                
                 <p class=''>
                     <form action="" method="GET" class="">
                         <input type="text" name="search" value='' hidden>
@@ -95,6 +99,7 @@
         {% endif %}
     
     </table>
+    {% endif %}
 </div>
 
     

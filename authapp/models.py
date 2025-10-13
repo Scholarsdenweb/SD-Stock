@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
 from django.core.validators import RegexValidator
 import random
+from datetime import datetime
+
+current_year = datetime.now().year
+previous_five_years = [year for year in range(current_year - 5, current_year)] + [current_year]
+previous_five_years = sorted(previous_five_years, reverse=True)
+
+
 
 # Create your models here.
 class UserManager(BaseUserManager):
@@ -89,9 +96,16 @@ class Employee(models.Model):
     
     
 class Student(models.Model):
+    YEAR_CHOICES = [(str(year), str(year)) for year in previous_five_years]
+    
+    name = models.CharField(max_length=100)
     enrollement = models.CharField(max_length=15, unique=True, null=True, blank=True)
     program = models.CharField(max_length=100)
-    admission_year = models.CharField(max_length=4)
+    phone = models.CharField(max_length=15, blank=True, validators=[RegexValidator(r'^(\+?\d{2})?\d{10}$', message="Please enter a valid mobile number. Example +919999998888 or 7925666666")])
+    admission_year = models.CharField(max_length=4, choices=YEAR_CHOICES)
+    
+    def __str__(self):
+        return self.name
     
 
 

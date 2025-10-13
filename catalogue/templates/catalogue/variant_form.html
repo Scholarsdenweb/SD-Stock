@@ -24,9 +24,9 @@
 
 
 
-<div class="container">
+<div class="container box-container">
     <div class="row my-5">
-        <div class="col-md-6 col-lg-6 mx-auto shadow p-2 my-2 col" >
+        <div class="col-md-6 col-lg-6 mx-auto col {% if variants %} mx-atuo {% endif %}" >
    
             {% if messages %}
                 {% for message in messages %}
@@ -37,15 +37,19 @@
                 {% endfor %}
             {% endif %}
     
-            <form action="{% if instance_id %}{% url 'catalogue:update_variant' instance_id %}{% else %}{% url 'catalogue:add_variant' %}{% endif %}" method="post" style="background-color:#c51315;" class="text-light p-2">
+            <form action="{% if instance_id %}{% url 'catalogue:update_variant' instance_id %}{% else %}{% url 'catalogue:add_variant' %}{% endif %}" method="post" class="text-dark border border-danger p-2" enctype=multipart/form-data>
                 {% if instance_id %}
-                <h3>Update Variant</h3>
+                <h3 class="text-danger">Update Variant</h3>
                 {% else %}
-                <h3>Add Variant</h3>
+                <h3 class="text-danger">Add Variant</h3>
                 {% endif %}
 
+             
                 {% for error in form.non_field_errors %}
-                    <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 {% endfor %}
 
                 {% csrf_token %} 
@@ -75,6 +79,15 @@
                     {{form.sku}}
                 </div>
 
+                <div class="form group">
+                    {{ form.photo.label }}
+                    {{ form.photo }}
+
+                    {% for error in form.photo.errors %}
+                        <p class="text-danger bg-light mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
                 <div class="form-group">
                     <label for="{{form.meta_data.id_for_label }}">{{form.meta_data.label}}</label><br>
                     <p><small class="text-warning">Exmaple: key=color, value=red</small></p>
@@ -98,15 +111,17 @@
 
                 </div>
 
-                <button type='submit' class="btn btn-light mt-3">Submit</button>
+                <button type='submit' class="btn btn-danger mt-3">Submit</button>
             </form>
            
     
         </div>
 
+        {% if variants %}
+        
         <div class="col-md-6 col-lg-6">
-            <div>
-                <h3>Click To Edit</h3>
+            <div class="border border-danger p-2  right-list-box">
+                <h3 class="text-danger">Click To Edit</h3>
                 <ul class='my-2 overflow-y-auto category-grid'>
                     {% for variant in variants %}
                         <li class='text-dark'>
@@ -116,6 +131,7 @@
                 </ul>
             </div>
         </div>
+        {% endif %}
 
 
     </div>

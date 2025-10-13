@@ -40,7 +40,7 @@ class CategoryForm(ModelForm):
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
 
-        if name and Category.objects.filter(name__icontains=name).exists():
+        if name and Category.objects.filter(name__iexact=name).exists():
             raise forms.ValidationError('Category already exists.')
 
         if name:
@@ -58,6 +58,11 @@ class SerialEditForm(ModelForm):
         model = Serialnumber
         fields = ['product_variant','serial_number']
         
+        widgets = {
+            'product_variant': forms.Select(attrs={'class': 'form-select my-2',}),
+            'serial_number': forms.TextInput(attrs={'class': 'form-control my-2',}),
+        }
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product_variant'].widget.attrs.update({
@@ -70,6 +75,12 @@ class StockEditForm(ModelForm):
     class Meta:
         model = Stock
         fields = ['variant', 'location', 'quantity']
+        
+        widgets = {
+            'variant': forms.Select(attrs={'class': 'form-select my-2',}),
+            'location': forms.Select(attrs={'class': 'form-select my-2',}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control my-2',}),
+        }
         
 
 
@@ -126,10 +137,11 @@ class VariantForm(ModelForm):
     )
     class Meta:
         model = Variant
-        fields = ['product', 'name', 'meta_data', 'is_serialized', 'is_active']
+        fields = ['product', 'name', 'photo', 'meta_data', 'is_serialized', 'is_active']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'photo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'is_serialized': forms.CheckboxInput(attrs={'id': 'is_serialized'}),
             'is_active': forms.CheckboxInput(),
         }
@@ -142,7 +154,7 @@ class VariantForm(ModelForm):
         
         
         
-    field_order = ['category', 'product', 'name', 'sku', 'is_serialized', 'is_active']
+    field_order = ['category', 'product', 'name', 'photo', 'sku', 'is_serialized', 'is_active']
     
     
     def __init__(self, *args, **kwargs):
@@ -153,9 +165,15 @@ class VariantForm(ModelForm):
         cleaned_data = super(VariantForm, self).clean(*args, **kwargs)
         name = cleaned_data.get('name')
         category = cleaned_data.get('category')
-        if Variant.objects.filter(name = name, product__category = category).exists():
+
+        qs = Variant.objects.filter(name__iexact=name, product__category=category)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
             raise forms.ValidationError('Variant already exists.')
-        return self.cleaned_data
+
+        return cleaned_data
         
 class SerialNumberForm(ModelForm):  
     class Meta:

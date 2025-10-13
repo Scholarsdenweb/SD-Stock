@@ -3,9 +3,9 @@
 
 {% block page_content %}
 
-<div class="container overflow-y-auto">
-    <div class="row my-5 overflow-y-auto">
-            <div class="col-md-6 col-lg-6 mx-auto " >
+<div class="container overflow-y-auto box-container border  position-relative">
+    <div class="row my-5 sticky-top">
+            <div class="col-md-6 col-lg-6 mx-auto {% if items %} mx-auto {% endif %}" >
    
                 {% if messages %}
                     {% for message in messages %}
@@ -16,19 +16,24 @@
                     {% endfor %}
                 {% endif %}
         
-                <form action="{% if instance_id %}{% url 'catalogue:update_item' instance_id %}{% else %}{% url 'catalogue:add_item' %}{% endif %}" method="post" class="text-light p-2" style="background-color: #c51315;">
+                <form action="{% if instance_id %}{% url 'catalogue:update_item' instance_id %}{% else %}{% url 'catalogue:add_item' %}{% endif %}" method="post" class="text-dark p-2 border border-danger">
                     {% if instance_id %}
-                    <h3>Update Item</h3>
+                    <h3 class="text-danger">Update Item</h3>
                     {% else %}
-                    <h3>Add Items</h3>
+                    <h3 class="text-danger">Add Items</h3>
                     {% endif %}
+
+
                     {% for error in form.non_field_errors %}
-                        <p class="bg-danger-subtle rounded text-danger">⚠️{{ error }}</p>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     {% endfor %}
 
                     {% csrf_token %} 
                     {% for field in form %}
-                        <div class="mb-3">
+                        <div class="">
                             {{ field.label_tag }}
                             {{ field }}
                             {% for error in field.errors %}
@@ -36,19 +41,23 @@
                             {% endfor %}
                         </div>
                     {% endfor %}
-                    <button class="btn btn-light mt-3">Submit</button>
+                    <button class="btn btn-danger mt-3">Submit</button>
                 </form>
     
             </div>
 
+            {% if items %}
             <div class="col-md-6 col-lg-6">
-                <h3>Click To Edit</h3>
-                <ul class='my-2 overflow-y-auto category-grid'>
-                    {% for item in items %}
-                        <li class='text-dark'><a href="{% url 'catalogue:update_item' item.pk %}">{{item.name|capfirst}}</a></li>
-                    {% endfor %}
-                </ul>
+                <div class="p-2 border border-danger right-list-box">
+                    <h3 class="text-danger">Click To Edit</h3>
+                    <ul class='my-2 overflow-y-auto category-grid'>
+                        {% for item in items %}
+                            <li class='text-dark'><a href="{% url 'catalogue:update_item' item.pk %}">{{item.name|capfirst}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
+            {% endif %}
     </div>
 </div>
 

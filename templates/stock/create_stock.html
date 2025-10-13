@@ -131,12 +131,15 @@
             <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_stockform_modal' data-bs-toggle='modal'>Add Stock</button>
         </div>
         
-        <div class=''>
-            <form action="" method='POST'>
-                {% csrf_token %}
-                <button class="btn btn-sm btn-secondary">Download</button>
-            </form>
-        </div>
+        {% if stocks %}
+            <div class=''>
+                <form action="" method='POST'>
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-secondary">Download</button>
+                </form>
+            </div>
+        
+        {% endif %}
         <form action="" method='GET' class='flex-grow-1'>
             <div class='searchbar'>
                 <input type="text" name='search' class="search-input" placeholder="Variant name...">
@@ -148,55 +151,66 @@
 
     </div>
 
-    <table class="table table-responsive table-sm table-responsive">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Item</th>
-                <th>Location</th>
-                <th>Variant</th>
-                <th>Quantity</th>
-                <th>Last Updated</th>
-                <th>Edit</th>
-            </tr>
-        </thead>
+    {% if stocks %}
     
-        {% if stocks %}
-        <tbody>
-            {% for stock in stocks %}
-            <tr>
-                <td>{{forloop.counter}}</td>
-                <td>{{stock.variant.product}}</td>
-                <td>{{stock.location}}</td>
-                <td>{{stock.variant}}</td>
-                <td>{{stock.quantity}}</td>
-                <td>{{stock.updated_at}}</td>
-                {% if stock.variant.is_serialized %}
-                <td><a href="{% url 'stock:edit_stock_with_serials' stock.id %}"><i class="fa-solid fa-pen"></i></a></td>
-                {% else %}
-                <td><a href="{% url 'stock:update_stock' stock.id %}"><i class="fa-solid fa-pen"></i></a></td>
-                {% endif %}
+        <table class="table table-responsive table-sm table-responsive">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Location</th>
+                    <th>Variant</th>
+                    <th>Quantity</th>
+                    <th>Stocked On</th> 
+                    <th>Last Updated</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+        
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{stock.variant.product}}</td>
+                    <td>{{stock.location}}</td>
+                    <td>{{stock.variant}}</td>
+                    <td>{{stock.quantity}}</td>
+                    <td>{{ stock.created_at }}</td>
+                    <td>{{stock.updated_at}}
+                        {% if stock.movement_type == 1 %}
+                        <span><i class="fa-solid fa-arrow-down text-success"></i></span>
+                        {% elif stock.movement_type == 2 %}
+                        <span><i class="fa-solid fa-arrow-up text-danger"></i></span>
+                        {% elif stock.movement_type == 3 %}
+                        <span><i class="fa-solid fa-arrow-down text-success"></i></span>
+                        {% else %}
+                        <span><i class="fa-solid fa-arrows-up-down text-info"></i></i></span>
+                        {% endif %}
+                    </td>
+                    {% if stock.variant.is_serialized %}
+                    <td><a href="{% url 'stock:edit_stock_with_serials' stock.id %}"><i class="fa-solid fa-pen"></i></a></td>
+                    {% else %}
+                    <td><a href="{% url 'stock:update_stock' stock.id %}"><i class="fa-solid fa-pen"></i></a></td>
+                    {% endif %}
+        
+                </tr>
+                {% endfor %}
+            </tbody>
+        
+            <tfoot>
+                <div class="d-flex  align-items-center gap-2">
+                    <p class=''>Total Records:{{stocks.count}}</p>
     
-            </tr>
-            {% endfor %}
-        </tbody>
+                    <p class=''>
+                        <a href="{% url 'stock:create_stock' %}"><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></a>
+                    </p>
     
-        <tfoot>
-            <div class="d-flex  align-items-center gap-2">
-                <p class=''>Total Records:{{stocks.count}}</p>
-
-                <p class=''>
-                    <form action="" method="GET" class="">
-                        <input type="text" name="search" value='' hidden>
-                        <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></button>
-                    </form>
-                </p>
-
-            </div>
-        </tfoot>
-        {% endif %}
+                </div>
+            </tfoot>
+        
+        </table>
     
-    </table>
+    {% endif %}
 </div>
 
     

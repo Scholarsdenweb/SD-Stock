@@ -13,6 +13,18 @@
             {% endfor %}
         {% endif %}
 
+      {% if form.errors %}
+        {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+      {% endif %}
+
+
     <div class="contact_card">
         {% for vendor in vendors  %}
             <div class="v_card rounded rounded-4">
@@ -40,7 +52,7 @@
    
         <form action="" id="vendor_form" method="POST">
             {% csrf_token %}
-            {% for field in form%}
+            {% for field in form %}
                 {{field.label_tag}}
                 {{field}}
                 <small class="text-danger">{{field.errors}}</small>

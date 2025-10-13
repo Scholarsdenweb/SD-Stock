@@ -1,0 +1,62 @@
+{% extends "./main.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-md-6 border border-danger rounded mx-auto py-2">
+        <h3 class="text-danger">Update Kit And Items</h3>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% for error in kit_form.non_field_errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                ⚠️{{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        {% if kititems_formset.total_form_count > 0  %}
+            <form action="{% url 'kit:update_kit' kit_form.instance.pk %}" class="p-2" method='POST' id="package_edif_form" class="p-0 m-0">
+                {{ kititems_formset.management_form }}
+                {% csrf_token %}
+                {{ kit_form }}
+
+                <div class=" mt-2 p-2  d-flex d-flex justify-content-between bg-danger text-light align-item-center">
+                    <p class="m-0">Kit Name</p>
+                    <p class="m-0">Item Price</p>
+                    <p class="m-0">Item Quantity</p>
+                </div>
+
+                {% for form in kititems_formset %}
+                    <div class="my-2 d-flex justify-content-between gap-2">{{ form }}
+                        {% comment %} <button type="button" class="btn btn-danger rounded rounded-5"
+                        hx-get="{% url 'kit:delete_kititem' %}"
+                        hx-vals="{'action_type':'save', 'kit':{{kit_form.instance.pk}}, 'kititem':{{form.instance.pk}} }"
+                        hx-trigger="click"
+                        hx-inclide="this"
+                        hx-swap="outerHTML"
+                        hx-select="#package_edif_form"
+                        hx-target="#package_edif_form">X</button> {% endcomment %}
+
+                        <a href="{% url 'kit:delete_kititem' form.instance.pk %}?kit={{ kit_form.instance.pk }}" class="btn btn-danger rounded rounded-5">X</a>
+                    </div>
+
+
+                {% endfor %}
+
+                <button class="w-100 btn-danger btn">Submit</button>
+            </form>
+        {% else %}
+        <p class="font-monospace text-danger">This kit has no item.</p>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock page_content %}

@@ -35,6 +35,8 @@ def search_purchase(search_text):
 
 def update_stock_quantity(request, item_id, quantity):
     Stock.objects.filter(variant=item_id).update(quantity=F('quantity') + quantity)
+    return Stock.objects.get(variant=item_id)
+ 
 
 # def handle_issue_creation(user, issue_instance):
 #     for item in issue_instance.items.all():

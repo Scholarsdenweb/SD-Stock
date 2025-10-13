@@ -1,0 +1,73 @@
+{% extends "./main.html" %}
+{% load static %}
+
+
+
+
+{% block table %}
+<div class="d-flex flex-md-row flex-sm-column align-items-center mb-4">
+    <div class="">
+        <a href="{% url 'kit:allocate_sale' %}" role='button' class="btn btn-primary btn-sm">Allocate And Sale</a>
+    </div>
+
+    <form action="" method='GET' class='flex-grow-1 '>
+        <div class='searchbar'>
+            <input type="text" name='search' class="search-input" placeholder="Roll No, name, year...">
+            <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
+        </div>
+    </form>
+</div>  
+
+{% if kit_allocations %}
+
+    <div>
+        <table class="table table-responsive table-sm">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Enrollment</th>
+                    <th>Programe</th>
+                    <th>Admission Year</th>
+                    <th>Kit Name</th>
+                    <th>Kit Type</th>
+                    <th>Amount Paid</th>
+                    <th>Allocated On</th>
+                    <th>Last Updated</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                    {% for kl in kit_allocations %}
+                    <tr>
+                        <td>{{ kl.student.name }}</td>
+                        <td>{{ kl.student.enrollement }}</td>
+                        <td>{{ kl.student.program }}</td>
+                        <td>{{ kl.student.admission_year }}</td>
+                        <td>{{ kl.kit }}</td>
+                        <td>{{ kl.kit.type }}</td>
+                        <td>{{ kl.total_payment }}</td>
+                        <td>{{ kl.created_at }}</td>
+                        <td>{{ kl.updated_at }}</td>
+                        <td class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'kit:allocate_save_detail' kl.pk %}"><i class="fa-solid fa-eye" style="color:#c51315"></i></a>
+                            <a href="{% url 'kit:update_allocation' kl.pk %}">Adjust</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+            </tbody>
+            <tfoot>
+                <div class="d-flex  align-items-center gap-2">
+                    <p class=''>Total Records:{{kit_allocations.count}}</p>
+
+                    <p class=''>
+                        <a href="{% url 'kit:allocate_list' %}"><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></a>
+                    </p>
+
+                </div>
+            </tfoot>
+        </table>
+    </div>
+{% endif %}
+
+
+{% endblock table %}

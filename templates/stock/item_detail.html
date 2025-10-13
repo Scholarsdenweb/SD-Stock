@@ -1,7 +1,8 @@
+{% load tweaks %}
 {% extends "dashboard/home.html" %}
 
 {% block table %}
 
-{{item}}
+{{item|add_class:'form-control'}}
 
 {% endblock table %}

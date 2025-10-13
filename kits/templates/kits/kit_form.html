@@ -1,0 +1,34 @@
+{% extends "./main.html" %}
+{% load static %}
+
+
+{% block page_content %}
+<div class="row gap-2">
+    <div class="col-md-6 mx-auto p-2 text-light h-100  mx-auto" >
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    
+        <form action="{% url 'kit:create_kititems' %}" method="POST" class="p-3 border rounded border-danger">
+            {% csrf_token %} 
+    
+            <h3 style="color:#c51315">Add Kit Items</h3>
+            <div class="form-group" id="kit_input_container">
+                <label for="" class='form-label text-dark'>How many items you want to add to the kit?</label>
+                <input type="number" class="form-control" name='form_count' value='1'>
+                <button type='button' class="btn btn-danger mt-3"
+                hx-post="{% url 'kit:kititem_form' %}"
+                hx-target="#kit_input_container"
+                hx-swap="innerHTML"
+                >Next</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock page_content %}

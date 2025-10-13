@@ -1,5 +1,6 @@
 {% extends "dashboard/home.html" %}
 {% load static %}
+{% load contenttype_extras %}
 
 
 {% block table %}
@@ -16,6 +17,7 @@
         <table class="table table-sm table-responsive">
             <thead>
                 <tr>
+                    <th>S.N.</th>
                     <th>Item</th>
                     <th>Type/Serial No.</th>
                     <th>Quantity</th>
@@ -36,6 +38,7 @@
                 {% elif txn.txn_type == 'return' %} table-info
                 {% else %} table-warning
                 {% endif %}">
+                    <td>{{ forloop.counter }}</td>
                     <td>{{ txn.variant.product }}</td>
                     <td>{{ txn.variant }}
                         {% if txn.variant.is_serialized %}
@@ -47,7 +50,7 @@
                         <p style="font-size:.8em" class="text-success fw-bold">{{ txn.created_by.full_name }}</p>
                     </td>
                     <td >{{ txn.txn_type|capfirst }}</td>
-                    <td>{{ txn.contenttype.model|capfirst }}
+                    <td>{{ txn.contenttype|verbose_name_from_ct }}
                         <p style="font-size:.8em;" class="text-primary fw-bold">{{ txn.get_object }}</p>
                     </td>
                         
