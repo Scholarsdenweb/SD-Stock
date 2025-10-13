@@ -104,7 +104,7 @@ class Stock(models.Model):
         (RN, 'Return'),
         (AD, 'Adjustment'),
     ]
-    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     location = models.ForeignKey('Location', on_delete=models.CASCADE)
     variant = models.ForeignKey("Variant", related_name='item_variant', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
