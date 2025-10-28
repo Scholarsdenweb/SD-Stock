@@ -84,6 +84,8 @@
 
 .form-select option:hover {
     background-color: var(--main-theme) !important;
+    color:#fff;
+    padding:0 .5em;
 }
 
 .topnav{
@@ -128,6 +130,8 @@
     color:#000;
 }
 
+
+
 .side-navigation li:hover i {
    animation: spin 1s ease-in-out 1 reverse;
 }
@@ -148,11 +152,13 @@
     background-color: var(--main-theme);
     color:white;
     padding:.5em;
+    text-decoration: none;
 
 }
 
 .paginator-container a:hover {
-    background-color: var(--bg-hover);
+    background-color:#7e080a;
+    color: #fff;
 }
 
 a.active {
@@ -161,7 +167,8 @@ a.active {
 }
 
 .paginator-container a.active {
-    background-color: var(--bg-hover);
+    background-color:#7e080a;
+    color: #fff;
 }
 
 /* styling the side-navigation for reponsivenss */
@@ -327,6 +334,12 @@ tfoot button i {
 
 .errorlist.nonfield::marker {
     visibility: none;
+}
+
+
+.errorlist li {
+    color:rgb(172, 18, 18);
+    list-style: none;
 }
 
 .errorlist.nonfield::before{

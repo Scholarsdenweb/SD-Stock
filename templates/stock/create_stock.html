@@ -1,6 +1,7 @@
 {% extends "dashboard/home.html" %}
 {% load static %}
 {% load partials %}
+{% load paginator_tag %}
 
 {% block table %}
 
@@ -200,6 +201,11 @@
             </tbody>
         
             <tfoot>
+                <tr>
+                    <td colspan='9'>
+                        {% show_pagination stocks %}
+                    </td>
+                </tr>
                 <div class="d-flex  align-items-center gap-2">
                     <p class=''>Total Records:{{stocks.count}}</p>
     

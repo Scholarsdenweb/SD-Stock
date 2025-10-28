@@ -21,7 +21,7 @@ def search_stock(search_text):
     return Stock.objects.filter(
         Q(variant__name__icontains=text) | 
         Q(variant__product__name__icontains=text)
-    )
+    ) or Stock.objects.all()
     
     
 def search_purchase(search_text):

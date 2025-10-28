@@ -14,6 +14,7 @@ from authapp.decorators import is_manager
 from django.db.models import F
 from datetime import datetime
 from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator
 
 
 
@@ -28,11 +29,16 @@ class AllocationView(CreateView):
     context_object_name = 'allocations'
     template_name = 'allocate/allocation_list.html'
     success_url = reverse_lazy('allocate:allocation_list')
+    paginate_by = 2
     
     
     def get_context_data(self, **kwargs):
         context =  super().get_context_data(**kwargs)
         context['allocations'] = Allocations.objects.all()
+        paginator = Paginator(context['allocations'], self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['allocations'] = page_obj
         return context
     
     
@@ -125,7 +131,6 @@ class AllocationView(CreateView):
             variant = request.GET.get('variant')
             allocated_to = request.GET.get('allocated_to')
             is_serialized = request.GET.get('is_serialized')
-            print(is_serialized)
                        
             initial = {
                 'variant': variant,
@@ -145,6 +150,20 @@ class AllocationView(CreateView):
             
             return render(request, self.template_name, context)
 
+        if request.GET.get('search'):
+            search_text = request.GET.get('search').strip().lower()
+            context = self.get_context_data(**kwargs)
+            form = self.form_class()
+            allocations = find_allocation(search_text)
+            context['form'] = form
+            context['allocations'] = allocations
+            paginator = Paginator(context['allocations'], self.paginate_by)
+            page_number = self.request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            context['allocations'] = page_obj
+
+
+            return render(request, self.template_name, context)
         
         return super().get(request, *args, **kwargs)
 
@@ -188,8 +207,6 @@ class UpdateAllocationView(UpdateView):
         context = self.get_context_data(**kwargs)
         alloc_id = request.GET.get('allocated_to')
         
-        print('instance id',instance.id)
-        print('allocate to', alloc_id)
         
         
         try:
@@ -317,8 +334,8 @@ def return_item(request):
                     quantity = int(quantity),
                     condition = Returns.CONDITION_CHOICES[int(condition)][0]
                 )
-                # if allocation.quantity == 0:
-                #     allocation.delete()
+                if allocation.quantity == 0:
+                    allocation.delete()
                 messages.success(request, 'Returned successfully')
         
     return redirect('allocate:allocation_list')

@@ -9,6 +9,7 @@
               <a href="?page=1">&laquo; first</a>
               <a href="?page={{ page_obj.previous_page_number }}">previous</a>
           {% endif %}
+          
           {% for i in page_obj.paginator.page_range %}
 
           <a href="?page={{ i }}" class="{% if page_obj.number == i %} active {% endif %} ">{{ i }}</a>

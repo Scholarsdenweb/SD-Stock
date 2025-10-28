@@ -29,6 +29,7 @@ urlpatterns = [
     path('kit/', include('kits.urls', namespace='kit')),
     path('auth/', include('authapp.urls', namespace='authapp')),
     path('allocate/', include('allocate.urls', namespace='allocate')),
+    path('employees/', include('employees.urls', namespace='employees')),
 
 
 

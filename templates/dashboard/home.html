@@ -32,11 +32,13 @@
 
                 <li><a href="{% url 'orders:main' %}" class="{% active_class '/orders/' %}"><i class="fa-solid fa-bag-shopping me-2" style="color: #7e080a;"></i>Orders</a></li>
 
-                <li><a href="{% url 'stock:create_stock' %}" class="{% active_class '/stock/' %}"><i class="fa-solid fa-box-open me-2" style="color: #7e080a;"></i>Stock</a></li>
+                <li><a href="{% url 'stock:create_stock' %}" class="{% active_class_end '/stock/' %}"><i class="fa-solid fa-box-open me-2" style="color: #7e080a;"></i>Stock</a></li>
 
                 <li><a href="{% url 'allocate:main' %}" class="{% active_class '/allocate/' %}"><i class="fa-solid fa-money-bill-transfer me-2" style="color: #7e080a;"></i>Allocations</a></li>
                 
-                <li><a href="{% url 'stock:vendor_list' %}" class="{% if request.path == VENDORS %} active {% endif %}"><i class="fa-solid fa-address-book me-2" style="color: #7e080a;"></i>Vendors</a></li>
+                <li><a href="{% url 'stock:vendor_list' %}" class="{% active_class_end 'vendor/list/' %}"><i class="fa-solid fa-address-book me-2" style="color: #7e080a;"></i>Vendors</a></li>
+
+                <li><a href="{% url 'employees:register_emp' %}" class="{% active_class '/employees/' %}"><i class="fa-solid fa-ribbon me-2" style="color: #7e080a;"></i>Employees</a></li>
 
 
                 
@@ -105,11 +107,11 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row align-items-center">
         <div class="col text-bg-dark">
-            <center>
-                <p>footer area</p>
-            </center>
+            <div class='d-flex justify-content-center align-items-center'>
+                <p class="mt-2">&copy; SCHOLARS DEN. All Rights Reserved</p>
+            </div>
         </div>
     </div>
 </div>

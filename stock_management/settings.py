@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'orders',
     'catalogue',
+    'employees',
 ]
 
 MIDDLEWARE = [

@@ -1,6 +1,7 @@
 {% extends "allocate/main.html" %}
 {% load partials %}
 {% load static %}
+{% load paginator_tag %}
 
 {% block page_content %}
 
@@ -121,7 +122,7 @@
                 <button type="button" class="btn btn-sm btn-primary" data-bs-target='#id_allocateform_modal' data-bs-toggle='modal'>Allocate</button>
             </div>
         
-            <form action="" method='GET' class='flex-grow-1'>
+            <form action="{% url 'allocate:allocation_list' %}" method='GET' class='flex-grow-1'>
                 <div class='searchbar'>
                     <input type="text" name='search' class="search-input" placeholder="Variant name...">
                     <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
@@ -279,13 +280,18 @@
                 </tbody>
             
                 <tfoot>
+                    <tr>
+                        <td colspan='9'>
+                            {% show_pagination allocations %}
+                        </td>
+                    </tr>
                     <div class="d-flex  align-items-center gap-2">
                         <p class=''>Total Records:{{ allocations.count }}</p>
         
                         <p class=''>
                             <form action="" method="GET" class="">
                                 <input type="text" name="search" value='' hidden>
-                                <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #1f3251;"></i></button>
+                                <button class='search refresh'><i class="fa-solid fa-arrows-rotate" style="color: #2c0db4ff;"></i></button>
                             </form>
                         </p>
         

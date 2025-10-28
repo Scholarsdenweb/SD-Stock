@@ -16,7 +16,7 @@ from django.forms import inlineformset_factory, formset_factory
 from django.db import transaction, IntegrityError
 from django.utils.safestring import mark_safe
 from django.db.models import F
-
+from django.core.paginator import Paginator
 from django.views.generic.edit import FormMixin
 from .models import *
 from django.utils.decorators import method_decorator
@@ -68,12 +68,9 @@ class StockCreate(CreateView):
     template_name = 'stock/create_stock.html'
     form_class = StockForm
     success_url = reverse_lazy('stock:create_stock')
+    paginate_by = PAGINATED_BY
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        stocks = Stock.objects.all()
-        context['stocks'] = stocks
-        return context
+
     
     def form_valid(self, form):
         stock = form.save(commit=False)
@@ -208,17 +205,20 @@ class StockCreate(CreateView):
         search_text = request.GET.get('search', '')
         
         if search_text:
-            stock = search_stock(search_text)
+            stocks = search_stock(search_text)
         else:
-            stock = Stock.objects.all()
-        
+            stocks = Stock.objects.all()
 
-        context = self.get_context_data(**kwargs)
-        form = self.form_class()
-        context['form'] = form
-        context['stocks'] = stock
+        paginator = Paginator(stocks, self.paginate_by)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.form_class()
+        context['stocks'] = page_obj 
 
         return render(request, self.template_name, context)
+
     
     def post(self, request, *args, **kwargs):
         if request.headers.get('hx-request'):

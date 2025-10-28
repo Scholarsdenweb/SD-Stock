@@ -1,0 +1,55 @@
+{% extends "dashboard/home.html" %}
+{% load widget_tweaks %}
+
+{% block table %}
+
+<div class="container text-white">
+    <div class="row my-5">
+        <div class="col col-md-6 col-lg-6 mx-auto shadow text-dark border border-danger p-5">
+
+        
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form action="{% url 'employees:register_emp' %}" method="POST">
+            <h2 class="text-danger">Register Employee </h2>
+            {% csrf_token %} 
+            {% for field in form %}
+            <div class="form-group">
+                {{field.label_tag}}
+                {{field |add_class:"form-control"}}
+
+                {% if field.errors %}
+                    <span class="">{{field.errors}}</span>
+                    <span>{{field.help_text}}</span>
+                {% endif %}
+
+             
+            </div>
+            {% endfor %}
+            {% comment %} <span class="text-white">Don't have an account? <a href="{% url 'authapp:register' %}" class="text-warning">Register</a></span><br> {% endcomment %}
+            <button class="btn btn-danger mt-3">Submit</button>
+        </form>
+
+
+        </div>
+    </div>
+    
+</div>
+
+{% endblock table %}
