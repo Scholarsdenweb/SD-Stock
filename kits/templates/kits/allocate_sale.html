@@ -64,8 +64,11 @@
                                     <figure class="figure m-0 fw-bold">
                                         {% if kititem.variant.photo%}
                                         <img src="{{ kititem.variant.photo.url }}" alt="photo_{{forloop.counter}}" class="figure-img img-fluid rounded m-0">
-                                            {% if kititem.variant.is_stocked %} <p class="text-success fw-normal m-0" style="font-size:.7em">In Stock</p>{% else %} <p class="text-danger  fw-normal m-0" style="font-size:.7em">Out Of Stock</p> {% endif %}
+                                        {% else %}
+                                        <img src="{% static 'images/dummy.png' %}" alt="No Image" class="figure-img img-fluid rounded m-0">
                                         {% endif %}
+
+                                        {% if kititem.variant.is_stocked %} <p class="text-success fw-normal m-0" style="font-size:.7em">In Stock</p>{% else %} <p class="text-danger  fw-normal m-0" style="font-size:.7em">Out Of Stock</p> {% endif %}
                                         <figcaption class="figure-caption text-center  m-0">{{ kititem.variant.name}}</figcaption>
                                     </figure>
                                 </label>
