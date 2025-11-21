@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django import forms
-from stock.models import Allocations, Returns, Item, Location
+from stock.models import Allocations, Returns, Item, Location, ReturnItem
 from authapp.models import Employee
 
 class AllocationForm(ModelForm):
@@ -16,7 +16,7 @@ class AllocationForm(ModelForm):
 
     class Meta:
         model = Allocations
-        fields = ['item', 'variant',  'allocated_to', 'name', 'quantity', 'allocated_date', 'is_serialized' ]
+        fields = ['item', 'variants',  'allocated_to', 'name', 'allocated_date', 'is_serialized' ]
         
         widgets = {
             'quantity': forms.NumberInput(attrs={'class': 'form-control my-2', 'min':'1'}),
@@ -42,8 +42,13 @@ class AllocationForm(ModelForm):
             self.fields['name'].choices = []
         
 
-class ReturnForm(ModelForm):
+class ReturnItemForm(ModelForm):
     class Meta:
-        model = Returns
-        fields = ['quantity']
+        model = ReturnItem
+        fields = ['variant', 'quantity', 'condition']
+        widgets = {
+            'variant': forms.Select(attrs={'class': 'form-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'condition': forms.Select(attrs={'class': 'form-select'}),
+        }
         

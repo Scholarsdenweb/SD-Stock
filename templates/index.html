@@ -11,16 +11,19 @@
 </head>
 
 <body>
-    <ul class="nav justify-content-end align-items-center">
-    {% comment %} <li class="nav-item">
-        <a class="nav-link link-light" aria-current="page" href="{% url 'authapp:signup' %}">Sing Up</a>
-    </li> {% endcomment %}
-    <li class="nav-item">
-        <a class="nav-link link-light" href="{% url 'authapp:login' %}">Login</a>
+    <ul class="nav justify-content-end align-items-center gap-3">
+
+     {% if request.user.is_authenticated %}
+     <li class="nav-item me-3">
+        <strong class="text-light">{{request.user.email}}</strong>
+     </li>
+     {% else %}
+     <li class="nav-item">
+         <a class="nav-link link-light" href="{% url 'authapp:login' %}">Login</a>
     </li>
+        {% endif %}   
     
-    </li>
-    </ul>
+   </ul>
 
     <div class="container-fluid">
         <div class="row align-items-center justify-content-center h-100">

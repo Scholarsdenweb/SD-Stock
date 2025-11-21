@@ -9,6 +9,7 @@ from stock.models import Variant, Item, GoodsReceipt
 from django.core.files.uploadhandler import FileUploadHandler
 from django.core.cache import cache
 from django.db import transaction
+from audit.utils import log_action
 # Create your views here.
 
 
@@ -30,6 +31,12 @@ class OrdersCreateView(CreateView):
         orders = PurchaseOrder.objects.all()
         context['orders'] = orders
         return context
+    
+    def form_valid(self, form):
+        obj = form.save()
+        messages.success(self.request, 'Order record added successfully')
+        log_action(self.request.user, request=self.request, action = 'Created order', instance=obj)
+        return super().form_valid(form)
 
 
 def page_two(request):
@@ -62,6 +69,8 @@ class CreatePurchase(CreateView):
             order.save()
             purchase_obj.user = self.request.user
             purchase_obj.save()
+            log_action(self.request.user, request=self.request, action = 'Created purchase', instance=purchase_obj)
+            
         
         messages.success(self.request, 'Purchase record added successfully')
         return super().form_valid(form)
@@ -136,6 +145,12 @@ class CreateInvoice(CreateView):
         context =  super().get_context_data(**kwargs)
         context['invoices'] = invoices
         return context
+    
+    def form_valid(self, form):
+        obj = form.save()
+        messages.success(self.request, 'Invoice record added successfully')
+        log_action(self.request.user, request=self.request, action = 'Created invoice', instance=obj)
+        return super().form_valid(form)
     
     
 class ProgressBarUploadHander(FileUploadHandler):

@@ -85,6 +85,24 @@ class TransactionAdmin(admin.ModelAdmin):
     #     else:
     #         return obj.item.size.upper() # or however your relation is structured
     
+    
+class AllocationAdmin(admin.ModelAdmin):
+    list_display = ['show_variants', 'allocated_date', 'location', 'issued_by']
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('variants', 'allocated_date', 'location', 'issued_by'),
+        }),
+    )
+
+    def show_variants(self, obj):
+        return ", ".join([v.name for v in obj.variants.all()])
+    show_variants.short_description = "Variants"
+
+    
+    
+admin.site.register(Allocations, AllocationAdmin)
 
 admin.site.register(Stock, StockAdmin)
 admin.site.register(Purchase, PurchaseAdmin)
@@ -94,9 +112,11 @@ admin.site.register(Location)
 admin.site.register(PurchaseOrder)
 admin.site.register(Serialnumber)
 admin.site.register(GoodsReceipt)
-admin.site.register(Allocations)
+
 admin.site.register(StockTransactions)
 admin.site.register(Returns)
+admin.site.register(AllocationItem)
+admin.site.register(ReturnItem)
 
 
 class StockResource(resources.ModelResource):

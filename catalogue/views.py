@@ -6,6 +6,7 @@ from stock.forms import VariantForm, CategoryForm, ItemForm
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib import messages
+from audit.utils import log_action
 
 # Create your views here.
 def main(request):
@@ -27,6 +28,7 @@ class CreateCategory(CreateView):
     
     def form_valid(self, form):
         messages.success(self.request, "Category added successfully")
+        log_action(user=self.request.user, request=self.request, action="create", instance=form.instance)
         return super().form_valid(form)
     
 
@@ -45,20 +47,31 @@ class CreateVariant(CreateView):
         return context
     
     def form_valid(self, form):
-        form_data = self.request.POST
-        keys = form_data.getlist('key')
-        vals = form_data.getlist('val')
-
-        # build dict safely
-        dict_data = dict(zip(keys, vals))
-
-        # attach to instance before save
-        form.instance.meta_data = dict_data
-        form.instance.is_active = True
-
+       
+        item_id = self.request.POST.get('product')
+        item = Item.objects.get(id=item_id)
+        variant_name = form.cleaned_data['name']
+        
+        if Variant.objects.filter(name__iexact=variant_name, product=item).exists():
+            messages.error(self.request, "This variant is already added.")
+            return self.form_invalid(form)
+        
+        keys = self.request.POST.getlist('key')
+        vals = self.request.POST.getlist('val')
+        form.instance.meta_data = dict(zip(keys, vals))
+        
+        form.instance.product = item
+        response = super().form_valid(form)
+        item.variant.add(self.object)
+        
         messages.success(self.request, "Variant added successfully")
-        return super().form_valid(form)
-    
+        log_action(user=self.request.user, request=self.request, action="create", instance=form.instance)
+
+        
+        return response
+
+        
+   
     def form_invalid(self, form):
         print('invalid' , form.errors)
         return super().form_invalid(form)
@@ -98,6 +111,7 @@ class ItemCreateView(CreateView):
             return self.form_invalid(form)
 
         messages.success(self.request, 'Item added successfully')
+        log_action(user=self.request.user, request=self.request, action="create", instance=form.instance)
         return super().form_valid(form)    
     
     def form_invalid(self, form):
@@ -120,8 +134,9 @@ class UpdateVariant(UpdateView):
         return context
     
     def form_valid(self, form):
-        form.save()
+        obj = form.save()
         messages.success(self.request, 'Variant updated successfully')
+        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": form.cleaned_data})
         return super().form_valid(form)
     
     
@@ -139,8 +154,9 @@ class UpdateItem(UpdateView):
         return context
     
     def form_valid(self, form):
-        form.save()
+        obj = form.save()
         messages.success(self.request, 'Item updated successfully')
+        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": form.cleaned_data})
         return super().form_valid(form)
     
     
@@ -158,12 +174,14 @@ class UpdateCategory(UpdateView):
     
     
     def form_valid(self, form):
-        form.save()
+        obj = form.save()
         messages.success(self.request, 'Category updated successfully')
+        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": form.cleaned_data})
         return super().form_valid(form)
     
 def delete_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
     category.delete()
     messages.success(request, 'Category deleted successfully')
+    log_action(user=request.user, request=request, action="delete", instance=category)
     return redirect('catalogue:add_category')

@@ -1,0 +1,95 @@
+{% extends "allocate/product_view.html" %}
+{% load static %}
+
+
+{% block product %}
+{% if items_allocated %}
+
+<ul class="list-group w-25">
+    <li class="list-group-item"><strong>Recipient Details</strong></li>
+
+    <li class="list-group-item d-flex justify-content-between">
+        <div class="">Name</div>
+        <div>{{allocation.get_recipient|title}}</div>
+    </li>
+
+    <li class="list-group-item d-flex justify-content-between">
+        <div class="text-capitalize">Employee id</div>
+        <div>{{allocation.get_recipient.emp_id|upper}}</div>
+    </li>
+
+    <li class="list-group-item d-flex justify-content-between">
+        <div class="text-capitalize">Department Location</div>
+        <div>{{allocation.location|title}}</div>
+    </li>
+
+    <li class="list-group-item d-flex justify-content-between">
+        <div class="text-capitalize"><strong>Item Name</strong></div>
+        <div class="text-capitalize"><strong>Qauntity</strong></div>
+    </li>
+
+    {% for item in items_allocated %}
+    <li class="list-group-item d-flex justify-content-between">
+        <div class="text-capitalize"> {{ item.variant.name }}
+            {% if item.variant.is_serialized %} ({{item.variant.get_serial_number}}) {% endif %}
+        </div>
+        <div>{{ item.quantity }}</div>
+    </li>
+    {% endfor %}
+
+    <li class="list-group-item d-flex justify-content-start gap-2">
+        <button type="button" class="btn btn-sm btn-primary" onclick="window.history.back()">Back</button>
+        <button type="button" class="btn btn-sm btn-danger" data-bs-target="#return_form_modal" data-bs-toggle="modal">Return </button>
+    </li>
+
+</ul>
+{% endif %}
+
+<div class="modal fade" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"  id='return_form_modal'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Return Items</h3>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'allocate:allocation_detail' allocation.id %}" method="POST" id='return_form'>
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <div class="flex-item ms-5 mb-2 text-capitalize fw-bold">Item</div>
+                        <div class="flex-item me-5 mb-2 text-capitalize fw-bold">Status</div>
+                    </div>
+
+                  {% for item in items_allocated %}
+
+                  <div class="d-flex justify-content-between">
+
+                      <div class="form-check">
+                            <input class="" type="checkbox" name='items' value="{{item.variant.id}}" id="id_{{item.variant}}">
+                            <label class="form-check-label" for="id_{{item.variant}}">
+                               {{item.variant.name|title}}
+                            </label>
+                        </div>
+                        <div>
+                           <select name="status" class="form-select">
+                                <option value="" selected>--select--</option>
+                                {% for value, label in status_list %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+
+                        </div>
+                  </div>
+
+
+                  {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-sm btn-danger" type="button" data-bs-dismiss='modal' data-bs-target='#return_form_modal'>Cancel</button>
+                <button class="btn btn-sm btn-success" type="submit" form="return_form">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

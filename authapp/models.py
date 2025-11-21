@@ -75,12 +75,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
     
     def get_employee(self):
-        return Employee.objects.filter(user=self).first()    
+        return Employee.objects.filter(user=self).first().emp_id    
     
     
 class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    emp_id = models.CharField(max_length=10, unique=True, verbose_name='Employee ID', validators=[RegexValidator(r'^\d+$')])
+    emp_id = models.CharField(max_length=10, unique=True, verbose_name='Employee ID')
     phone = models.CharField(
         max_length=15,
         blank=True,

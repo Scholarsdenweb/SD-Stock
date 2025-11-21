@@ -2,8 +2,10 @@
 
 {% block table %}
 
-    {% url 'allocate:allocation_list' as ALLOCATION %}
-    {% url 'allocate:return_list' as RETURN %}
+    {% block tabs %}
+        {% url 'allocate:allocation_list' as ALLOCATION %}
+        {% url 'allocate:return_list' as RETURN %}
+    {% endblock tabs %}
 
 
 <div class="d-md-flex gap-2 justify-content-start flex-md-row mb-2">

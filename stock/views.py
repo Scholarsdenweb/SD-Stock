@@ -22,6 +22,7 @@ from .models import *
 from django.utils.decorators import method_decorator
 from authapp.decorators import is_manager
 from .forms import *
+from audit.utils import log_action
 
 # from template_partials.shortcuts import render_partial
 import json
@@ -32,6 +33,7 @@ import json
 PAGINATED_BY = 10
 
 @method_decorator(is_manager, name='dispatch')
+@method_decorator(login_required, name='dispatch')
 class VendorsCreateView(CreateView):
     model = Vendor
     template_name = 'stock/vendor/vendor_list.html'
@@ -46,9 +48,9 @@ class VendorsCreateView(CreateView):
         return context
     
     def form_valid(self, form):
-        print('valid')
-        form.save()
+        obj = form.save()
         messages.success(self.request, 'Vendor added successfully')
+        log_action(self.request.user, request=self.request, action = 'Created vendor', instance=obj)    
         return super().form_valid(form)
     
     def form_invalid(self, form):
@@ -76,6 +78,7 @@ class StockCreate(CreateView):
         stock = form.save(commit=False)
         item = form.instance.variant.product
         variant = form.instance.variant
+        stock.user = self.request.user
         
         in_stock = Stock.objects.filter(variant=stock.variant, location=stock.location, variant__product=item).first()
         
@@ -96,6 +99,7 @@ class StockCreate(CreateView):
                 
                 with transaction.atomic():
                     stock = in_stock.save()
+                    log_action(self.request.user, request=self.request, action = 'Updated stock', instance=in_stock)
                     StockTransactions.objects.create(
                         variant= in_stock.variant,
                         quantity = int(self.request.POST.get('quantity')),
@@ -134,6 +138,7 @@ class StockCreate(CreateView):
                                     created_serials.append(sn)
                                     # increment quantity atomically
                                     Stock.objects.filter(id=stock.id).update(quantity=F('quantity') + 1)
+                                    log_action(self.request.user, request=self.request, action = 'Created serial number', instance=sn)
                                 except IntegrityError:
                                     messages.warning(self.request, f"⚠️ Serial number '{serial.strip()}' is duplicate and not allowed. Try again.")
                                     return render (self.request, 'partials/stock_detail.html', {'class': 'text-danger'})
@@ -163,7 +168,7 @@ class StockCreate(CreateView):
                         stock = form.save(commit=False)
                         stock.movement_type = Stock.IN
                         stock.save()
-                        print('new record')
+                        log_action(self.request.user, request=self.request, action = 'Created stock', instance=stock)
                         StockTransactions.objects.create(
                             variant= stock.variant,
                             quantity = stock.quantity,
@@ -225,6 +230,7 @@ class StockCreate(CreateView):
             return super().post(request, *args, **kwargs)
         
         response = download_stock_records(qs=Stock.objects.all())
+        log_action(request.user, request=request, action = 'Downloaded stock records')
         
         return response
 
@@ -253,6 +259,7 @@ def edit_stock_with_serials(request, pk):
             stock_instance = stock_form.save(commit=False)
             old_variant = Stock.objects.get(pk=stock_instance.pk).variant
             stock_instance.save()
+            log_action(request.user, request=request, action = 'Updated stock', instance=stock_instance)
             
             if old_variant != stock_instance.variant:
                 serials_to_update = Serialnumber.objects.filter(product_variant=old_variant)
@@ -260,12 +267,12 @@ def edit_stock_with_serials(request, pk):
                     item=stock_instance.variant.product,
                     product_variant=stock_instance.variant
                 )
+                log_action(request.user, request=request, action = 'Updated serial number', instance=serials_to_update)
             
             messages.success(request, "Stock and serials updated successfully.")
             context['serial_numbers'] = serials
             return redirect('stock:edit_stock_with_serials', pk=stock.pk)
         else:
-            print('form error', stock_form.errors)
             context['stock_form'] = stock_form
             
             messages.error(request, "Please correct the errors below.")
@@ -334,9 +341,10 @@ class UpdateSerialNumber(UpdateView):
     form_class = SerialEditForm
     
     def form_valid(self, form):
-        form.save()
+        obj = form.save()
         messages.success(self.request, 'Serial number updated successfully')
         self.success_url = reverse_lazy('stock:update_serial_number', kwargs={'pk': self.kwargs['pk']})
+        log_action(self.request.user, request=self.request, action = 'Updated serial number', instance=obj)
         return super().form_valid(form)
 
 @method_decorator(is_manager, name='dispatch')
@@ -361,6 +369,7 @@ class UpdateStock(UpdateView):
                 reference = stock.id
             )
             messages.success(self.request, 'Stock updated successfully')
+            log_action(self.request.user, request=self.request, action = 'Updated stock', instance=stock)
         return super().form_valid(form)
     
 class ProductList(ListView):

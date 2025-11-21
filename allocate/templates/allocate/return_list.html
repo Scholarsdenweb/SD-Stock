@@ -1,7 +1,7 @@
 {% extends "allocate/main.html" %}
 
 {% block page_content %}
-<form action="" method='GET' class='flex-grow-1'>
+<form action="{% url 'allocate:return_list' %}" method='GET' class='flex-grow-1'>
     <div class='searchbar'>
         <input type="text" name='search' class="search-input" placeholder="Recipient name...">
         <button class='search'><i class="fa-solid fa-magnifying-glass" style="color: #ffffff;"></i></button>
@@ -14,11 +14,8 @@
     <thead>
         <tr>
             <th>Item</th>
-            <th>Type/Serial No.</th>
-            <th>Quantity</th>
-            <th>Condition</th>
-            <th>Collected By</th>
             <th>Returned From</th>
+            <th>Collected By</th>
             <th>Returned On</th>
         </tr>
     </thead>
@@ -29,19 +26,24 @@
             {% elif rn.condition == 'damaged' %} table-danger
             {% else %} table-warning
             {% endif %}">
-            <td>{{ rn.variant.product}}</td>
+            
+            <td class="item-cell">
+                {{ rn.get_returned_items }}
+                <i class="fa-sharp fa-solid fa-caret-down"></i>
 
-            {% if allocation.variant.is_serialized %}
-            <td>{{ rn.allocation.variant.get_serial_number }}</td>
-            {% else %}
-            <td>{{ rn.allocation.variant.name }}</td>
-            {% endif %}
-            <td>{{ rn.quantity }}</td>
-            <td >{{ rn.condition|capfirst }}</td>
+                <div class="item-detail-box">
+                   <pre>Name &nbsp; &nbsp; &nbsp; Condition</pre> 
+                    {% for item in rn.returnitem_set.all %}
+                    <pre>{{ item.variant }}&nbsp; &nbsp; &nbsp;  {{ item.get_condition_display }}</pre><br>
+                    {% endfor %}
+                </div>
+            </td>
+
+            <td>{{ rn.allocation.content_object }}</td>
             <td class="fw-bold">{{ rn.returned_by }}
                 <p style="font-size:.8em;" class='text-info fw-normal'>{{ rn.returned_by.full_name }}</p>
             </td>
-            <td>{{ rn.allocation.content_object }}</td>
+          
             <td class="fw-bold">{{ rn.return_date|date:'d-m-Y' }}
                <p style="font-size:.8em;" class='text-danger fw-normal'>{{ rn.return_date|time:"H:i:s" }}</p>
             </td>

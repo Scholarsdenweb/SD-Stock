@@ -14,7 +14,11 @@ from stock.utils import update_stock_quantity
 from django.db.models import Sum, F
 from django.forms import formset_factory, modelformset_factory
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from authapp.decorators import is_manager
 
+@login_required
+@is_manager
 def student_index(request):
     return redirect('kit:item_form')
 

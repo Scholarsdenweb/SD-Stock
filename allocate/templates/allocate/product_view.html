@@ -1,0 +1,59 @@
+{% extends "dashboard/home.html" %}
+{% load static %}
+
+
+{% block table %}
+
+    <div class="message-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+<div class="truncate">
+    <ul class="inline-list">
+        <li>All</li>
+        {% for category in categories %}
+        
+        <li class="text-capitalize">{{category}}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+    {% block product %}
+
+    <div class="container product-container">
+        <div class="row">
+            <div class="col-12 mb-2">
+
+                <button type="button" class="btn btn-sm btn-primary mb-2" onclick="window.history.back()">Back</button>
+            </div>
+            {% for item in items %}
+                <div class="product col col-md-2 col-xxl-2 col-lg-2">
+
+                    <div class="card shadow">
+                        {% with v=item.variant.all|first %}
+                            {% if v and v.photo %}
+                                <img src="{{ v.photo.url }}" class="card-img-top img-fluid" alt="{{item}}">
+                            {% else %}
+                                <img src="{% static 'allocate/default.png' %}" alt="img" class="card-img-top img-fluid">
+                            {% endif %}
+                        {% endwith %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{item}}</h5>
+                            <h6><a href="{% url 'allocate:product_detail' item.id %}" alt="{{item}}" role='button' class=" text-capitalize card-link stretched-link {% if item.get_total_of_variant > 0 %} link-success {% else%} link-danger {% endif %}">total Quantity: {{item.get_total_of_variant}}</a></h6>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+    {% endblock  %}
+{% endblock %}

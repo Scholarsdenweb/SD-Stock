@@ -18,6 +18,7 @@
     </title>
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'allocate/product.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://kit.fontawesome.com/b1f8850832.js" crossorigin="anonymous"></script>
@@ -35,11 +36,23 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
         {% if request.user.is_authenticated %}
         <li class="nav-item">
           <span class='text-light'>{{request.user.email}}</span>
-          <a class="nav-link link-light" href="{% url 'authapp:logout' %}">Logout</a>
+
+          <div class="d-flex">
+
+            <a class="nav-link link-light" href="{% url 'authapp:logout' %}">Logout</a>
+            <a class="nav-link link-light " href="{% url 'allocate:allocation_cart' %}">
+             <i class="fa-solid fa-cart-shopping fs-4 position-relative" style="color: #ffffff;">
+              <span class="">{{allocation_cart_count }}</span>
+             </i>
+            </a>
+          </div>
         </li>
+
+          
         {% else %}
         <li class="nav-item">
           <a class="nav-link link-light" href="{% url 'authapp:login' %}">Login</a>

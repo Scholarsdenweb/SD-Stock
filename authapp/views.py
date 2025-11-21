@@ -2,10 +2,10 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
-from django.contrib.auth.forms import UserCreationForm
 from django.views.generic.edit import CreateView
 from .forms import SignupForm
 from .models import Roles
+from audit.utils import log_action
 
 
 class SignupView(CreateView):
@@ -13,12 +13,9 @@ class SignupView(CreateView):
     form_class = SignupForm
     success_url = reverse_lazy('authapp:login')
     
-    # def form_valid(self, form):
-    #     user = form.save()
-    #     role = Roles.objects.get(id=2)
-    #     user.role.add(role)
-    #     user.save()
-    #     return super().form_valid(form)
+    def form_valid(self, form):
+        log_action(self.request.user, request=self.request, action = 'Created user', instance=form.instance)
+        return super().form_valid(form)
 
 class Login(LoginView):
     template_name = 'authapp/login.html'
@@ -26,8 +23,16 @@ class Login(LoginView):
     def get_success_url(self):
         return reverse_lazy('stock:create_stock')
     
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        
+        log_action(self.request.user, request=self.request, action = 'Login', instance=self.request.user)
+        
+        return response
+    
     
 def logout_view(request):
     logout(request)
+    log_action(request.user, request=request, action = 'Logout')
     return render(request, 'index.html')
 

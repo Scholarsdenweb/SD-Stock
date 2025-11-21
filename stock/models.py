@@ -14,7 +14,6 @@ from authapp.models import User
 from django.core.validators import MinValueValidator
 
 
-
 class Category(models.Model):
     DR = 'durable'
     CN = 'consumable'
@@ -60,6 +59,24 @@ class Variant(models.Model):
         if stock_obj.quantity > 0:
             return True
         return False
+    
+    def get_quantity(self):
+        stock_obj = Stock.objects.get(variant=self)
+        return stock_obj.quantity
+    
+    def get_serial_number(self):
+        if self.is_serialized:
+            serial_number = Serialnumber.objects.filter(product_variant=self).first()
+            return str(serial_number)
+        else:
+            return ''
+        
+    def get_serial_number_status(self):
+        if self.is_serialized:
+            serial_number = Serialnumber.objects.filter(product_variant=self).first()
+            return serial_number.status
+            
+       
 
     
 class Item(models.Model):
@@ -85,12 +102,15 @@ class Item(models.Model):
             
 
     def get_absolute_url(self):
-        return reverse('stock:item_detail', [self.pk])   
+        return reverse('stock:item_detail', [self.pk])  
     
-
-
-
-
+    
+    def get_total_of_variant(self):
+        total = 0
+        for variant in self.variant.all():
+            total += variant.get_quantity()
+        return total
+    
 
 class Stock(models.Model):
     
@@ -432,13 +452,14 @@ class StockTransactions(models.Model):
     
     
 class Allocations(models.Model):
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    variants = models.ManyToManyField(Variant, through="AllocationItem", related_name='allocations')
     allocated_date = models.DateField(default=datetime.now)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE)
     contenttype = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     allocated_to = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('contenttype', 'allocated_to')
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True, blank=True)
+    
     
     class Meta:
         verbose_name_plural = 'Allocations'
@@ -455,32 +476,61 @@ class Allocations(models.Model):
         else:
             return self.contenttype.get_object_for_this_type(pk=self.allocated_to)
     
-    def __str__(self):
-        return str(self.variant)
+class AllocationItem(models.Model):
+    allocation = models.ForeignKey(Allocations, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+
+    class Meta:
+        unique_together = ("allocation", "variant")
   
+    
+
         
 class Returns(models.Model):
     GD = 'good'
     DG = 'damaged'
     LT = 'lost'
-    
+
     CONDITION_CHOICES = [
         (GD, 'Good'),
         (DG, 'Damaged'),
         (LT, 'Lost'),
     ]
-    
+
     allocation = models.ForeignKey(Allocations, on_delete=models.CASCADE)
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    variants = models.ManyToManyField(
+        Variant,
+        through="ReturnItem",
+        related_name="returned_variants"
+    )
     returned_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    condition = models.CharField(max_length=50, choices=CONDITION_CHOICES)
     return_date = models.DateTimeField(auto_now_add=True)
-    
-    
+
     class Meta:
         verbose_name_plural = 'Returns'
         
+    def __str__(self):
+        return str(self.allocation)
     
+    def get_returned_items(self):
+        return ", ".join([str(item).capitalize() for item in self.variants.all()])
+
+        
+    
+    
+        
+class ReturnItem(models.Model):
+    return_record = models.ForeignKey(Returns, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+
+    quantity = models.PositiveIntegerField()
+    condition = models.CharField(
+        max_length=50,
+        choices=Returns.CONDITION_CHOICES
+    )
+
+    def __str__(self):
+        return f"{self.variant} - {self.quantity} ({self.condition})"
 
 
