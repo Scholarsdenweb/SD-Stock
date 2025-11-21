@@ -25,14 +25,26 @@ class Login(LoginView):
     
     def form_valid(self, form):
         response = super().form_valid(form)
-        
-        log_action(self.request.user, request=self.request, action = 'Login', instance=self.request.user)
-        
+
+        if self.request.user.is_authenticated:
+            log_action(
+                self.request.user,
+                request=self.request,
+                action='Login',
+                instance=self.request.user
+            )
         return response
+
     
     
 def logout_view(request):
+    if request.user.is_authenticated:
+        log_action(
+            request.user,
+            request=request,
+            action='Login',
+            instance=request.user
+        )
     logout(request)
-    log_action(request.user, request=request, action = 'Logout')
     return render(request, 'index.html')
 
