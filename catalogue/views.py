@@ -6,7 +6,7 @@ from stock.forms import VariantForm, CategoryForm, ItemForm
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib import messages
-from audit.utils import log_action
+from audit.utils import log_action, json_safe
 
 # Create your views here.
 def main(request):
@@ -136,7 +136,7 @@ class UpdateVariant(UpdateView):
     def form_valid(self, form):
         obj = form.save()
         messages.success(self.request, 'Variant updated successfully')
-        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": form.cleaned_data})
+        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data":json_safe( form.cleaned_data)})
         return super().form_valid(form)
     
     
@@ -156,7 +156,7 @@ class UpdateItem(UpdateView):
     def form_valid(self, form):
         obj = form.save()
         messages.success(self.request, 'Item updated successfully')
-        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": form.cleaned_data})
+        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": json_safe(form.cleaned_data)})
         return super().form_valid(form)
     
     
@@ -176,7 +176,7 @@ class UpdateCategory(UpdateView):
     def form_valid(self, form):
         obj = form.save()
         messages.success(self.request, 'Category updated successfully')
-        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": form.cleaned_data})
+        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data": form.json_safe( form.cleaned_data)})
         return super().form_valid(form)
     
 def delete_category(request, pk):

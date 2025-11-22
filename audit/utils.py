@@ -1,5 +1,27 @@
 from .models import AuditLog
 from django.contrib.contenttypes.models import ContentType
+import datetime
+from decimal import Decimal
+from django.db.models import Model
+from django.db.models.query import QuerySet
+
+
+
+
+def json_safe(data: dict):
+    safe = {}
+    for key, value in data.items():
+        if isinstance(value, (datetime.date, datetime.datetime)):
+            safe[key] = value.isoformat()
+        elif isinstance(value, Decimal):
+            safe[key] = float(value)
+        elif isinstance(value, Model):       # For FK field instances
+            safe[key] = str(value)
+        elif isinstance(value, QuerySet):    # ManyToMany
+            safe[key] = [str(v) for v in value]
+        else:
+            safe[key] = value
+    return safe
 
 def log_action(user=None, action="custom", request=None,
                instance=None, changes=None, extra=None):

@@ -4,6 +4,12 @@
     box-sizing: border-box;
 }
 
+.cart-item input[type="number"] {
+    width:3em;
+    text-align: center;
+    font-size: 14px;
+}
+
 .inline-list {
     max-width: 100vw;
     white-space: nowrap;
@@ -60,4 +66,115 @@
 /* Show on hover */
 .item-cell:hover .item-detail-box {
     display: block;
+}
+
+
+/* styling dragable category tabs.  */
+
+.wrapper {
+    padding:0 25px;
+    margin: 1em;
+    border : 1px solid #c51315;
+    position: relative;
+    overflow-x: hidden;
+    max-width: 100%;
+    background-color: #fff;
+    border-radius: 50px;
+    padding:.4em 0;
+}
+
+.wrapper .arrows {
+    position:absolute;
+    top: 0;
+    height: 100%;
+    width: 100px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+}
+
+
+
+.arrows:first-child {
+    left:0;
+    display: none;
+    background: linear-gradient(90deg, #fff 70%, transparent);
+}
+
+
+
+.arrows:last-child{
+    right:0;
+    justify-content: flex-end;
+    background: linear-gradient(-90deg, #fff 70%, transparent);
+}
+
+
+
+.arrows:first-child i {
+     margin-left:.5em;
+}
+
+
+
+.arrows:last-child i {
+    margin-right:.5em;
+}
+
+.arrows i {
+    font-size:1.2rem;
+    width:55px;
+    height:55px;
+    border-radius:50%;
+    line-height: 55px;
+    text-align: center;
+    background-color:#fff;
+    cursor: pointer;
+}
+
+.arrows i:hover {
+    background-color: #c51315;
+}
+
+.wrapper .tab-box {
+    display: flex;
+    gap:12px;
+    list-style: none;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    margin:0;
+    padding:.5em;
+}
+
+.tab-box.dragging  {
+    scroll-behavior: auto;
+    cursor: grab;
+}
+
+.tab-box .tab {
+    cursor: pointer;
+    font-size:1.15rem;
+    white-space: nowrap;
+    background-color: #e17b7a;
+    padding:0 20px;
+    border-radius: 30px;
+    border:1px solid var(--theme-color);
+    user-select: none;
+}
+
+.tab-box .tab:hover {
+    display: block;
+    background:#c51315;
+    color:#fff;
+}
+
+.tab-box .tab a:hover {
+    display: block;
+    background:#c51315;
+    color:#fff;
+}
+
+.tab-box.dragging .tab {
+    user-select: none;
+    pointer-events: none;
 }

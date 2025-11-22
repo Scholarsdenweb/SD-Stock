@@ -370,6 +370,14 @@ def product_view(request):
     categories = Category.objects.all()
     items = Item.objects.all()
     
+    if request.method == 'GET':
+        category_id = request.GET.get('category', None)
+        if category_id is None:
+            items = Item.objects.all()
+        else:
+            items = Item.objects.filter(category=int(category_id))
+        print('items', items)
+    
     context = {
         'categories': categories,
         'items': items
@@ -381,7 +389,17 @@ def product_view(request):
 def product_detail_view(request, pk):
     categories = Category.objects.all()
     product = Item.objects.get(pk=pk)
-  
+    
+    variants = product.variant.all()
+    
+    for v in variants:
+        if v.is_serialized:
+            serial_numbers = Serialnumber.objects.filter(product_variant=v, item=product)
+            print('serial_numbers', serial_numbers)
+        else:
+            serial_numbers = None
+            print('serial_numbers', serial_numbers)
+            
     context = {
         'categories': categories,
         'product': product,
@@ -414,15 +432,24 @@ def allocation_cart(request):
     variants = Variant.objects.filter(id__in=cart)
     locations = Location.objects.all()
     
-    print('variants', cart)
+    if request.method == 'GET':
+        variant_id = request.GET.get('id', None)
+        if variant_id is None:
+            variants = Variant.objects.filter(id__in=cart)
+        else:
+            variant_id = int(variant_id)
+            if variant_id in cart:
+                cart.remove(variant_id)
+                request.session['allocation_cart'] = cart
+            variants = Variant.objects.filter(id__in=cart)
     
     context = {
-        'employees':employees,
-        'variants':variants,
-        'locations':locations
+        'employees': employees,
+        'variants': variants,
+        'locations': locations
     }
+    return render(request, "allocate/cart.html", context)
 
-    return render(request, "allocate/cart.html",context)
 
 
 
@@ -655,3 +682,6 @@ def return_allocated_items(request, form_data=None, allocation_id=None):
         )
 
     return redirect('allocate:allocation_detail', pk=int(allocation_id))
+
+
+

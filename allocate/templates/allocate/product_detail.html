@@ -7,66 +7,95 @@
 
 
 
-<form action="{% url 'allocate:add_item' %}" id="alloc_form" method="POST">
-    {% csrf_token %}
-  <div class="container variant">
-    <div class="row gap-2">
+
+{% block product %}
+    <form action="{% url 'allocate:add_item' %}" id="alloc_form" method="POST">
+        {% csrf_token %}
         
-        <div class="col-12">
-            <h4>Select and add items</h4>
-            <button class="btn btn-danger btn-sm" onclick = 'window.history.back()'>Back</button>
-        </div>
-
-        {% for variant in product.variant.all %}
-        <div class="col  col-md-2 col-xxl-2 col-lg-2">
-            <input type="checkbox" value="{{variant.id}}" name="variant" id="item_id_{{ forloop.counter }}" class='single-check'>
-                <label for="item_id_{{ forloop.counter }}" class="text-center  mb-2">
-                    <figure class="figure m-0 fw-bold">
-                        {% if variant.photo%}
-                        <img src="{{ variant.photo.url }}" alt="photo_{{forloop.counter}}" class="figure-img img-fluid rounded m-0">
-                        {% else %}
-                        <img src="{% static 'images/dummy.png' %}" alt="No Image" class="figure-img img-fluid rounded m-0">
-                        {% endif %}
-
-                        {% if variant.is_serialized %}
-
-                            {% if variant.get_serial_number_status == 'in stock' %}
-                                <p class="text-success fw-normal m-0" style="font-size:.7em">
-
-                                    {{ variant.get_serial_number_status|title }}
-                                </p>
-                            {% else %}
-                              <p class="text-danger fw-normal m-0" style="font-size:.7em">
-
-                                    {{ variant.get_serial_number_status|title }}
-                                </p>
-                            {% endif %}    
-                        {% else %}
-                            {% if variant.is_stocked %}
-                                <p class="text-success fw-normal m-0" style="font-size:.7em">
-                                    In Stock - {{ variant.get_quantity }}
-                                </p>
-                            {% else %}
-                                <p class="text-danger fw-normal m-0" style="font-size:.7em">
-                                    Out Of Stock
-                                </p>
-                            {% endif %}
-                        {% endif %}
-
-                        <figcaption class="figure-caption text-center m-0 d-flex flex-column">
-                            <small class='text-capitalize'>{{ variant.name}}</small>
-                            {% if variant.is_serialized %}
-                            <small>Sr.N: {{variant.get_serial_number}}</small>
-                            {% endif %}
-                        </figcaption>
-                    </figure><br>
-                </label>
+        <div class="container variant">
+        <div class="row gap-2 h-100 overflow-y-auto">
+            
+            <div class="col-12">
+                <h4>Select and add items</h4>
+                <button class="btn btn-danger btn-sm" onclick = 'window.history.back()'>Back</button>
             </div>
+    
+            {% for variant in product.variant.all %}
+    
+                {% if variant.is_serialized %}
+                    {% for sr in variant.get_all_serial_number %}
+                    
+                        <div class="col  col-md-2 col-xxl-2 col-lg-2">
+                            <input type="checkbox" value="{{sr.id}}" name="serial" id="serial_id_{{ forloop.counter }}" class='single-check'>
+                            <label for="serial_id_{{ forloop.counter }}" class="text-center  mb-2">
+    
+                            <figure>
+                                {% if sr.photo%}
+                                    <img src="{{ sr.photo.url }}" alt="photo_{{forloop.counter}}" class="figure-img img-fluid rounded m-0">
+                                    {% else %}
+                                    <img src="{% static 'images/dummy.png' %}" alt="No Image" class="figure-img img-fluid rounded m-0">
+                                {% endif %}
+    
+                                {% if sr.status == 'in stock' %}
+                                    <p class="text-success fw-normal m-0" style="font-size:.7em">
+    
+                                        {{ sr.status|title }}
+                                    </p>
+                                {% else %}
+                                    <p class="text-danger fw-normal m-0" style="font-size:.7em">
+    
+                                        {{ sr.status|title }}
+                                    </p>
+                                {% endif %}  
+    
+                                <figcaption class="figure-caption text-center m-0 d-flex flex-column">
+                                    <small class='text-capitalize fw-bold'>{{ sr.serial_number}}</small>
+                                </figcaption>
+                                </figure><br>
+                            </figure>   
+    
+                        </div>
+                    
+                    {% endfor %}
+                {% else %}
+                <div class="col col-md-2 col-xxl-2 col-lg-2l">
+                    <input type="checkbox" value="{{variant.id}}" name="variant" id="item_id_{{ forloop.counter }}" class='single-check'>
+                    <label for="item_id_{{ forloop.counter }}" class="text-center  mb-2">
+    
+                    <figure>
+    
+                        {% if variant.photo%}
+                            <img src="{{ variant.photo.url }}" alt="photo_{{forloop.counter}}" class="figure-img img-fluid rounded m-0">
+                                {% else %}
+                            <img src="{% static 'images/dummy.png' %}" alt="No Image" class="figure-img img-fluid rounded m-0">
+                        {% endif %}
+        
+                        {% if variant.is_stocked %}
+                            <p class="text-success fw-normal m-0" style="font-size:.7em">
+                                In Stock - {{ variant.get_quantity }}
+                            </p>
+                        {% else %}
+                            <p class="text-danger fw-normal m-0" style="font-size:.7em">
+                                Out Of Stock
+                            </p>
+                        {% endif %}
+    
+                        <figcaption class="figure-caption text-center m-0 d-flex flex-column">
+                            <small class='text-capitalize fw-bold'>{{ variant.name}}</small>
+                        </figcaption>
+                    </figure>
+                </div>
+                {% endif %}
+    
             {% endfor %}
-        </div>
-        <button  class="btn btn-primary btn-sm disabled"  id="addBtn">Add</button>
-</div>
-</form>
+    
+    
+            <div class="col-12">
+                <button  class="btn btn-primary btn-sm disabled"  id="addBtn">Add</button>
+            </div>
+    </div>
+    </form>
+{% endblock %}
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

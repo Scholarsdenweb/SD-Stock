@@ -46,11 +46,11 @@ class Variant(models.Model):
     meta_data = models.JSONField(null=True, blank=True,)
     is_serialized = models.BooleanField(default=False, verbose_name='Have serial number')
     is_active = models.BooleanField(default=True)
-    photo = models.ImageField(upload_to='variant/', blank=True)
+    photo = models.ImageField(upload_to='variant/', default='variant/default.jpg', blank=True)
     def __str__(self):
         return self.name
     
-    def get_serial_number(self):
+    def get_all_serial_number(self):
         serial_number_obj = Serialnumber.objects.filter(product_variant=self)
         return serial_number_obj
     
@@ -61,15 +61,18 @@ class Variant(models.Model):
         return False
     
     def get_quantity(self):
-        stock_obj = Stock.objects.get(variant=self)
-        return stock_obj.quantity
+        stock_obj = Stock.objects.filter(variant=self).first()
+        if stock_obj:
+            return stock_obj.quantity
+        return 0
+       
     
     def get_serial_number(self):
         if self.is_serialized:
             serial_number = Serialnumber.objects.filter(product_variant=self).first()
             return str(serial_number)
         else:
-            return ''
+            return 'Not Available'
         
     def get_serial_number_status(self):
         if self.is_serialized:
@@ -99,8 +102,6 @@ class Item(models.Model):
         super().save(*args, **kwargs)
 
 
-            
-
     def get_absolute_url(self):
         return reverse('stock:item_detail', [self.pk])  
     
@@ -110,6 +111,8 @@ class Item(models.Model):
         for variant in self.variant.all():
             total += variant.get_quantity()
         return total
+    
+ 
     
 
 class Stock(models.Model):

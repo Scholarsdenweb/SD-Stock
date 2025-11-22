@@ -1,8 +1,8 @@
-{% extends "allocate/product_view.html" %}
+{% extends "dashboard/home.html" %}
 {% load static %}
 
 
-{% block product %}
+{% block table %}
 
 
 {% if variants %}
@@ -13,7 +13,7 @@
             <form action="{% url 'allocate:allocate_items' %}" id="allocation_form" method='POST'>
                 {% csrf_token %}
                 <div class="form-group m-1">
-                    <select name="location" id="" class="form-select">
+                    <select name="location" id="" class="form-select" required>
                         <option value="" selected>--Select Recipient Type--</option>
                         {% for loc in locations %}
                             <option value="{{loc.id}}">{{loc.name}}</option>
@@ -22,7 +22,7 @@
                 </div>
 
                 <div class="form-group m-1">
-                    <select name="employee" id="" class="form-select">
+                    <select name="employee" id="" class="form-select" required>
                         <option value="" selected>--Select Recipient--</option>
                         {% for emp in employees %}
                             <option value="{{emp.id}}">{{emp.user.full_name}}</option>
@@ -32,9 +32,10 @@
 
                 <ul class='list-group'>
                     {% for variant in variants %}
-                        <li class="list-group-item d-flex justify-content-between m-1  p-2 gap-3">
+                        <li class="list-group-item d-flex justify-content-between m-1  p-2 gap-3 cart-item">
                             <strong class="flex-item flex-grow-1">{{forloop.counter}}. {{variant.name|title}}</strong>
-                            <a href=""><i class="fa-solid fa-trash" style="color: #ff0000;"></i></a>
+                            
+                            <a href="{% url 'allocate:allocation_cart' %}?id={{variant.id}}"><i class="fa-solid fa-trash" style="color: #ff0000;"></i></a>
                         </li>
                     {% endfor %}
                 </ul>
