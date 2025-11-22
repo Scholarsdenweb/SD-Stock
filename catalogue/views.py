@@ -136,7 +136,7 @@ class UpdateVariant(UpdateView):
     def form_valid(self, form):
         obj = form.save()
         messages.success(self.request, 'Variant updated successfully')
-        log_action(user=self.request.user, request=self.request, action="update", instance=obj, changes={"form_data":json_safe( form.cleaned_data)})
+        log_action(user=self.request.user, request=self.request, action="update", instance=obj)
         return super().form_valid(form)
     
     
